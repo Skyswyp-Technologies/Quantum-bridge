@@ -10,15 +10,31 @@ import Time from "./../public/time.svg";
 import Arrow from "./../public/arrow.svg";
 import MobileNav from "./MobileNav";
 import Image from "next/image";
+import MobConnect from "./ConnectWallet";
 
 const BridgeHome: React.FC = () => {
   const [fromNetwork, setFromNetwork] = useState("ETH");
   const [toNetwork, setToNetwork] = useState("ARB");
+  const [fromToken, setFromToken] = useState("USDT");
+  const [toToken, setToToken] = useState("USDT");
   const [amount, setAmount] = useState("");
   const [recipientAddress, setRecipientAddress] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"from" | "to">("from");
+
   const router = useRouter();
+
+  const networks = [
+    { id: "ETH", name: "Ethereum" },
+    { id: "ARB", name: "Arbitrum" },
+    // Add more networks as needed
+  ];
+
+  const tokens = [
+    { id: "USDT", name: "Tether", icon: Usdt },
+    { id: "ETH", name: "Ethereum", icon: Usdt }, // Replace with actual ETH icon
+    // Add more tokens as needed
+  ];
 
   const handleExchange = () => {
     setFromNetwork(toNetwork);
@@ -53,9 +69,14 @@ const BridgeHome: React.FC = () => {
         {type === "from" ? "From" : "To"}
       </span>
       <div className="flex justify-between items-center">
-        <Image src={Usdt} alt="usdt" width={24} height={24} />
+        <Image
+          src={tokens.find(t => t.id === (type === "from" ? fromToken : toToken))?.icon || Usdt}
+          alt="token"
+          width={24}
+          height={24}
+        />
         <div className="flex flex-col gap-1">
-          <span>Usdt</span>
+          <span>{type === "from" ? fromToken : toToken}</span>
           <span className="font-bold">
             On {type === "from" ? fromNetwork : toNetwork}
           </span>
@@ -178,14 +199,9 @@ const BridgeHome: React.FC = () => {
 
   const DesktopDesign = () => (
     <div className="bg-[#000000] text-white h-screen hidden  w-full md:flex flex-col">
-      <div className="flex justify-between items-center p-6 bg-[#1A1A1A]">
-        <span className="text-2xl font-bold">Quantum Protocol</span>
-        <div className="flex items-center space-x-6">
-          <span className="text-lg">ETH</span>
-          <button className="bg-[#3B82F6] text-white px-4 py-2 rounded-full text-lg">
-            Connect Wallet
-          </button>
-        </div>
+      <div className="flex justify-between items-center w-full h-[60px] px-8 py-2 bg-[#1A1A1A]">
+        <span className="text-base">Quantum Protocol</span>
+        <MobConnect />
       </div>
       <div className="flex-grow flex justify-center items-center">
         <div className="w-[428px] h-[550px] mx-auto">
@@ -313,41 +329,71 @@ const BridgeHome: React.FC = () => {
             }}
           >
             <h2 className="text-2xl font-bold mb-6 text-[#A6A9B8]">
-              Select {modalType === "from" ? "Source" : "Destination"} Network
+              Select {modalType === "from" ? "Source" : "Destination"} Network and Token
             </h2>
-            <div className="space-y-4">
-              <button
-                className="w-full bg-[#2C3B52] text-[#A6A9B8] p-4 rounded-xl text-left text-lg"
-                onClick={() => {
-                  modalType === "from"
-                    ? setFromNetwork("ETH")
-                    : setToNetwork("ETH");
-                  closeModal();
-                }}
-              >
-                Ethereum (ETH)
-              </button>
-              <button
-                className="w-full bg-[#2C3B52] text-[#A6A9B8] p-4 rounded-xl text-left text-lg"
-                onClick={() => {
-                  modalType === "from"
-                    ? setFromNetwork("ARB")
-                    : setToNetwork("ARB");
-                  closeModal();
-                }}
-              >
-                Arbitrum (ARB)
-              </button>
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-[#A6A9B8]">Network</h3>
+                <div className="space-y-2">
+                  {networks.map((network) => (
+                    <button
+                      key={network.id}
+                      className="w-full bg-[#2C3B52] text-[#A6A9B8] p-4 rounded-xl text-left text-lg flex items-center justify-between"
+                      onClick={() => {
+                        if (modalType === "from") {
+                          setFromNetwork(network.id);
+                        } else {
+                          setToNetwork(network.id);
+                        }
+                      }}
+                    >
+                      <span>{network.name} ({network.id})</span>
+                      {((modalType === "from" && fromNetwork === network.id) ||
+                        (modalType === "to" && toNetwork === network.id)) && (
+                        <span className="text-green-500">✓</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-[#A6A9B8]">Token</h3>
+                <div className="space-y-2">
+                  {tokens.map((token) => (
+                    <button
+                      key={token.id}
+                      className="w-full bg-[#2C3B52] text-[#A6A9B8] p-4 rounded-xl text-left text-lg flex items-center justify-between"
+                      onClick={() => {
+                        if (modalType === "from") {
+                          setFromToken(token.id);
+                        } else {
+                          setToToken(token.id);
+                        }
+                      }}
+                    >
+                      <div className="flex items-center">
+                        <Image src={token.icon} alt={token.name} width={24} height={24} className="mr-3" />
+                        <span>{token.name} ({token.id})</span>
+                      </div>
+                      {((modalType === "from" && fromToken === token.id) ||
+                        (modalType === "to" && toToken === token.id)) && (
+                        <span className="text-green-500">✓</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
             <button
               className="w-full bg-[#3B82F6] mt-6 py-4 rounded-full font-bold text-2xl text-white"
               onClick={closeModal}
             >
-              Close
+              Confirm
             </button>
           </div>
         </div>
       )}
+    
     </>
   );
 };
