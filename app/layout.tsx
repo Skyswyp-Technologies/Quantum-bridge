@@ -1,13 +1,9 @@
-import type { Metadata } from 'next'
+"use client"
+
 import { Urbanist } from 'next/font/google'
 import './globals.css'
 
 const urbanist = Urbanist({ subsets: ['latin'] })
-
-export const metadata: Metadata = {
-  title: 'Bridge dApp',
-  description: 'A dApp for bridging assets across blockchain networks',
-}
 
 export default function RootLayout({
   children,
