@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import MobileNav from "./MobileNav";
+import MobileNav from "./Header";
 import Exchange from "./../public/exchange.svg";
 import Usdt from "./../public/usdt.svg";
 import Gas from "./../public/gas.svg";

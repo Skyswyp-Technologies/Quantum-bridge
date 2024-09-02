@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import Exchange from "./../public/exchange.svg";
 import Usdt from "./../public/usdt.svg";
@@ -8,33 +8,36 @@ import Gas from "./../public/gas.svg";
 import Tools from "./../public/tools.svg";
 import Time from "./../public/time.svg";
 import Arrow from "./../public/arrow.svg";
-import MobileNav from "./MobileNav";
 import Image from "next/image";
 import MobConnect from "./ConnectWallet";
+import { useBridge } from "@/context/BridgeContext";
+import Header from "./Header";
 
 const BridgeHome: React.FC = () => {
-  const [fromNetwork, setFromNetwork] = useState("ETH");
-  const [toNetwork, setToNetwork] = useState("ARB");
-  const [fromToken, setFromToken] = useState("USDT");
-  const [toToken, setToToken] = useState("USDT");
-  const [amount, setAmount] = useState("");
-  const [recipientAddress, setRecipientAddress] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalType, setModalType] = useState<"from" | "to">("from");
+  const {
+    fromNetwork,
+    setFromNetwork,
+    toNetwork,
+    setToNetwork,
+    fromToken,
+    setFromToken,
+    toToken,
+    setToToken,
+    amount,
+    setAmount,
+    recipientAddress,
+    setRecipientAddress,
+    isModalOpen,
+    setIsModalOpen,
+    modalType,
+    setModalType,
+    networks,
+    tokens,
+  } = useBridge();
 
   const router = useRouter();
 
-  const networks = [
-    { id: "ETH", name: "Ethereum" },
-    { id: "ARB", name: "Arbitrum" },
-    // Add more networks as needed
-  ];
 
-  const tokens = [
-    { id: "USDT", name: "Tether", icon: Usdt },
-    { id: "ETH", name: "Ethereum", icon: Usdt }, // Replace with actual ETH icon
-    // Add more tokens as needed
-  ];
 
   const handleExchange = () => {
     setFromNetwork(toNetwork);
@@ -95,7 +98,7 @@ const BridgeHome: React.FC = () => {
 
   const MobileDesign = () => (
     <div className="bg-[#000000] text-white md:hidden  h-screen w-full flex flex-col">
-      <MobileNav />
+      <Header />
       <div className="mx-4 my-2 flex flex-col flex-grow rounded-3xl border border-[#3E4347] overflow-auto">
         <div className="p-4 flex-grow">
           <div className="flex flex-col space-y-3">
