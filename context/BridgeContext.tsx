@@ -5,6 +5,7 @@ interface Token {
   id: string;
   name: string;
   icon: any; // You might want to use a more specific type for the icon
+  address: string;
 }
 
 interface Network {
@@ -27,7 +28,7 @@ interface BridgeContextType {
   setRecipientAddress: (address: string) => void;
   isModalOpen: boolean;
   setIsModalOpen: (isOpen: boolean) => void;
-  modalType: "from" | "to";
+  modalType: "from" | "to"; 
   setModalType: (type: "from" | "to") => void;
   networks: Network[];
   tokens: Token[];
@@ -52,8 +53,8 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   ];
 
   const tokens: Token[] = [
-    { id: "USDT", name: "Tether", icon: Usdt },
-    { id: "ETH", name: "Ethereum", icon: Usdt }, // Replace with actual ETH icon
+    { id: "USDT", name: "Tether", icon: Usdt , address: "0x43535C041AF9d270Bd7aaA9ce5313d960BBEABAD" },
+    { id: "ETH", name: "Ethereum", icon: Usdt, address: "0x5682bce3c6e4831503c4C3a9f0Db81ff61EF72a5" }, // Replace with actual ETH icon
     // Add more tokens as needed
   ];
 
