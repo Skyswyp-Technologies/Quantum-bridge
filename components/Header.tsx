@@ -6,11 +6,11 @@ import { usePathname } from "next/navigation";
 import Menu from "./../public/menu.svg";
 import MobConnect from "./ConnectWallet";
 
-interface MobileNavProps {
+interface HeaderProps {
   className?: string;
 }
 
-const MobileNav: React.FC<MobileNavProps> = ({ className = "" }) => {
+const Header: React.FC<HeaderProps> = ({ className = "" }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const pathname = usePathname();
 
@@ -80,4 +80,4 @@ const MobileNav: React.FC<MobileNavProps> = ({ className = "" }) => {
   );
 };
 
-export default MobileNav;
+export default Header;
