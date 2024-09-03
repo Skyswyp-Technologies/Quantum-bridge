@@ -28,7 +28,7 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
-  };
+  }; 
 
   return (
     <>

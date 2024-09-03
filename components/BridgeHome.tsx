@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Exchange from "./../public/exchange.svg";
 import Usdt from "./../public/usdt.svg";
@@ -9,11 +9,15 @@ import Tools from "./../public/tools.svg";
 import Time from "./../public/time.svg";
 import Arrow from "./../public/arrow.svg";
 import Image from "next/image";
+import { useAccount } from "wagmi";
 import MobConnect from "./ConnectWallet";
 import { useBridge } from "@/context/BridgeContext";
 import Header from "./Header";
 
 const BridgeHome: React.FC = () => {
+  const [error, setError] = useState<string | null>(null);
+
+
   const {
     fromNetwork,
     setFromNetwork,
@@ -35,6 +39,9 @@ const BridgeHome: React.FC = () => {
     tokens,
   } = useBridge();
 
+  const { address } = useAccount();
+
+
   const router = useRouter();
 
 
@@ -45,8 +52,18 @@ const BridgeHome: React.FC = () => {
   };
 
   const handleBridge = () => {
-    router.push("/bridge-transaction");
+    if (!address) {
+      setError("Please connect your wallet to proceed with the bridge transaction.");
+    } else {
+      setError(null); // Clear any previous errors
+      router.push("/bridge-transaction");
+    }   
   };
+
+  console.log("From Token", fromToken);
+
+  console.log("To Token", toToken);
+
 
   const handlePaste = async () => {
     try {
@@ -79,7 +96,7 @@ const BridgeHome: React.FC = () => {
           height={24}
         />
         <div className="flex flex-col gap-1">
-          <span>{type === "from" ? fromToken : toToken}</span>
+          {/* <span>{type === "from" ? fromToken : toToken}</span> */}
           <span className="font-bold">
             On {type === "from" ? fromNetwork : toNetwork}
           </span>
@@ -361,9 +378,9 @@ const BridgeHome: React.FC = () => {
                       className="w-full bg-[#2C3B52] text-[#A6A9B8] p-4 rounded-xl text-left text-lg flex items-center justify-between"
                       onClick={() => {
                         if (modalType === "from") {
-                          setFromToken(token.id);
+                          setFromToken(token.address);
                         } else {
-                          setToToken(token.id);
+                          setToToken(token.address);
                         }
                       }}
                     >
