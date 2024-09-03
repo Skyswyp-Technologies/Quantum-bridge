@@ -201,111 +201,104 @@ const BridgeHome: React.FC = () => {
   );
 
   const DesktopDesign = () => (
-    <div className="bg-[#000000] text-white h-screen hidden  w-full md:flex flex-col">
-      <div className="flex justify-between items-center w-full h-[60px] px-8 py-2 bg-[#1A1A1A]">
-        <span className="text-base">Quantum Protocol</span>
+    <div className="bg-[#000000] text-white h-screen w-full hidden md:flex flex-col">
+      <div className="flex justify-between items-center w-full h-16 px-8 xl:px-20 mx-auto py-4 bg-[#000000] border-b border-b-[#3E4347]">
+        <span className="text-lg text-[#A6A9B8]">Quantum Protocol</span>
         <MobConnect />
       </div>
-      <div className="flex-grow flex justify-center items-center">
-        <div className="w-[428px] h-[550px] mx-auto">
-          <div className="bg-[#1A1A1A] rounded-3xl border border-[#3E4347] overflow-hidden">
-            <div className="p-10">
-              <h2 className="text-4xl font-bold mb-8">Bridge Assets</h2>
-              <div className="space-y-8">
-                <div className="flex justify-between items-center space-x-6">
-                  <NetworkSelector type="from" />
-                  <div
-                    className="cursor-pointer transform hover:scale-110 transition-transform duration-200"
-                    onClick={handleExchange}
-                  >
-                    <Image
-                      src={Exchange}
-                      alt="exchange"
-                      width={30}
-                      height={30}
-                    />
-                  </div>{" "}
-                  <NetworkSelector type="to" />
+      <div className="flex-grow flex">
+        <div className="w-1/2 flex items-center justify-center">
+          <h1 className="text-4xl font-bold text-[#A6A9B8]">Bridge Assets Across Chains</h1>
+        </div>
+        <div className="w-1/2 flex items-center justify-center">
+          <div className="w-[360px] h-[calc(100vh-75px)] bg-[#000000] rounded-3xl border border-[#3E4347] overflow-hidden flex flex-col">
+            <div className="flex-grow py-6 px-4 flex flex-col space-y-4">
+              <div className="flex justify-between items-center">
+                <NetworkSelector type="from" />
+                <div
+                  className="cursor-pointer transform hover:scale-110 transition-transform duration-200"
+                  onClick={handleExchange}
+                >
+                  <Image src={Exchange} alt="exchange" width={30} height={30} />
                 </div>
-
-                <div className="rounded-xl border border-[#3E4347] bg-[#1A1A1A80] p-6 w-full flex justify-between items-center">
-                  <div className="flex flex-col">
-                    <span className="text-[#A6A9B8] text-lg">You Pay</span>
-                    <span className="text-[#A6A9B8] text-lg">
-                      $ {parseFloat(amount || "0").toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <input
-                      type="number"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      className="bg-transparent border-none focus:outline-none focus:ring-0 text-[#9A9A9A] text-2xl text-right w-40"
-                      placeholder="0"
-                    />
-                    <button
-                      className="bg-[#1E1E1E] px-4 py-2 rounded-lg text-white text-base"
-                      onClick={() => setAmount("10")}
-                    >
-                      max
-                    </button>
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-[#3E4347] bg-[#1A1A1A80] p-6 w-full">
-                  <div className="relative w-full">
-                    <span className="text-[#A6A9B8] text-base absolute top-0 left-0">
-                      Recipient address (optional)
-                    </span>
-                    <input
-                      type="text"
-                      value={recipientAddress}
-                      onChange={(e) => setRecipientAddress(e.target.value)}
-                      className="w-full pt-8 pb-2 bg-transparent border-none focus:outline-none focus:ring-0 text-[#A6A9B8] placeholder-[#A6A9B8] text-lg"
-                      placeholder="Enter Address"
-                    />
-                    <button
-                      className="absolute right-0 bottom-2 bg-[#1E1E1E] px-4 py-2 rounded-lg text-white text-base"
-                      onClick={handlePaste}
-                    >
-                      paste
-                    </button>
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-[#A6A9B880] bg-[#1A1A1ACC] p-6 w-full">
-                  <span className="text-[#A6A9B8] text-lg font-bold">
-                    You get
+                <NetworkSelector type="to" />
+              </div>
+  
+              <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-3 flex justify-between items-center">
+                <div className="flex flex-col">
+                  <span className="text-[#A6A9B8] text-sm">You Pay</span>
+                  <span className="text-[#A6A9B8] text-sm">
+                    $ {parseFloat(amount || "0").toFixed(2)}
                   </span>
-                  <div className="flex justify-between items-center mt-3">
-                    <span className="text-[#9A9A9A] text-2xl">
-                      {amount || "0"} {toNetwork}
-                    </span>
-                    <span className="text-[#A6A9B8] text-lg">
-                      $ {parseFloat(amount || "0").toFixed(2)}
-                    </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="number"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="bg-transparent border-none focus:outline-none focus:ring-0 text-[#9A9A9A] text-xl text-right w-24"
+                    placeholder="0"
+                  />
+                  <button
+                    className="rounded bg-[#1E1E1E] px-2 py-1 text-white text-xs"
+                    onClick={() => setAmount("10")}
+                  >
+                    max
+                  </button>
+                </div>
+              </div>
+  
+              <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-3">
+                <div className="relative w-full">
+                  <span className="text-[#A6A9B8] text-sm absolute top-0 left-0">
+                    Recipient address (optional)
+                  </span>
+                  <input
+                    type="text"
+                    value={recipientAddress}
+                    onChange={(e) => setRecipientAddress(e.target.value)}
+                    className="w-full pt-6 pb-1 bg-transparent border-none focus:outline-none focus:ring-0 text-[#A6A9B8] placeholder-[#A6A9B8] text-sm"
+                    placeholder="Enter Address"
+                  />
+                  <button
+                    className="absolute right-0 bottom-1 rounded bg-[#1E1E1E] px-2 py-1 text-white text-xs"
+                    onClick={handlePaste}
+                  >
+                    paste
+                  </button>
+                </div>
+              </div>
+  
+              <div className="rounded border border-[#A6A9B880] bg-[#1A1A1ACC] p-3 flex flex-col gap-2">
+                <span className="text-[#A6A9B8] text-sm font-bold">You get</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-[#9A9A9A] text-xl">
+                    {amount || "0"} {toNetwork}
+                  </span>
+                  <span className="text-[#A6A9B8] text-sm">
+                    $ {parseFloat(amount || "0").toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-1">
+                    <Image src={Gas} alt="gas" width={12} height={12} />
+                    <span className="text-[#A6A9B8] text-xs">$1.5</span>
                   </div>
-                  <div className="flex items-center space-x-6 mt-4">
-                    <div className="flex items-center space-x-2">
-                      <Image src={Gas} alt="gas" width={16} height={16} />
-                      <span className="text-[#A6A9B8] text-base">$1.5</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Image src={Tools} alt="tools" width={16} height={16} />
-                      <span className="text-[#A6A9B8] text-base">$1.5</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Image src={Time} alt="time" width={16} height={16} />
-                      <span className="text-[#A6A9B8] text-base">1 min</span>
-                    </div>
+                  <div className="flex items-center space-x-1">
+                    <Image src={Tools} alt="tools" width={12} height={12} />
+                    <span className="text-[#A6A9B8] text-xs">$1.5</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Image src={Time} alt="time" width={12} height={12} />
+                    <span className="text-[#A6A9B8] text-xs">1 min</span>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="p-8 bg-[#141618]">
+            <div className="p-6 mt-auto">
               <button
                 onClick={handleBridge}
-                className="w-full bg-[#3B82F6] py-4 rounded-full font-bold text-2xl text-white"
+                className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200"
               >
                 Bridge Assets
               </button>
@@ -388,7 +381,7 @@ const BridgeHome: React.FC = () => {
               </div>
             </div>
             <button
-              className="w-full bg-[#3B82F6] mt-6 py-4 rounded-full font-bold text-2xl text-white"
+              className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] mt-6 py-4 rounded-full hover:bg-gradient-to-l transition-colors duration-200 font-bold text-2xl text-white"
               onClick={closeModal}
             >
               Confirm
