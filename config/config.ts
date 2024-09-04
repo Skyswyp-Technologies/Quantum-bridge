@@ -1,4 +1,4 @@
 export const Config = {
-    JSON_RPC: process.env.JSON_RPC,
-    BRIDGE_CONTRACT: ""
+    JSON_RPC: "https://go.getblock.io/31444462630a4730b10f37640de31849",
+    BRIDGE_CONTRACT: "0x67e0B3f4069e59812EecC65DF127811A43AF5Eb9"
 }

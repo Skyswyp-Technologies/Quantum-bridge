@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Exchange from "./../public/exchange.svg";
 import Usdt from "./../public/usdt.svg";
@@ -13,10 +13,10 @@ import { useAccount } from "wagmi";
 import MobConnect from "./ConnectWallet";
 import { useBridge } from "@/context/BridgeContext";
 import Header from "./Header";
+import { bridgeWrapper } from "@/helpers/helpers";
 
 const BridgeHome: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
-
 
   const {
     fromNetwork,
@@ -37,14 +37,24 @@ const BridgeHome: React.FC = () => {
     setModalType,
     networks,
     tokens,
+    setTokenBalance,
+    tokenBal,
+    setUserAddress,
+    feeInUSD
   } = useBridge();
 
   const { address } = useAccount();
-
-
   const router = useRouter();
 
-
+  useEffect(() => {
+    try {
+      if (address) {
+        setUserAddress(address);
+      }
+    } catch (error) {
+      throw error;
+    }
+  }, [address, setUserAddress]);
 
   const handleExchange = () => {
     setFromNetwork(toNetwork);
@@ -53,16 +63,14 @@ const BridgeHome: React.FC = () => {
 
   const handleBridge = () => {
     if (!address) {
-      setError("Please connect your wallet to proceed with the bridge transaction.");
+      setError(
+        "Please connect your wallet to proceed with the bridge transaction."
+      );
     } else {
       setError(null); // Clear any previous errors
       router.push("/bridge-transaction");
-    }   
+    }
   };
-
-  console.log("From Token", fromToken);
-
-  console.log("To Token", toToken);
 
 
   const handlePaste = async () => {
@@ -71,6 +79,16 @@ const BridgeHome: React.FC = () => {
       setRecipientAddress(text);
     } catch (err) {
       console.error("Failed to read clipboard contents: ", err);
+    }
+  };
+
+  const handleMaxClick = async () => {
+    try {
+      if (tokenBal) {
+        setAmount(tokenBal.toString());
+      }
+    } catch (error) {
+      throw error;
     }
   };
 
@@ -90,7 +108,10 @@ const BridgeHome: React.FC = () => {
       </span>
       <div className="flex justify-between items-center">
         <Image
-          src={tokens.find(t => t.id === (type === "from" ? fromToken : toToken))?.icon || Usdt}
+          src={
+            tokens.find((t) => t.id === (type === "from" ? fromToken : toToken))
+              ?.icon || Usdt
+          }
           alt="token"
           width={24}
           height={24}
@@ -148,7 +169,7 @@ const BridgeHome: React.FC = () => {
                 />
                 <div
                   className="rounded bg-[#1E1E1E] p-1 text-white flex justify-center items-center text-xs cursor-pointer"
-                  onClick={() => setAmount("10")}
+                  onClick={handleMaxClick}
                 >
                   max
                 </div>
@@ -191,11 +212,11 @@ const BridgeHome: React.FC = () => {
               <div className="flex flex-row items-center gap-4">
                 <div className="flex flex-row gap-2 items-center">
                   <Image src={Gas} alt="gas" width={12} height={12} />
-                  <span className="text-[#A6A9B8] text-xs">$1.5</span>
+                  <span className="text-[#A6A9B8] text-xs">${feeInUSD}</span>
                 </div>
                 <div className="flex flex-row gap-2 items-center">
                   <Image src={Tools} alt="tools" width={12} height={12} />
-                  <span className="text-[#A6A9B8] text-xs">$1.5</span>
+                  <span className="text-[#A6A9B8] text-xs">${feeInUSD}</span>
                 </div>
                 <div className="flex flex-row gap-2 items-center">
                   <Image src={Time} alt="time" width={12} height={12} />
@@ -225,7 +246,9 @@ const BridgeHome: React.FC = () => {
       </div>
       <div className="flex-grow flex">
         <div className="w-1/2 flex items-center justify-center">
-          <h1 className="text-4xl font-bold text-[#A6A9B8]">Bridge Assets Across Chains</h1>
+          <h1 className="text-4xl font-bold text-[#A6A9B8]">
+            Bridge Assets Across Chains
+          </h1>
         </div>
         <div className="w-1/2 flex items-center justify-center">
           <div className="w-[360px] h-[calc(100vh-75px)] bg-[#000000] rounded-3xl border border-[#3E4347] overflow-hidden flex flex-col">
@@ -240,7 +263,7 @@ const BridgeHome: React.FC = () => {
                 </div>
                 <NetworkSelector type="to" />
               </div>
-  
+
               <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-3 flex justify-between items-center">
                 <div className="flex flex-col">
                   <span className="text-[#A6A9B8] text-sm">You Pay</span>
@@ -258,13 +281,13 @@ const BridgeHome: React.FC = () => {
                   />
                   <button
                     className="rounded bg-[#1E1E1E] px-2 py-1 text-white text-xs"
-                    onClick={() => setAmount("10")}
+                    onClick={handleMaxClick}
                   >
                     max
                   </button>
                 </div>
               </div>
-  
+
               <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-3">
                 <div className="relative w-full">
                   <span className="text-[#A6A9B8] text-sm absolute top-0 left-0">
@@ -285,9 +308,11 @@ const BridgeHome: React.FC = () => {
                   </button>
                 </div>
               </div>
-  
+
               <div className="rounded border border-[#A6A9B880] bg-[#1A1A1ACC] p-3 flex flex-col gap-2">
-                <span className="text-[#A6A9B8] text-sm font-bold">You get</span>
+                <span className="text-[#A6A9B8] text-sm font-bold">
+                  You get
+                </span>
                 <div className="flex justify-between items-center">
                   <span className="text-[#9A9A9A] text-xl">
                     {amount || "0"} {toNetwork}
@@ -299,11 +324,11 @@ const BridgeHome: React.FC = () => {
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-1">
                     <Image src={Gas} alt="gas" width={12} height={12} />
-                    <span className="text-[#A6A9B8] text-xs">$1.5</span>
+                    <span className="text-[#A6A9B8] text-xs">${feeInUSD}</span>
                   </div>
                   <div className="flex items-center space-x-1">
                     <Image src={Tools} alt="tools" width={12} height={12} />
-                    <span className="text-[#A6A9B8] text-xs">$1.5</span>
+                    <span className="text-[#A6A9B8] text-xs">${feeInUSD}</span>
                   </div>
                   <div className="flex items-center space-x-1">
                     <Image src={Time} alt="time" width={12} height={12} />
@@ -342,11 +367,14 @@ const BridgeHome: React.FC = () => {
             }}
           >
             <h2 className="text-2xl font-bold mb-6 text-[#A6A9B8]">
-              Select {modalType === "from" ? "Source" : "Destination"} Network and Token
+              Select {modalType === "from" ? "Source" : "Destination"} Network
+              and Token
             </h2>
             <div className="space-y-6">
               <div>
-                <h3 className="text-xl font-semibold mb-3 text-[#A6A9B8]">Network</h3>
+                <h3 className="text-xl font-semibold mb-3 text-[#A6A9B8]">
+                  Network
+                </h3>
                 <div className="space-y-2">
                   {networks.map((network) => (
                     <button
@@ -360,7 +388,9 @@ const BridgeHome: React.FC = () => {
                         }
                       }}
                     >
-                      <span>{network.name} ({network.id})</span>
+                      <span>
+                        {network.name} ({network.id})
+                      </span>
                       {((modalType === "from" && fromNetwork === network.id) ||
                         (modalType === "to" && toNetwork === network.id)) && (
                         <span className="text-green-500">✓</span>
@@ -370,7 +400,9 @@ const BridgeHome: React.FC = () => {
                 </div>
               </div>
               <div>
-                <h3 className="text-xl font-semibold mb-3 text-[#A6A9B8]">Token</h3>
+                <h3 className="text-xl font-semibold mb-3 text-[#A6A9B8]">
+                  Token
+                </h3>
                 <div className="space-y-2">
                   {tokens.map((token) => (
                     <button
@@ -385,8 +417,16 @@ const BridgeHome: React.FC = () => {
                       }}
                     >
                       <div className="flex items-center">
-                        <Image src={token.icon} alt={token.name} width={24} height={24} className="mr-3" />
-                        <span>{token.name} ({token.id})</span>
+                        <Image
+                          src={token.icon}
+                          alt={token.name}
+                          width={24}
+                          height={24}
+                          className="mr-3"
+                        />
+                        <span>
+                          {token.name} ({token.id})
+                        </span>
                       </div>
                       {((modalType === "from" && fromToken === token.id) ||
                         (modalType === "to" && toToken === token.id)) && (
@@ -406,7 +446,6 @@ const BridgeHome: React.FC = () => {
           </div>
         </div>
       )}
-    
     </>
   );
 };
