@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Exchange from "./../public/exchange.svg";
 import Usdt from "./../public/usdt.svg";
@@ -17,6 +17,8 @@ import { bridgeWrapper } from "@/helpers/helpers";
 
 const BridgeHome: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const inputMobRef = useRef<HTMLInputElement | null>(null);
 
   const {
     fromNetwork,
@@ -40,7 +42,7 @@ const BridgeHome: React.FC = () => {
     setTokenBalance,
     tokenBal,
     setUserAddress,
-    feeInUSD
+    feeInUSD,
   } = useBridge();
 
   const { address } = useAccount();
@@ -56,9 +58,33 @@ const BridgeHome: React.FC = () => {
     }
   }, [address, setUserAddress]);
 
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+      // Move cursor to the end of the input
+      inputRef.current.setSelectionRange(
+        inputRef.current.value.length,
+        inputRef.current.value.length
+      );
+    }
+  }, [amount]);
+
+  useEffect(() => {
+    if (inputMobRef.current) {
+      inputMobRef.current.focus();
+      // Move cursor to the end of the input
+      inputMobRef.current.setSelectionRange(
+        inputMobRef.current.value.length,
+        inputMobRef.current.value.length
+      );
+    }
+  }, [amount]);
+
   const handleExchange = () => {
     setFromNetwork(toNetwork);
     setToNetwork(fromNetwork);
+    setFromToken(toToken);
+    setToToken(fromToken);
   };
 
   const handleBridge = () => {
@@ -72,7 +98,6 @@ const BridgeHome: React.FC = () => {
     }
   };
 
-
   const handlePaste = async () => {
     try {
       const text = await navigator.clipboard.readText();
@@ -82,15 +107,45 @@ const BridgeHome: React.FC = () => {
     }
   };
 
-  const handleMaxClick = async () => {
-    try {
-      if (tokenBal) {
-        setAmount(tokenBal.toString());
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value === "" || /^\d*\.?\d*$/.test(value)) {
+      const numValue = parseFloat(value);
+      if (!isNaN(numValue)) {
+        setAmount(numValue);
+      } else {
+        setAmount(0);
       }
-    } catch (error) {
-      throw error;
     }
   };
+
+  const handleMaxClick = () => {
+    if (tokenBal) {
+      const maxAmount = parseFloat(tokenBal);
+      if (!isNaN(maxAmount)) {
+        setAmount(maxAmount);
+      }
+    }
+  };
+
+  const getBridgeButtonStatus = () => {
+    if (!fromToken) {
+      return { disabled: true, text: "Select Source Asset" };
+    }
+    if (!toToken) {
+      return { disabled: true, text: "Select Destination Asset" };
+    }
+    if (!amount || amount === 0) {
+      return { disabled: true, text: "Enter Amount" };
+    }
+    return { disabled: false, text: "Bridge Assets" };
+  };
+
+  const buttonStatus = getBridgeButtonStatus();
+
+  const buttonClass = buttonStatus.disabled
+    ? "w-full bg-gray-600 py-3 rounded-full border border-gray-500 font-bold text-lg text-gray-400 cursor-not-allowed"
+    : "w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200";
 
   const openModal = (type: "from" | "to") => {
     setModalType(type);
@@ -101,38 +156,60 @@ const BridgeHome: React.FC = () => {
     setIsModalOpen(false);
   };
 
-  const NetworkSelector = ({ type }: { type: "from" | "to" }) => (
-    <div className="w-[42%] h-[81px] rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 flex flex-col gap-1">
-      <span className="text-[#A6A9B8] text-xs">
-        {type === "from" ? "From" : "To"}
-      </span>
-      <div className="flex justify-between items-center">
-        <Image
-          src={
-            tokens.find((t) => t.id === (type === "from" ? fromToken : toToken))
-              ?.icon || Usdt
-          }
-          alt="token"
-          width={24}
-          height={24}
-        />
-        <div className="flex flex-col gap-1">
-          {/* <span>{type === "from" ? fromToken : toToken}</span> */}
-          <span className="font-bold">
-            On {type === "from" ? fromNetwork : toNetwork}
-          </span>
+  const updateNetworkAndToken = (
+    network: string,
+    token: string,
+    type: "from" | "to"
+  ) => {
+    if (type === "from") {
+      setFromNetwork(network);
+      setFromToken(token);
+    } else {
+      setToNetwork(network);
+      setToToken(token);
+    }
+  };
+
+  const getNetworkFromToken = (tokenId: string) => {
+    const [, network] = tokenId.split("-");
+    return network === "MAINNET" ? "ETH" : network;
+  };
+
+  const NetworkSelector = ({ type }: { type: "from" | "to" }) => {
+    const currentNetwork = type === "from" ? fromNetwork : toNetwork;
+    const currentToken = type === "from" ? fromToken : toToken;
+    const token = tokens.find((t) => t.id === currentToken);
+
+    return (
+      <div className="w-[42%] h-[81px] rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 flex flex-col gap-1">
+        <span className="text-[#A6A9B8] text-xs">
+          {type === "from" ? "From" : "To"}
+        </span>
+        <div className="flex justify-between items-center">
+          <Image src={token?.icon || Usdt} alt="token" width={24} height={24} />
+          <div className="flex flex-col gap-1">
+            <span className="text-xs">{token?.symbol || "Select Token"}</span>
+            <span className="font-bold text-xs">
+              On{" "}
+              {networks.find((n) => n.id === currentNetwork)?.id ||
+                "Select Network"}
+            </span>
+          </div>
+          <Image
+            src={Arrow}
+            alt="arrow"
+            width={20}
+            height={20}
+            onClick={() => openModal(type)}
+            className="cursor-pointer"
+          />
         </div>
-        <Image
-          src={Arrow}
-          alt="arrow"
-          width={20}
-          height={20}
-          onClick={() => openModal(type)}
-          className="cursor-pointer"
-        />
       </div>
-    </div>
-  );
+    );
+  };
+
+  console.log("From");
+  console.log("To", toToken);
 
   const MobileDesign = () => (
     <div className="bg-[#000000] text-white md:hidden  h-screen w-full flex flex-col">
@@ -155,15 +232,15 @@ const BridgeHome: React.FC = () => {
               <div className="flex flex-col gap-1">
                 <span className="text-[#A6A9B8] text-xs">You Pay</span>
                 <span className="text-[#A6A9B8] text-xs">
-                  $ {parseFloat(amount || "0").toFixed(2)}
+                  $ {(amount || 0).toFixed(2)}
                 </span>
               </div>
-
               <div className="flex flex-row gap-2 items-center">
                 <input
-                  type="number"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
+                  type="text"
+                  ref={inputMobRef}
+                  value={amount === 0 ? "" : amount.toString()}
+                  onChange={handleAmountChange}
                   className="bg-transparent border-none focus:outline-none focus:ring-0 text-[#9A9A9A] text-xl text-right w-24"
                   placeholder="0"
                 />
@@ -205,7 +282,7 @@ const BridgeHome: React.FC = () => {
                   {amount || "0"} {toNetwork}
                 </span>
                 <span className="text-[#A6A9B8] text-xs">
-                  $ {parseFloat(amount || "0").toFixed(2)}
+                  $ {(amount || 0).toFixed(2)}
                 </span>
               </div>
 
@@ -227,12 +304,13 @@ const BridgeHome: React.FC = () => {
           </div>
         </div>
         <div className="p-4 mt-auto">
-          <button
-            onClick={handleBridge}
-            className="w-full bg-[#141618] py-3 rounded-full border border-[#A6A9B8] font-bold text-xl text-[#A6A9B8]"
-          >
-            Bridge Assets
-          </button>
+        <button
+        onClick={handleBridge}
+        disabled={buttonStatus.disabled}
+        className={buttonClass}
+      >
+        {buttonStatus.text}
+      </button>
         </div>
       </div>
     </div>
@@ -245,12 +323,7 @@ const BridgeHome: React.FC = () => {
         <MobConnect />
       </div>
       <div className="flex-grow flex">
-        <div className="w-1/2 flex items-center justify-center">
-          <h1 className="text-4xl font-bold text-[#A6A9B8]">
-            Bridge Assets Across Chains
-          </h1>
-        </div>
-        <div className="w-1/2 flex items-center justify-center">
+        <div className="w-full flex items-center justify-center">
           <div className="w-[360px] h-[calc(100vh-75px)] bg-[#000000] rounded-3xl border border-[#3E4347] overflow-hidden flex flex-col">
             <div className="flex-grow py-6 px-4 flex flex-col space-y-4">
               <div className="flex justify-between items-center">
@@ -265,17 +338,18 @@ const BridgeHome: React.FC = () => {
               </div>
 
               <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-3 flex justify-between items-center">
-                <div className="flex flex-col">
-                  <span className="text-[#A6A9B8] text-sm">You Pay</span>
-                  <span className="text-[#A6A9B8] text-sm">
-                    $ {parseFloat(amount || "0").toFixed(2)}
+                <div className="flex flex-col gap-1">
+                  <span className="text-[#A6A9B8] text-xs">You Pay</span>
+                  <span className="text-[#A6A9B8] text-xs">
+                    $ {(amount || 0).toFixed(2)}
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <input
-                    type="number"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
+                    type="text"
+                    ref={inputRef}
+                    value={amount === 0 ? "" : amount.toString()}
+                    onChange={handleAmountChange}
                     className="bg-transparent border-none focus:outline-none focus:ring-0 text-[#9A9A9A] text-xl text-right w-24"
                     placeholder="0"
                   />
@@ -317,8 +391,8 @@ const BridgeHome: React.FC = () => {
                   <span className="text-[#9A9A9A] text-xl">
                     {amount || "0"} {toNetwork}
                   </span>
-                  <span className="text-[#A6A9B8] text-sm">
-                    $ {parseFloat(amount || "0").toFixed(2)}
+                  <span className="text-[#A6A9B8] text-xs">
+                    $ {(amount || 0).toFixed(2)}
                   </span>
                 </div>
                 <div className="flex items-center space-x-4">
@@ -338,12 +412,13 @@ const BridgeHome: React.FC = () => {
               </div>
             </div>
             <div className="p-6 mt-auto">
-              <button
-                onClick={handleBridge}
-                className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200"
-              >
-                Bridge Assets
-              </button>
+            <button
+        onClick={handleBridge}
+        disabled={buttonStatus.disabled}
+        className={buttonClass}
+      >
+        {buttonStatus.text}
+      </button>
             </div>
           </div>
         </div>
@@ -381,11 +456,16 @@ const BridgeHome: React.FC = () => {
                       key={network.id}
                       className="w-full bg-[#2C3B52] text-[#A6A9B8] p-4 rounded-xl text-left text-lg flex items-center justify-between"
                       onClick={() => {
-                        if (modalType === "from") {
-                          setFromNetwork(network.id);
-                        } else {
-                          setToNetwork(network.id);
-                        }
+                        const currentToken =
+                          modalType === "from" ? fromToken : toToken;
+                        const tokenForNetwork =
+                          tokens.find((t) => t.id.endsWith(network.id))?.id ||
+                          currentToken;
+                        updateNetworkAndToken(
+                          network.id,
+                          tokenForNetwork,
+                          modalType
+                        );
                       }}
                     >
                       <span>
@@ -409,11 +489,8 @@ const BridgeHome: React.FC = () => {
                       key={token.id}
                       className="w-full bg-[#2C3B52] text-[#A6A9B8] p-4 rounded-xl text-left text-lg flex items-center justify-between"
                       onClick={() => {
-                        if (modalType === "from") {
-                          setFromToken(token.address);
-                        } else {
-                          setToToken(token.address);
-                        }
+                        const network = getNetworkFromToken(token.id);
+                        updateNetworkAndToken(network, token.id, modalType);
                       }}
                     >
                       <div className="flex items-center">

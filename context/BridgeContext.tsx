@@ -13,6 +13,8 @@ interface Token {
   name: string;
   icon: any; // You might want to use a more specific type for the icon
   address: string;
+  symbol: string;
+  destinationID: string;
 }
 
 interface Network {
@@ -29,8 +31,8 @@ interface BridgeContextType {
   setFromToken: (token: string) => void;
   toToken: string;
   setToToken: (token: string) => void;
-  amount: string;
-  setAmount: (amount: string) => void;
+  amount: number;
+  setAmount: (amount: number) => void;
   recipientAddress: string;
   setRecipientAddress: (address: string) => void;
   setTokenBalance: (tokenBal: string) => void;
@@ -62,8 +64,8 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
   const [toNetwork, setToNetwork] = useState("ARB");
   const [fromToken, setFromToken] = useState("USDT");
   const [toToken, setToToken] = useState("USDT");
-  const [amount, setAmount] = useState("");
-  const [recipientAddress, setRecipientAddress] = useState("");
+  const [amount, setAmount] = useState<number>(0);
+    const [recipientAddress, setRecipientAddress] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"from" | "to">("from");
   const [tokenBal, setTokenBalance] = useState("");
@@ -72,6 +74,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
   const [options, setOptions] = useState("");
   const [nativeFee, setNativeFee] = useState("");
   const [feeInUSD, setFeeInUSD] = useState("");
+  
 
   const networks: Network[] = [
     { id: "ETH", name: "Ethereum" },
@@ -85,14 +88,16 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       name: "Tether",
       icon: Usdt,
       address: "0x84cba2A35398B42127B3148744DB3Cd30981fCDf",
-      // symbol: "USD-ETH",
-      // destinationID "40231"
+      symbol: "USDT",
+      destinationID: "40231"
     },
     {
       id: "ETH-MAINNET",
       name: "Ethereum",
       icon: Usdt,
       address: "0x0000000000000000000000000000000000000000",
+      symbol: "ETH",
+      destinationID: "40232"
     }, // Replace with actual ETH icon
     // Add more tokens as needed
 
@@ -101,12 +106,16 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       name: "Tether",
       icon: Usdt,
       address: "0x43535C041AF9d270Bd7aaA9ce5313d960BBEABAD",
+      symbol: "USDT",
+      destinationID: "40233"
     },
     {
       id: "ETH-ARB",
       name: "Arbitrum",
       icon: Usdt,
       address: "0x0000000000000000000000000000000000000000",
+      symbol: "ETH",
+      destinationID: "40234"
     },
   ];
 

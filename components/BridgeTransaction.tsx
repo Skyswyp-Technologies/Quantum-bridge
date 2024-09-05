@@ -47,29 +47,26 @@ const BridgeTransaction: React.FC = () => {
 
   const { data: walletClient } = useWalletClient({});
 
-  const [transactionStep, setTransactionStep] = useState(0);
-  const [transactionSuccessful, setTransactionSuccessful] = useState(false);
+ // New states for different processes
+ const [approveState, setApproveState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+ const [transferState, setTransferState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+ const [transactionState, setTransactionState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+ const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   const router = useRouter();
 
-  // Simulating data that would typically be passed as props or through context
+  const clearError = () => {
+    setErrorMessage(null);
+  };
 
-  useEffect(() => {
-    const simulateTransaction = async () => {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      setTransactionStep(1);
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      setTransactionStep(2);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setTransactionSuccessful(true);
-    };
-
-    simulateTransaction();
-  }, []);
 
   const approveBridge = async () => {
+    clearError();
+
     try {
+      setApproveState('loading');
       const tokenAddress = "0x84cba2A35398B42127B3148744DB3Cd30981fCDf";
-      const amountToApprove = amount;
+      const amountToApprove = amount.toString();
 
       if (walletClient) {
         const approveTx = await bridgeWrapper.approveBridge(
@@ -78,24 +75,33 @@ const BridgeTransaction: React.FC = () => {
           walletClient
         );
 
-        console.log("approveTx", approveTx)
-
         if (!approveTx.success) {
-          console.log("unsuccesful transaction");
+          setApproveState('error');
+          setErrorMessage("Approval failed");
         } else {
-          setTransactionSuccessful(true);
+          setApproveState('success');
+          setTransferState('idle'); // Ready for transfer
         }
       }
     } catch (error) {
-      throw error;
+      setApproveState('error');
+      setErrorMessage("An error occurred during approval");
     }
   };
 
-  const bridgeERC20Asset = async()=> {
+  const bridgeERC20Asset = async() => {
+    if (approveState !== 'success') {
+      setErrorMessage("Please complete the approval step first");
+      return;
+    }
+
+    clearError(); 
+
     try {
+      setTransferState('loading');
       const destID = "40231"
       const destChain = "ARB"
-      const amoutToSend = amount
+      const amountToSend = amount.toString();
       const tokenAddress = "0x84cba2A35398B42127B3148744DB3Cd30981fCDf"
       const receiver = recipientAddress
       const signer = walletClient
@@ -104,7 +110,7 @@ const BridgeTransaction: React.FC = () => {
       const bridgeTx = await bridgeWrapper.depositERC20Assets(
         fee,
         destID,
-        amoutToSend,
+        amountToSend,
         tokenAddress,
         receiver,
         destChain,
@@ -112,57 +118,83 @@ const BridgeTransaction: React.FC = () => {
       )
 
       if (!bridgeTx!.success) {
-        console.log("unsuccesful transaction");
+        setTransferState('error');
+        setErrorMessage("Transfer failed");
       } else {
-        setTransactionSuccessful(true);
+        setTransferState('success');
+        setTransactionState('success');
       }
-
     } catch (error) {
-      throw error;
+      setTransferState('error');
+      setErrorMessage("An error occurred during transfer");
     }
   }
 
+ 
+  const handleButtonClick = () => {
+    if (approveState === 'idle' || approveState === 'error') {
+      approveBridge();
+    } else if (approveState === 'success' && (transferState === 'idle' || transferState === 'error')) {
+      bridgeERC20Asset();
+    } else if (transactionState === 'success') {
+      router.push("/");
+    }
+  };
+
+  const getButtonText = () => {
+    if (approveState === 'idle' || approveState === 'error') return "Approve";
+    if (approveState === 'loading') return "Approving...";
+    if (approveState === 'success' && (transferState === 'idle' || transferState === 'error')) return "Transfer";
+    if (transferState === 'loading') return "Transferring...";
+    if (transactionState === 'success') return "Done";
+    return "Retry";
+  };
+
+  const isButtonDisabled = () => {
+    return approveState === 'loading' || transferState === 'loading';
+  };
+
   const TransactionContent = () => (
     <div className="space-y-3">
-      <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full h-[58px] flex justify-between items-center">
+      <div className={`rounded border ${approveState === 'error' ? 'border-red-500' : 'border-[#3E4347]'} bg-[#1A1A1A80] p-2 w-full h-[58px] flex justify-between items-center`}>
         <div className="flex flex-col gap-1">
           <span className="text-[#A6A9B8] text-xs">Approve Token</span>
           <span className="text-[#A6A9B8] text-xs">Approve in wallet</span>
         </div>
-        {transactionStep === 0 && <Loader />}
-        {transactionStep > 0 && <span className="text-green-500">✓</span>}
+        {approveState === 'loading' && <Loader />}
+        {approveState === 'success' && <span className="text-green-500">✓</span>}
+        {approveState === 'error' && <span className="text-red-500">✗</span>}
       </div>
 
-      <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full h-[58px] flex justify-between items-center">
+      <div className={`rounded border ${transferState === 'error' ? 'border-red-500' : 'border-[#3E4347]'} bg-[#1A1A1A80] p-2 w-full h-[58px] flex justify-between items-center`}>
         <div className="flex flex-col gap-1">
           <span className="text-[#A6A9B8] text-xs">Transfer Token</span>
-          <span className="text-[#A6A9B8] text-xs">
-            Transferring token to wallet
-          </span>
+          <span className="text-[#A6A9B8] text-xs">Transferring token to wallet</span>
         </div>
-        {transactionStep === 1 && <Loader />}
-        {transactionStep > 1 && <span className="text-green-500">✓</span>}
+        {approveState === 'success' && (
+          <>
+            {transferState === 'loading' && <Loader />}
+            {transferState === 'success' && <span className="text-green-500">✓</span>}
+            {transferState === 'error' && <span className="text-red-500">✗</span>}
+          </>
+        )}
       </div>
 
-      {!transactionSuccessful && (
+      {transactionState !== 'success' && (
         <div className="rounded border border-[#A6A9B880] bg-[#1A1A1ACC] p-2 w-full h-[85px] flex flex-col gap-1 justify-center">
           <span className="text-[#A6A9B8] text-xs font-bold">You get</span>
           <div className="flex justify-between items-center">
-            <span className="text-[#9A9A9A] text-xl">
-              {amount} {toNetwork}
-            </span>
-            <span className="text-[#A6A9B8] text-xs">
-              $ {parseFloat(amount).toFixed(2)}
-            </span>
+            <span className="text-[#9A9A9A] text-xl">{amount} {toNetwork}</span>
+            <span className="text-[#A6A9B8] text-xs">$ {(Number(amount) || 0).toFixed(2)}</span>
           </div>
           <div className="flex flex-row items-center gap-4">
             <div className="flex flex-row gap-2 items-center">
               <Image src={Gas} alt="gas" width={12} height={12} />
-              <span className="text-[#A6A9B8] text-xs">$1.5</span>
+              <span className="text-[#A6A9B8] text-xs">${feeInUSD}</span>
             </div>
             <div className="flex flex-row gap-2 items-center">
               <Image src={Tools} alt="tools" width={12} height={12} />
-              <span className="text-[#A6A9B8] text-xs">$1.5</span>
+              <span className="text-[#A6A9B8] text-xs">${feeInUSD}</span>
             </div>
             <div className="flex flex-row gap-2 items-center">
               <Image src={Time} alt="time" width={12} height={12} />
@@ -172,60 +204,52 @@ const BridgeTransaction: React.FC = () => {
         </div>
       )}
 
-      {transactionSuccessful && (
+      {transactionState === 'success' && (
         <div className="rounded border border-[#A6A9B880] bg-[#1A1A1ACC] p-2 w-full h-[252px] flex flex-col gap-3 justify-center">
-          <span className="text-[#A6A9B8] text-xs font-bold">
-            Transaction Successful
-          </span>
+          <span className="text-[#A6A9B8] text-xs font-bold">Transaction Successful</span>
           <div className="flex flex-col">
             <span className="text-[#A6A9B8] text-xs font-bold">Route</span>
             <div className="flex justify-between">
+              {/* From network details */}
               <div className="w-[42%] h-[81px] rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 flex flex-col gap-1">
                 <span className="text-[#A6A9B8] text-xs">From</span>
                 <div className="flex justify-between items-center">
                   <Image src={Usdt} alt="usdt" width={24} height={24} />
                   <div className="flex flex-col gap-1">
-                    <span>Usdt</span>
+                    <span>{fromToken}</span>
                     <span className="font-bold">On {fromNetwork}</span>
                   </div>
                   <Image src={Arrow} alt="arrow" width={20} height={20} />
                 </div>
               </div>
               <Image src={Exchange} alt="exchange" width={30} height={30} />
+              {/* To network details */}
               <div className="w-[42%] h-[81px] rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 flex flex-col gap-1">
                 <span className="text-[#A6A9B8] text-xs">To</span>
                 <div className="flex justify-between items-center">
                   <Image src={Usdt} alt="usdt" width={24} height={24} />
                   <div className="flex flex-col gap-1">
-                    <span>Usdt</span>
+                    <span>{toToken}</span>
                     <span className="font-bold">On {toNetwork}</span>
                   </div>
                   <Image src={Arrow} alt="arrow" width={20} height={20} />
                 </div>
               </div>
             </div>
-            <span className="text-[#A6A9B8] text-xs font-bold mt-2">
-              Amount received
-            </span>
+            <span className="text-[#A6A9B8] text-xs font-bold mt-2">Amount received</span>
             <div className="flex justify-between items-center">
-              <span className="text-[#9A9A9A] text-xl">
-                {amount} {toNetwork}
-              </span>
-              <span className="text-[#A6A9B8] text-xs">
-                $ {parseFloat(amount).toFixed(2)}
-              </span>
+              <span className="text-[#9A9A9A] text-xl">{amount} {toNetwork}</span>
+              <span className="text-[#A6A9B8] text-xs">$ {(Number(amount) || 0).toFixed(2)}</span>
             </div>
-            <span className="text-[#A6A9B8] text-xs font-bold mt-2">
-              Transaction cost
-            </span>
+            <span className="text-[#A6A9B8] text-xs font-bold mt-2">Transaction cost</span>
             <div className="flex flex-row items-center gap-4">
               <div className="flex flex-row gap-2 items-center">
                 <Image src={Gas} alt="gas" width={12} height={12} />
-                <span className="text-[#A6A9B8] text-xs">$1.5</span>
+                <span className="text-[#A6A9B8] text-xs">${feeInUSD}</span>
               </div>
               <div className="flex flex-row gap-2 items-center">
                 <Image src={Tools} alt="tools" width={12} height={12} />
-                <span className="text-[#A6A9B8] text-xs">$1.5</span>
+                <span className="text-[#A6A9B8] text-xs">${feeInUSD}</span>
               </div>
               <div className="flex flex-row gap-2 items-center">
                 <Image src={Time} alt="time" width={12} height={12} />
@@ -233,6 +257,12 @@ const BridgeTransaction: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {errorMessage && ! (
+        <div className="rounded border border-red-500 bg-gray-100 p-2 w-full">
+          <span className="text-red-500 text-sm">{errorMessage}</span>
         </div>
       )}
     </div>
@@ -247,15 +277,17 @@ const BridgeTransaction: React.FC = () => {
         </div>
         <div className="p-4 mt-auto">
           <button
-            className={`w-full p-3 rounded-full border  font-bold text-xl ${
-              transactionSuccessful
+            className={`w-full p-3 rounded-full border font-bold text-xl ${
+              isButtonDisabled()
+                ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                : transactionState === 'success'
                 ? "bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] text-white"
                 : "bg-[#141618] border-[#A6A9B8] text-[#A6A9B8]"
             }`}
-            disabled={!transactionSuccessful}
-            onClick={bridgeERC20Asset}
+            disabled={isButtonDisabled()}
+            onClick={handleButtonClick}
           >
-            {transactionSuccessful ? "Done" : "Transferring Assets ..."}
+            {getButtonText()}
           </button>
         </div>
       </div>
@@ -269,31 +301,24 @@ const BridgeTransaction: React.FC = () => {
         <MobConnect />
       </div>
       <div className="flex-grow flex">
-        <div className="w-1/2 flex items-center justify-center">
-          <h1 className="text-4xl font-bold text-[#A6A9B8] z-10 relative text-center">
-            {transactionSuccessful ? (
-              <>Bridging Complete</>
-            ) : (
-              <>Bridging in Progress</>
-            )}
-          </h1>
-        </div>
-        <div className="w-1/2 flex items-center justify-center">
+        <div className="w-full flex items-center justify-center">
           <div className="w-[360px] h-[calc(100vh-75px)] bg-[#000000] rounded-3xl border border-[#3E4347] overflow-hidden flex flex-col">
             <div className="flex-grow py-6 px-4 flex flex-col space-y-4">
               <TransactionContent />
             </div>
             <div className="px-6 pb-3 mt-auto">
               <button
-                className={`w-full p-3 rounded-full  font-bold text-xl ${
-                  transactionSuccessful
+                className={`w-full p-3 rounded-full font-bold text-xl ${
+                  isButtonDisabled()
+                    ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                    : transactionState === 'success'
                     ? "bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] text-white"
-                    : "border-[#A6A9B8] bg-[#141618] text-[#A6A9B8]"
+                    : "bg-[#141618] border-[#A6A9B8] text-[#A6A9B8]"
                 }`}
-                disabled={!transactionSuccessful}
-                onClick= {bridgeERC20Asset}
+                disabled={isButtonDisabled()}
+                onClick={handleButtonClick}
               >
-                {transactionSuccessful ? "Done" : "Transferring Assets ..."}
+                {getButtonText()}
               </button>
             </div>
           </div>
