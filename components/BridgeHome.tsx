@@ -13,7 +13,6 @@ import { useAccount } from "wagmi";
 import MobConnect from "./ConnectWallet";
 import { useBridge } from "@/context/BridgeContext";
 import Header from "./Header";
-import { bridgeWrapper } from "@/helpers/helpers";
 
 const BridgeHome: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
@@ -208,8 +207,6 @@ const BridgeHome: React.FC = () => {
     );
   };
 
-  console.log("From");
-  console.log("To", toToken);
 
   const MobileDesign = () => (
     <div className="bg-[#000000] text-white md:hidden  h-screen w-full flex flex-col">

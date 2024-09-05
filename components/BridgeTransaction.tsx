@@ -15,6 +15,7 @@ import MobConnect from "./ConnectWallet";
 import { useBridge } from "@/context/BridgeContext";
 import { bridgeWrapper } from "@/helpers/helpers";
 import { useWalletClient } from "wagmi";
+import { ethers } from "ethers";
 
 const BridgeTransaction: React.FC = () => {
   const {
@@ -40,18 +41,25 @@ const BridgeTransaction: React.FC = () => {
     tokenBal,
     setUserAddress,
     feeInUSD,
-    nativeFee
+    nativeFee,
+    getTokenInfo,
   } = useBridge();
 
   //wagmi stuff
 
   const { data: walletClient } = useWalletClient({});
 
- // New states for different processes
- const [approveState, setApproveState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
- const [transferState, setTransferState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
- const [transactionState, setTransactionState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
- const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // New states for different processes
+  const [approveState, setApproveState] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
+  const [transferState, setTransferState] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
+  const [transactionState, setTransactionState] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const router = useRouter();
 
@@ -59,133 +67,166 @@ const BridgeTransaction: React.FC = () => {
     setErrorMessage(null);
   };
 
-
   const approveBridge = async () => {
     clearError();
 
     try {
-      setApproveState('loading');
-      const tokenAddress = "0x84cba2A35398B42127B3148744DB3Cd30981fCDf";
-      const amountToApprove = amount.toString();
+      setApproveState("loading");
 
-      if (walletClient) {
+      const info = getTokenInfo(fromToken);
+
+      console.log("info", info);
+
+      if (walletClient && info) {
         const approveTx = await bridgeWrapper.approveBridge(
-          tokenAddress,
-          amountToApprove,
+          info.address,
+          amount,
           walletClient
         );
 
         if (!approveTx.success) {
-          setApproveState('error');
+          setApproveState("error");
           setErrorMessage("Approval failed");
         } else {
-          setApproveState('success');
-          setTransferState('idle'); // Ready for transfer
+          setApproveState("success");
+          setTransferState("idle"); // Ready for transfer
         }
       }
     } catch (error) {
-      setApproveState('error');
+      setApproveState("error");
       setErrorMessage("An error occurred during approval");
     }
   };
 
-  const bridgeERC20Asset = async() => {
-    if (approveState !== 'success') {
+  const bridgeERC20Asset = async () => {
+    if (approveState !== "success") {
       setErrorMessage("Please complete the approval step first");
       return;
     }
 
-    clearError(); 
+    clearError();
 
     try {
-      setTransferState('loading');
-      const destID = "40231"
-      const destChain = "ARB"
-      const amountToSend = amount.toString();
-      const tokenAddress = "0x84cba2A35398B42127B3148744DB3Cd30981fCDf"
-      const receiver = recipientAddress
-      const signer = walletClient
-      const fee = nativeFee
+      setTransferState("loading");
 
-      const bridgeTx = await bridgeWrapper.depositERC20Assets(
-        fee,
-        destID,
-        amountToSend,
-        tokenAddress,
-        receiver,
-        destChain,
-        signer
-      )
+      const info = getTokenInfo(fromToken);
 
-      if (!bridgeTx!.success) {
-        setTransferState('error');
-        setErrorMessage("Transfer failed");
-      } else {
-        setTransferState('success');
-        setTransactionState('success');
+      if (walletClient && info) {
+        
+        const destID = info.destinationID
+        const destChain = "ARB";
+        const amountToSend = ethers.utils.parseUnits(amount.toString());
+        const tokenAddress = info.address;
+        const receiver = recipientAddress;
+        const signer = walletClient;
+        const fee = nativeFee;
+
+        const bridgeTx = await bridgeWrapper.depositERC20Assets(
+          fee,
+          destID,
+          amountToSend,
+          tokenAddress,
+          receiver,
+          destChain,
+          signer
+        );
+
+        if (!bridgeTx!.success) {
+          setTransferState("error");
+          setErrorMessage("Transfer failed");
+        } else {
+          setTransferState("success");
+          setTransactionState("success");
+        }
       }
     } catch (error) {
-      setTransferState('error');
+      setTransferState("error");
       setErrorMessage("An error occurred during transfer");
     }
-  }
+  };
 
- 
   const handleButtonClick = () => {
-    if (approveState === 'idle' || approveState === 'error') {
+    if (approveState === "idle" || approveState === "error") {
       approveBridge();
-    } else if (approveState === 'success' && (transferState === 'idle' || transferState === 'error')) {
+    } else if (
+      approveState === "success" &&
+      (transferState === "idle" || transferState === "error")
+    ) {
       bridgeERC20Asset();
-    } else if (transactionState === 'success') {
+    } else if (transactionState === "success") {
       router.push("/");
     }
   };
 
   const getButtonText = () => {
-    if (approveState === 'idle' || approveState === 'error') return "Approve";
-    if (approveState === 'loading') return "Approving...";
-    if (approveState === 'success' && (transferState === 'idle' || transferState === 'error')) return "Transfer";
-    if (transferState === 'loading') return "Transferring...";
-    if (transactionState === 'success') return "Done";
+    if (approveState === "idle" || approveState === "error") return "Approve";
+    if (approveState === "loading") return "Approving...";
+    if (
+      approveState === "success" &&
+      (transferState === "idle" || transferState === "error")
+    )
+      return "Transfer";
+    if (transferState === "loading") return "Transferring...";
+    if (transactionState === "success") return "Done";
     return "Retry";
   };
 
   const isButtonDisabled = () => {
-    return approveState === 'loading' || transferState === 'loading';
+    return approveState === "loading" || transferState === "loading";
   };
 
   const TransactionContent = () => (
     <div className="space-y-3">
-      <div className={`rounded border ${approveState === 'error' ? 'border-red-500' : 'border-[#3E4347]'} bg-[#1A1A1A80] p-2 w-full h-[58px] flex justify-between items-center`}>
+      <div
+        className={`rounded border ${
+          approveState === "error" ? "border-red-500" : "border-[#3E4347]"
+        } bg-[#1A1A1A80] p-2 w-full h-[58px] flex justify-between items-center`}
+      >
         <div className="flex flex-col gap-1">
           <span className="text-[#A6A9B8] text-xs">Approve Token</span>
           <span className="text-[#A6A9B8] text-xs">Approve in wallet</span>
         </div>
-        {approveState === 'loading' && <Loader />}
-        {approveState === 'success' && <span className="text-green-500">✓</span>}
-        {approveState === 'error' && <span className="text-red-500">✗</span>}
+        {approveState === "loading" && <Loader />}
+        {approveState === "success" && (
+          <span className="text-green-500">✓</span>
+        )}
+        {approveState === "error" && <span className="text-red-500">✗</span>}
       </div>
 
-      <div className={`rounded border ${transferState === 'error' ? 'border-red-500' : 'border-[#3E4347]'} bg-[#1A1A1A80] p-2 w-full h-[58px] flex justify-between items-center`}>
+      <div
+        className={`rounded border ${
+          transferState === "error" ? "border-red-500" : "border-[#3E4347]"
+        } bg-[#1A1A1A80] p-2 w-full h-[58px] flex justify-between items-center`}
+      >
         <div className="flex flex-col gap-1">
           <span className="text-[#A6A9B8] text-xs">Transfer Token</span>
-          <span className="text-[#A6A9B8] text-xs">Transferring token to wallet</span>
+          <span className="text-[#A6A9B8] text-xs">
+            Transferring token to wallet
+          </span>
         </div>
-        {approveState === 'success' && (
+        {approveState === "success" && (
           <>
-            {transferState === 'loading' && <Loader />}
-            {transferState === 'success' && <span className="text-green-500">✓</span>}
-            {transferState === 'error' && <span className="text-red-500">✗</span>}
+            {transferState === "loading" && <Loader />}
+            {transferState === "success" && (
+              <span className="text-green-500">✓</span>
+            )}
+            {transferState === "error" && (
+              <span className="text-red-500">✗</span>
+            )}
           </>
         )}
       </div>
 
-      {transactionState !== 'success' && (
+      {transactionState !== "success" && (
         <div className="rounded border border-[#A6A9B880] bg-[#1A1A1ACC] p-2 w-full h-[85px] flex flex-col gap-1 justify-center">
           <span className="text-[#A6A9B8] text-xs font-bold">You get</span>
           <div className="flex justify-between items-center">
-            <span className="text-[#9A9A9A] text-xl">{amount} {toNetwork}</span>
-            <span className="text-[#A6A9B8] text-xs">$ {(Number(amount) || 0).toFixed(2)}</span>
+            <span className="text-[#9A9A9A] text-xl">
+              {amount} {toNetwork}
+            </span>
+            <span className="text-[#A6A9B8] text-xs">
+              $ {(Number(amount) || 0).toFixed(2)}
+            </span>
           </div>
           <div className="flex flex-row items-center gap-4">
             <div className="flex flex-row gap-2 items-center">
@@ -204,9 +245,11 @@ const BridgeTransaction: React.FC = () => {
         </div>
       )}
 
-      {transactionState === 'success' && (
+      {transactionState === "success" && (
         <div className="rounded border border-[#A6A9B880] bg-[#1A1A1ACC] p-2 w-full h-[252px] flex flex-col gap-3 justify-center">
-          <span className="text-[#A6A9B8] text-xs font-bold">Transaction Successful</span>
+          <span className="text-[#A6A9B8] text-xs font-bold">
+            Transaction Successful
+          </span>
           <div className="flex flex-col">
             <span className="text-[#A6A9B8] text-xs font-bold">Route</span>
             <div className="flex justify-between">
@@ -236,12 +279,20 @@ const BridgeTransaction: React.FC = () => {
                 </div>
               </div>
             </div>
-            <span className="text-[#A6A9B8] text-xs font-bold mt-2">Amount received</span>
+            <span className="text-[#A6A9B8] text-xs font-bold mt-2">
+              Amount received
+            </span>
             <div className="flex justify-between items-center">
-              <span className="text-[#9A9A9A] text-xl">{amount} {toNetwork}</span>
-              <span className="text-[#A6A9B8] text-xs">$ {(Number(amount) || 0).toFixed(2)}</span>
+              <span className="text-[#9A9A9A] text-xl">
+                {amount} {toNetwork}
+              </span>
+              <span className="text-[#A6A9B8] text-xs">
+                $ {(Number(amount) || 0).toFixed(2)}
+              </span>
             </div>
-            <span className="text-[#A6A9B8] text-xs font-bold mt-2">Transaction cost</span>
+            <span className="text-[#A6A9B8] text-xs font-bold mt-2">
+              Transaction cost
+            </span>
             <div className="flex flex-row items-center gap-4">
               <div className="flex flex-row gap-2 items-center">
                 <Image src={Gas} alt="gas" width={12} height={12} />
@@ -260,11 +311,12 @@ const BridgeTransaction: React.FC = () => {
         </div>
       )}
 
-      {errorMessage && ! (
-        <div className="rounded border border-red-500 bg-gray-100 p-2 w-full">
-          <span className="text-red-500 text-sm">{errorMessage}</span>
-        </div>
-      )}
+      {errorMessage &&
+        !(
+          <div className="rounded border border-red-500 bg-gray-100 p-2 w-full">
+            <span className="text-red-500 text-sm">{errorMessage}</span>
+          </div>
+        )}
     </div>
   );
 
@@ -280,7 +332,7 @@ const BridgeTransaction: React.FC = () => {
             className={`w-full p-3 rounded-full border font-bold text-xl ${
               isButtonDisabled()
                 ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-                : transactionState === 'success'
+                : transactionState === "success"
                 ? "bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] text-white"
                 : "bg-[#141618] border-[#A6A9B8] text-[#A6A9B8]"
             }`}
@@ -311,7 +363,7 @@ const BridgeTransaction: React.FC = () => {
                 className={`w-full p-3 rounded-full font-bold text-xl ${
                   isButtonDisabled()
                     ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-                    : transactionState === 'success'
+                    : transactionState === "success"
                     ? "bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] text-white"
                     : "bg-[#141618] border-[#A6A9B8] text-[#A6A9B8]"
                 }`}

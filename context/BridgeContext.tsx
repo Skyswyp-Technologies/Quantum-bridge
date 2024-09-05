@@ -53,6 +53,8 @@ interface BridgeContextType {
   setModalType: (type: "from" | "to") => void;
   networks: Network[];
   tokens: Token[];
+  getTokenInfo: (tokenId: string) => { address: string; symbol: string; destinationID: string } | null;
+  
 }
 
 const BridgeContext = createContext<BridgeContextType | undefined>(undefined);
@@ -65,7 +67,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
   const [fromToken, setFromToken] = useState("USDT");
   const [toToken, setToToken] = useState("USDT");
   const [amount, setAmount] = useState<number>(0);
-    const [recipientAddress, setRecipientAddress] = useState("");
+  const [recipientAddress, setRecipientAddress] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"from" | "to">("from");
   const [tokenBal, setTokenBalance] = useState("");
@@ -74,7 +76,6 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
   const [options, setOptions] = useState("");
   const [nativeFee, setNativeFee] = useState("");
   const [feeInUSD, setFeeInUSD] = useState("");
-  
 
   const networks: Network[] = [
     { id: "ETH", name: "Ethereum" },
@@ -89,7 +90,8 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       icon: Usdt,
       address: "0x84cba2A35398B42127B3148744DB3Cd30981fCDf",
       symbol: "USDT",
-      destinationID: "40231"
+      destinationID: "40231",
+      // destinationChain: ""
     },
     {
       id: "ETH-MAINNET",
@@ -97,7 +99,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       icon: Usdt,
       address: "0x0000000000000000000000000000000000000000",
       symbol: "ETH",
-      destinationID: "40232"
+      destinationID: "40231",
     }, // Replace with actual ETH icon
     // Add more tokens as needed
 
@@ -107,7 +109,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       icon: Usdt,
       address: "0x43535C041AF9d270Bd7aaA9ce5313d960BBEABAD",
       symbol: "USDT",
-      destinationID: "40233"
+      destinationID: "40233",
     },
     {
       id: "ETH-ARB",
@@ -115,15 +117,17 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       icon: Usdt,
       address: "0x0000000000000000000000000000000000000000",
       symbol: "ETH",
-      destinationID: "40234"
+      destinationID: "40234",
     },
   ];
 
   const handleUserTokenBalance = async () => {
     try {
-      if (userAddress) {
+
+      const info = getTokenInfo(fromToken)
+      if (userAddress && info) {
         const walletAddress = userAddress;
-        const tokenAddress = "0x84cba2A35398B42127B3148744DB3Cd30981fCDf";
+        const tokenAddress = info.address;
 
         console.log("userAddress", userAddress);
         console.log("tokenAddress", tokenAddress);
@@ -149,15 +153,14 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       const receiverAddress = recipientAddress;
       const destID = "40231";
 
-      if(receiverAddress) {
-
+      if (receiverAddress) {
         const simInfo = await bridgeWrapper.prepareBridgeInfo(
           simulationAmount,
           tokenAddress,
           receiverAddress,
           destID
         );
-  
+
         if (simInfo) {
           setPayload(simInfo.payload);
           setOptions(simInfo.options);
@@ -165,16 +168,23 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
           setFeeInUSD(simInfo.feeInUSD.toString());
         }
       }
-
-      
     } catch (error) {
       throw error;
     }
   };
 
+  const getTokenInfo = (tokenId: string) => {
+    const token = tokens.find((t) => t.id === tokenId);
+    if (token) {
+      const { address, symbol, destinationID } = token;
+      return { address, symbol, destinationID };
+    }
+    return null;
+  };
   useEffect(() => {
     handleUserTokenBalance();
     handleprepareBridgeUserInfo();
+    getTokenInfo(fromToken)
   }, [
     recipientAddress,
     userAddress,
@@ -218,6 +228,8 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
         setNativeFee,
         feeInUSD,
         setFeeInUSD,
+        getTokenInfo
+        
       }}
     >
       {children}

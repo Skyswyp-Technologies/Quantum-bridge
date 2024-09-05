@@ -39,7 +39,7 @@ class Bridge {
   depositERC20Assets = async (
     fee: any,
     destId: any,
-    amount: string,
+    amount: any,
     tokenAddress: string,
     receiver: string,
     destChain: any,
@@ -50,15 +50,7 @@ class Bridge {
     }
 
     try {
-      console.log("Preparing to call deposit with params:", {
-        destId,
-        amount,
-        tokenAddress,
-        destChain,
-        receiver,
-        fee
-      });
-
+      
       const depositTx = await walletClient.writeContract({
         address: Config.BRIDGE_CONTRACT,
         abi: BRIDGE_ABI,
@@ -151,12 +143,13 @@ class Bridge {
       ];
 
       const provider = new ethers.providers.JsonRpcProvider(Config.JSON_RPC);
+      const amount  = ethers.utils.parseUnits(amountApprove.toString());
 
       const approveTx = await walletClient.writeContract({
         address: tokenAddress,
         abi: approveABI,
         functionName: "approve",
-        args: [Config.BRIDGE_CONTRACT, amountApprove],
+        args: [Config.BRIDGE_CONTRACT, amount],
       });
 
       const receipt = await provider.waitForTransaction(approveTx);
