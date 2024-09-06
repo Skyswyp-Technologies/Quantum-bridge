@@ -13,6 +13,7 @@ import { useAccount } from "wagmi";
 import MobConnect from "./ConnectWallet";
 import { useBridge } from "@/context/BridgeContext";
 import Header from "./Header";
+import Link from "next/link";
 
 const BridgeHome: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
@@ -87,14 +88,58 @@ const BridgeHome: React.FC = () => {
   };
 
   const handleBridge = () => {
+  
     if (!address) {
-      setError(
-        "Please connect your wallet to proceed with the bridge transaction."
-      );
-    } else {
-      setError(null); // Clear any previous errors
-      router.push("/bridge-transaction");
+      setError("Please connect your wallet to proceed with the bridge transaction.");
+      return;
     }
+  
+    if (!fromToken || !toToken) {
+      setError("Please select both source and destination tokens.");
+      return;
+    }
+  
+    if (!amount || amount <= 0) {
+      setError("Please enter a valid amount greater than 0.");
+      return;
+    }
+  
+    if (!fromNetwork || !toNetwork) {
+      setError("Please select both source and destination networks.");
+      return;
+    }
+  
+    if (fromNetwork === toNetwork) {
+      setError("Source and destination networks must be different.");
+      return;
+    }
+  
+    // // Check if the amount exceeds the user's balance
+    // if (tokenBal && amount > parseFloat(tokenBal)) {
+    //   setError("Insufficient balance for the selected amount.");
+    //   return;
+    // }
+  
+    // Check if the amount is above the minimum required for bridging (if applicable)
+    // const minBridgeAmount = 0.00; // Example minimum amount, adjust as needed
+    // if (amount < minBridgeAmount) {
+    //   setError(`Minimum bridge amount is ${minBridgeAmount} ${fromToken}.`);
+    //   return;
+    // }
+  
+    // Check if recipient address is valid (if it's provided)
+    if (recipientAddress && !isValidAddress(recipientAddress)) {
+      setError("Invalid recipient address.");
+      return;
+    }
+  
+    // If all checks pass, proceed with the bridge transaction
+    router.push("/bridge-transaction");
+  };
+  
+  // Helper function to validate Ethereum addresses (basic check)
+  const isValidAddress = (address: string) => {
+    return /^0x[a-fA-F0-9]{40}$/.test(address);
   };
 
   const handlePaste = async () => {
@@ -143,7 +188,7 @@ const BridgeHome: React.FC = () => {
   const buttonStatus = getBridgeButtonStatus();
 
   const buttonClass = buttonStatus.disabled
-    ? "w-full bg-gray-600 py-3 rounded-full border border-gray-500 font-bold text-lg text-gray-400 cursor-not-allowed"
+    ? "w-full border bg-[#141618] border-[#A6A9B8] py-3 rounded-full font-bold text-lg text-gray-400 text-[#A6A9B8] cursor-not-allowed"
     : "w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200";
 
   const openModal = (type: "from" | "to") => {
@@ -316,7 +361,7 @@ const BridgeHome: React.FC = () => {
   const DesktopDesign = () => (
     <div className="bg-[#000000] text-white h-screen w-full hidden md:flex flex-col">
       <div className="flex justify-between items-center w-full h-16 px-8 xl:px-20 mx-auto py-4 bg-[#000000] border-b border-b-[#3E4347]">
-        <span className="text-lg text-[#A6A9B8]">Quantum Protocol</span>
+        <Link href={"/"} className="text-lg text-[#A6A9B8]">Quantum Protocol</Link>
         <MobConnect />
       </div>
       <div className="flex-grow flex">

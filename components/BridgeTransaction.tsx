@@ -16,6 +16,7 @@ import { useBridge } from "@/context/BridgeContext";
 import { bridgeWrapper } from "@/helpers/helpers";
 import { useWalletClient } from "wagmi";
 import { ethers } from "ethers";
+import Link from "next/link";
 
 const BridgeTransaction: React.FC = () => {
   const {
@@ -331,10 +332,10 @@ const BridgeTransaction: React.FC = () => {
           <button
             className={`w-full p-3 rounded-full border font-bold text-xl ${
               isButtonDisabled()
-                ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                ? "bg-[#141618] border border-[#A6A9B8] text-[#A6A9B8] cursor-not-allowed"
                 : transactionState === "success"
                 ? "bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] text-white"
-                : "bg-[#141618] border-[#A6A9B8] text-[#A6A9B8]"
+                : "bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] text-white"
             }`}
             disabled={isButtonDisabled()}
             onClick={handleButtonClick}
@@ -349,7 +350,7 @@ const BridgeTransaction: React.FC = () => {
   const DesktopDesign = () => (
     <div className="bg-[#000000] text-white h-screen w-full hidden md:flex flex-col">
       <div className="flex justify-between items-center w-full h-16 px-8 xl:px-20 mx-auto py-4 bg-[#000000] border-b border-b-[#3E4347]">
-        <span className="text-lg text-[#A6A9B8]">Quantum Protocol</span>
+        <Link href={"/"} className="text-lg text-[#A6A9B8]">Quantum Protocol</Link>
         <MobConnect />
       </div>
       <div className="flex-grow flex">
@@ -362,10 +363,10 @@ const BridgeTransaction: React.FC = () => {
               <button
                 className={`w-full p-3 rounded-full font-bold text-xl ${
                   isButtonDisabled()
-                    ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                    ? "bg-[#141618] border border-[#A6A9B8] text-[#A6A9B8] cursor-not-allowed"
                     : transactionState === "success"
                     ? "bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] text-white"
-                    : "bg-[#141618] border-[#A6A9B8] text-[#A6A9B8]"
+                    : "bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] text-white"
                 }`}
                 disabled={isButtonDisabled()}
                 onClick={handleButtonClick}
