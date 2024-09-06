@@ -59,7 +59,6 @@ class Bridge {
         value: ethers.utils.parseEther(fee) // Send the required fee with the transaction
       });
 
-      console.log("Transaction sent:", depositTx);
 
       // Wait for the transaction to be mined
       const provider = new ethers.providers.JsonRpcProvider(Config.JSON_RPC);

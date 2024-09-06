@@ -76,8 +76,6 @@ const BridgeTransaction: React.FC = () => {
 
       const info = getTokenInfo(fromToken);
 
-      console.log("info", info);
-
       if (walletClient && info) {
         const approveTx = await bridgeWrapper.approveBridge(
           info.address,

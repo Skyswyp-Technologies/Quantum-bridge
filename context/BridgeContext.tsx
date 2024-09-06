@@ -129,13 +129,12 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
         const walletAddress = userAddress;
         const tokenAddress = info.address;
 
-        console.log("userAddress", userAddress);
-        console.log("tokenAddress", tokenAddress);
 
         const bal = await bridgeWrapper.getUSDTBalance(
           walletAddress,
           tokenAddress
         );
+
 
         setTokenBalance(bal);
         return bal;
