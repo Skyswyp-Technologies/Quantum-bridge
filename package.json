@@ -11,6 +11,7 @@
   "dependencies": {
     "@rainbow-me/rainbowkit": "^2.1.5",
     "@tanstack/react-query": "^5.53.2",
+    "axios": "^1.7.7",
     "ethers": "^5.7.2",
     "next": "14.2.7",
     "pino": "^9.3.2",

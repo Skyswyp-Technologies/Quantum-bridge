@@ -1,29 +1,28 @@
-import React from "react";
+import React from 'react';
 
-const Loader = () => {
+interface LoaderProps {
+  size?: 'sm' | 'md' | 'lg';
+  color?: string;
+}
+
+const Loader: React.FC<LoaderProps> = ({ size = 'md', color = 'white' }) => {
+  const sizeClasses = {
+    sm: 'w-4 h-4 border-2',
+    md: 'w-6 h-6 border-2',
+    lg: 'w-8 h-8 border-3',
+  };
+
   return (
-    <div className="loader">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 66 66"
-        height="50px"
-        width="50px"
-        className="spinner"
-      >
-        <circle
-          stroke="url(#gradient)"
-          r="20"
-          cy="33"
-          cx="33"
-          strokeWidth="3"
-          fill="transparent"
-          className="path"
-        ></circle>
-        <linearGradient id="gradient">
-          <stop stopOpacity="1" stopColor="#Ffffff" offset="0%"></stop>
-          <stop stopOpacity="0" stopColor="##A6A9B8" offset="100%"></stop>
-        </linearGradient>
-      </svg>
+    <div className="flex justify-center items-center">
+      <div 
+        className={`
+          ${sizeClasses[size]}
+          border-gray-300
+          rounded-full
+          animate-spin
+        `}
+        style={{ borderTopColor: color }}
+      ></div>
     </div>
   );
 };

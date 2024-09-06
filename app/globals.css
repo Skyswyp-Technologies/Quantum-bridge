@@ -12,3 +12,29 @@ body {
   max-width: 100vw;
   overflow-x: hidden;
 }
+
+.loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.spinner {
+  width: 90px;
+  height: 55px;
+  position: relative;
+  animation: rotation 1s linear infinite;
+  border-radius: 100em;
+}
+
+.path {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 20;
+  stroke-linecap: round;
+}
+
+@keyframes rotation {
+  to {
+    transform: rotate(360deg);
+  }
+}
