@@ -9,6 +9,7 @@ import Tools from "./../public/tools.svg";
 import Time from "./../public/time.svg";
 import Arrow from "./../public/arrow.svg";
 import Image from "next/image";
+import { toast } from "react-toastify";
 import { useAccount } from "wagmi";
 import MobConnect from "./ConnectWallet";
 import { useBridge } from "@/context/BridgeContext";
@@ -88,55 +89,47 @@ const BridgeHome: React.FC = () => {
   };
 
   const handleBridge = () => {
-  
     if (!address) {
-      setError("Please connect your wallet to proceed with the bridge transaction.");
+      toast.error(
+        "Please connect your wallet to proceed with the bridge transaction."
+      );
       return;
     }
-  
+
     if (!fromToken || !toToken) {
-      setError("Please select both source and destination tokens.");
+      toast.error("Please select both source and destination tokens.");
       return;
     }
-  
+
     if (!amount || amount <= 0) {
-      setError("Please enter a valid amount greater than 0.");
+      toast.error("Please enter a valid amount greater than 0.");
       return;
     }
-  
+
     if (!fromNetwork || !toNetwork) {
-      setError("Please select both source and destination networks.");
+      toast.error("Please select both source and destination networks.");
       return;
     }
-  
+
     if (fromNetwork === toNetwork) {
-      setError("Source and destination networks must be different.");
+      toast.error("Source and destination networks must be different.");
       return;
     }
-  
-    // // Check if the amount exceeds the user's balance
-    // if (tokenBal && amount > parseFloat(tokenBal)) {
-    //   setError("Insufficient balance for the selected amount.");
-    //   return;
-    // }
-  
-    // Check if the amount is above the minimum required for bridging (if applicable)
-    // const minBridgeAmount = 0.00; // Example minimum amount, adjust as needed
-    // if (amount < minBridgeAmount) {
-    //   setError(`Minimum bridge amount is ${minBridgeAmount} ${fromToken}.`);
-    //   return;
-    // }
-  
-    // Check if recipient address is valid (if it's provided)
-    if (recipientAddress && !isValidAddress(recipientAddress)) {
-      setError("Invalid recipient address.");
+
+    if (!recipientAddress.trim()) {
+      toast.error("Please enter a recipient address.");
       return;
     }
-  
+
+    if (!isValidAddress(recipientAddress)) {
+      toast.error("Invalid recipient address. Please enter a valid address.");
+      return;
+    }
+
     // If all checks pass, proceed with the bridge transaction
     router.push("/bridge-transaction");
   };
-  
+
   // Helper function to validate Ethereum addresses (basic check)
   const isValidAddress = (address: string) => {
     return /^0x[a-fA-F0-9]{40}$/.test(address);
@@ -146,13 +139,19 @@ const BridgeHome: React.FC = () => {
     try {
       const text = await navigator.clipboard.readText();
       setRecipientAddress(text);
+      toast.success("Address pasted successfully");
     } catch (err) {
       console.error("Failed to read clipboard contents: ", err);
+      toast.error("Failed to paste address. Please try again.");
     }
   };
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+    if (!fromToken) {
+      toast.error("Please select an asset before entering an amount.");
+      return;
+    }
     if (value === "" || /^\d*\.?\d*$/.test(value)) {
       const numValue = parseFloat(value);
       if (!isNaN(numValue)) {
@@ -225,20 +224,16 @@ const BridgeHome: React.FC = () => {
     const token = tokens.find((t) => t.id === currentToken);
 
     return (
-      <div className="w-[42%] h-[81px] rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 flex flex-col gap-1">
+      <div className="w-[42%] rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 flex flex-col gap-1">
         <span className="text-[#A6A9B8] text-xs">
           {type === "from" ? "From" : "To"}
         </span>
         <div className="flex justify-between items-center">
           <Image src={token?.icon || Usdt} alt="token" width={24} height={24} />
-          <div className="flex flex-col gap-1">
-            <span className="text-xs">{token?.symbol || "Select Token"}</span>
-            <span className="font-bold text-xs">
-              On{" "}
-              {networks.find((n) => n.id === currentNetwork)?.id ||
-                "Select Network"}
-            </span>
-          </div>
+          <span className="font-bold text-xs text-[#A6A9B8]">
+            {networks.find((n) => n.id === currentNetwork)?.name ||
+              "Select Network"}
+          </span>
           <Image
             src={Arrow}
             alt="arrow"
@@ -252,116 +247,156 @@ const BridgeHome: React.FC = () => {
     );
   };
 
+  const TokenSelector = ({ type }: { type: "from" | "to" }) => {
+    const currentToken = type === "from" ? fromToken : toToken;
+    const token = tokens.find((t) => t.id === currentToken);
 
-  const MobileDesign = () => (
-    <div className="bg-[#000000] text-white md:hidden  h-screen w-full flex flex-col">
-      <Header />
-      <div className="mx-4 my-2 flex flex-col flex-grow rounded-3xl border border-[#3E4347] overflow-auto">
-        <div className="p-4 flex-grow">
-          <div className="flex flex-col space-y-3">
-            <div className="flex justify-between items-center">
-              <NetworkSelector type="from" />
-              <div
-                className="cursor-pointer transform hover:scale-110 transition-transform duration-200"
-                onClick={handleExchange}
-              >
-                <Image src={Exchange} alt="exchange" width={30} height={30} />
-              </div>{" "}
-              <NetworkSelector type="to" />
-            </div>
+    return (
+      <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex justify-between items-center">
+        <span className="text-[#A6A9B8] text-xs">
+          {token ? "Asset Selected" : "Choose Asset"}
+        </span>
+        <div className="flex flex-row gap-2 items-center">
+          <Image src={token?.icon || Usdt} alt="token" width={20} height={20} />
+          <span className="text-sm text-[#A6A9B8]">
+            {token?.symbol || "Select Token"}
+          </span>
+          <Image
+            src={Arrow}
+            alt="Arrow"
+            width={12}
+            height={12}
+            className="cursor-pointer"
+            onClick={() => openModal(type)}
+          />
+        </div>
+      </div>
+    );
+  };
 
-            <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full h-[58px] flex justify-between items-center">
-              <div className="flex flex-col gap-1">
-                <span className="text-[#A6A9B8] text-xs">You Pay</span>
-                <span className="text-[#A6A9B8] text-xs">
-                  $ {(amount || 0).toFixed(2)}
-                </span>
-              </div>
-              <div className="flex flex-row gap-2 items-center">
-                <input
-                  type="text"
-                  ref={inputMobRef}
-                  value={amount === 0 ? "" : amount.toString()}
-                  onChange={handleAmountChange}
-                  className="bg-transparent border-none focus:outline-none focus:ring-0 text-[#9A9A9A] text-xl text-right w-24"
-                  placeholder="0"
-                />
-                <div
-                  className="rounded bg-[#1E1E1E] p-1 text-white flex justify-center items-center text-xs cursor-pointer"
-                  onClick={handleMaxClick}
-                >
-                  max
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full h-[58px] flex flex-col justify-center">
-              <div className="relative w-full">
-                <span className="text-[#A6A9B8] text-xs absolute top-0 left-0">
-                  Recipient address (optional)
-                </span>
-                <input
-                  type="text"
-                  value={recipientAddress}
-                  onChange={(e) => setRecipientAddress(e.target.value)}
-                  className="w-full pt-4 pb-1 px-1 bg-transparent border-none focus:outline-none focus:ring-0 text-[#A6A9B8] placeholder-[#A6A9B8]"
-                  placeholder="Enter Address"
-                />
-                <button
-                  className="absolute right-0 focus:border-none bottom-1 rounded bg-[#1E1E1E] px-2 py-1 text-white text-xs"
-                  onClick={handlePaste}
-                >
-                  paste
-                </button>
-              </div>
-            </div>
-
-            <div className="rounded border border-[#A6A9B880] bg-[#1A1A1ACC] p-2 w-full h-[85px] flex flex-col gap-1 justify-center">
-              <span className="text-[#A6A9B8] text-xs font-bold">You get</span>
-
+  const MobileDesign = () => {
+    return (
+      <div className="bg-[#000000] text-white md:hidden h-screen w-full flex flex-col">
+        <Header />
+        <div className="mx-4 my-2 flex flex-col flex-grow rounded-3xl overflow-y-auto max-h-[calc(100vh-20px)] sm:max-h-[calc(100vh-20px)] border border-[#3E4347]">
+          <div className="p-4 flex-grow">
+            <div className="flex flex-col space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-[#9A9A9A] text-xl">
-                  {amount || "0"} {toNetwork}
-                </span>
-                <span className="text-[#A6A9B8] text-xs">
-                  $ {(amount || 0).toFixed(2)}
-                </span>
+                <NetworkSelector type="from" />
+                <div
+                  className="cursor-pointer transform hover:scale-110 transition-transform duration-200"
+                  onClick={handleExchange}
+                >
+                  <Image src={Exchange} alt="exchange" width={30} height={30} />
+                </div>
+                <NetworkSelector type="to" />
               </div>
 
-              <div className="flex flex-row items-center gap-4">
-                <div className="flex flex-row gap-2 items-center">
-                  <Image src={Gas} alt="gas" width={12} height={12} />
-                  <span className="text-[#A6A9B8] text-xs">${feeInUSD}</span>
+              <TokenSelector type="from" />
+
+              <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full h-[58px] flex justify-between items-center">
+                <div className="flex flex-col gap-1">
+                  <span className="text-[#A6A9B8] text-xs">You Pay</span>
+                  <span className="text-[#A6A9B8] text-xs">
+                    $ {(amount || 0).toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex flex-row gap-2 items-center">
-                  <Image src={Tools} alt="tools" width={12} height={12} />
-                  <span className="text-[#A6A9B8] text-xs">${feeInUSD}</span>
+                  <div className="relative flex items-center bg-transparent rounded px-2 py-1">
+                    <span className="text-[#9A9A9A] text-sm mr-1">
+                      {tokens.find((t) => t.id === fromToken)?.symbol || ""}
+                    </span>
+                    <input
+                      type="text"
+                      ref={inputMobRef}
+                      value={amount === 0 ? "" : amount.toString()}
+                      onChange={handleAmountChange}
+                      className="bg-transparent border-none focus:outline-none focus:ring-0 text-[#9A9A9A] text-xl text-right w-24"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div
+                    className="rounded bg-[#1E1E1E] p-1 text-white flex justify-center items-center text-xs cursor-pointer"
+                    onClick={handleMaxClick}
+                  >
+                    max
+                  </div>
                 </div>
-                <div className="flex flex-row gap-2 items-center">
-                  <Image src={Time} alt="time" width={12} height={12} />
-                  <span className="text-[#A6A9B8] text-xs">1 min</span>
+              </div>
+              <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full h-[58px] flex flex-col justify-center">
+                <div className="relative w-full">
+                  <span className="text-[#A6A9B8] text-xs absolute top-0 left-0">
+                    Recipient address <span className="text-red-500">*</span>
+                  </span>
+                  <input
+                    type="text"
+                    value={recipientAddress}
+                    onChange={(e) => setRecipientAddress(e.target.value)}
+                    className="w-full pt-4 pb-1 px-1 bg-transparent border-none focus:outline-none focus:ring-0 text-[#A6A9B8] placeholder-[#A6A9B8]"
+                    placeholder="Enter Address"
+                    required
+                  />
+                  <button
+                    className="absolute right-0 focus:border-none bottom-1 rounded bg-[#1E1E1E] px-2 py-1 text-white text-xs"
+                    onClick={handlePaste}
+                  >
+                    paste
+                  </button>
+                </div>
+              </div>
+
+              <div className="rounded border border-[#A6A9B880] bg-[#1A1A1ACC] p-2 w-full  h-[85px] flex flex-col gap-1 justify-center">
+                <span className="text-[#A6A9B8] text-xs font-bold">
+                  You get
+                </span>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-[#9A9A9A] text-xl">
+                    {amount || "0"}{" "}
+                    {tokens.find((t) => t.id === fromToken)?.symbol || ""}
+                  </span>
+                  <span className="text-[#A6A9B8] text-xs">
+                    $ {(amount || 0).toFixed(2)}
+                  </span>
+                </div>
+
+                <div className="flex flex-row items-center gap-4">
+                  <div className="flex flex-row gap-2 items-center">
+                    <Image src={Gas} alt="gas" width={12} height={12} />
+                    <span className="text-[#A6A9B8] text-xs">${feeInUSD}</span>
+                  </div>
+                  <div className="flex flex-row gap-2 items-center">
+                    <Image src={Tools} alt="tools" width={12} height={12} />
+                    <span className="text-[#A6A9B8] text-xs">${feeInUSD}</span>
+                  </div>
+                  <div className="flex flex-row gap-2 items-center">
+                    <Image src={Time} alt="time" width={12} height={12} />
+                    <span className="text-[#A6A9B8] text-xs">1 min</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        <div className="p-4 mt-auto">
-        <button
-        onClick={handleBridge}
-        disabled={buttonStatus.disabled}
-        className={buttonClass}
-      >
-        {buttonStatus.text}
-      </button>
+          <div className="p-4 mt-auto">
+            <button
+              onClick={handleBridge}
+              disabled={buttonStatus.disabled}
+              className={buttonClass}
+            >
+              {buttonStatus.text}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const DesktopDesign = () => (
     <div className="bg-[#000000] text-white h-screen w-full hidden md:flex flex-col">
       <div className="flex justify-between items-center w-full h-16 px-8 xl:px-20 mx-auto py-4 bg-[#000000] border-b border-b-[#3E4347]">
-        <Link href={"/"} className="text-lg text-[#A6A9B8]">Quantum Protocol</Link>
+        <Link href={"/"} className="text-lg text-[#A6A9B8]">
+          Quantum Protocol
+        </Link>
         <MobConnect />
       </div>
       <div className="flex-grow flex">
@@ -379,6 +414,8 @@ const BridgeHome: React.FC = () => {
                 <NetworkSelector type="to" />
               </div>
 
+              <TokenSelector type="from" />
+
               <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-3 flex justify-between items-center">
                 <div className="flex flex-col gap-1">
                   <span className="text-[#A6A9B8] text-xs">You Pay</span>
@@ -386,38 +423,44 @@ const BridgeHome: React.FC = () => {
                     $ {(amount || 0).toFixed(2)}
                   </span>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="text"
-                    ref={inputRef}
-                    value={amount === 0 ? "" : amount.toString()}
-                    onChange={handleAmountChange}
-                    className="bg-transparent border-none focus:outline-none focus:ring-0 text-[#9A9A9A] text-xl text-right w-24"
-                    placeholder="0"
-                  />
-                  <button
-                    className="rounded bg-[#1E1E1E] px-2 py-1 text-white text-xs"
+                <div className="flex flex-row gap-2 items-center">
+                  <div className="relative flex items-center bg-transparent rounded px-2 py-1">
+                    <span className="text-[#9A9A9A] text-sm mr-1">
+                      {tokens.find((t) => t.id === fromToken)?.symbol || ""}
+                    </span>
+                    <input
+                      type="text"
+                      ref={inputRef}
+                      value={amount === 0 ? "" : amount.toString()}
+                      onChange={handleAmountChange}
+                      className="bg-transparent border-none focus:outline-none focus:ring-0 text-[#9A9A9A] text-xl text-right w-24"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div
+                    className="rounded bg-[#1E1E1E] p-1 text-white flex justify-center items-center text-xs cursor-pointer"
                     onClick={handleMaxClick}
                   >
                     max
-                  </button>
+                  </div>
                 </div>
               </div>
 
-              <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-3">
+              <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full h-[58px] flex flex-col justify-center">
                 <div className="relative w-full">
-                  <span className="text-[#A6A9B8] text-sm absolute top-0 left-0">
-                    Recipient address (optional)
+                  <span className="text-[#A6A9B8] text-xs absolute top-0 left-0">
+                    Recipient address <span className="text-red-500">*</span>
                   </span>
                   <input
                     type="text"
                     value={recipientAddress}
                     onChange={(e) => setRecipientAddress(e.target.value)}
-                    className="w-full pt-6 pb-1 bg-transparent border-none focus:outline-none focus:ring-0 text-[#A6A9B8] placeholder-[#A6A9B8] text-sm"
+                    className="w-full pt-4 pb-1 px-1 bg-transparent border-none focus:outline-none focus:ring-0 text-[#A6A9B8] placeholder-[#A6A9B8]"
                     placeholder="Enter Address"
+                    required
                   />
                   <button
-                    className="absolute right-0 bottom-1 rounded bg-[#1E1E1E] px-2 py-1 text-white text-xs"
+                    className="absolute right-0 focus:border-none bottom-1 rounded bg-[#1E1E1E] px-2 py-1 text-white text-xs"
                     onClick={handlePaste}
                   >
                     paste
@@ -431,7 +474,8 @@ const BridgeHome: React.FC = () => {
                 </span>
                 <div className="flex justify-between items-center">
                   <span className="text-[#9A9A9A] text-xl">
-                    {amount || "0"} {toNetwork}
+                    {amount || "0"}{" "}
+                    {tokens.find((t) => t.id === fromToken)?.symbol || ""}
                   </span>
                   <span className="text-[#A6A9B8] text-xs">
                     $ {(amount || 0).toFixed(2)}
@@ -453,14 +497,14 @@ const BridgeHome: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="p-6 mt-auto">
-            <button
-        onClick={handleBridge}
-        disabled={buttonStatus.disabled}
-        className={buttonClass}
-      >
-        {buttonStatus.text}
-      </button>
+            <div className="px-6 pb-6 mt-auto">
+              <button
+                onClick={handleBridge}
+                disabled={buttonStatus.disabled}
+                className={buttonClass}
+              >
+                {buttonStatus.text}
+              </button>
             </div>
           </div>
         </div>

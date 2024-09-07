@@ -9,6 +9,7 @@ import Gas from "./../public/gas.svg";
 import Tools from "./../public/tools.svg";
 import Time from "./../public/time.svg";
 import Arrow from "./../public/arrow.svg";
+import { toast } from 'react-toastify'
 import Loader from "./Loader";
 import Image from "next/image";
 import MobConnect from "./ConnectWallet";
@@ -68,6 +69,12 @@ const BridgeTransaction: React.FC = () => {
     setErrorMessage(null);
   };
 
+  // Using array
+const getTokenSymbol = (tokenId: string) => {
+  const token = tokens.find((t) => t.id === tokenId);
+  return token ? token.symbol : tokenId; // Fallback to tokenId if not found
+};
+
   const approveBridge = async () => {
     clearError();
 
@@ -85,16 +92,16 @@ const BridgeTransaction: React.FC = () => {
 
         if (!approveTx.success) {
           setApproveState("error");
-          setErrorMessage("Approval failed");
+          toast.error("Approval failed");
         } else {
           setApproveState("success");
           setTransferState("idle"); // Ready for transfer
+          toast.success("Approval successful");
         }
       }
     } catch (error) {
       setApproveState("error");
-      setErrorMessage("An error occurred during approval");
-    }
+      toast.error("An error occurred during approval");    }
   };
 
   const bridgeERC20Asset = async () => {
@@ -132,15 +139,15 @@ const BridgeTransaction: React.FC = () => {
 
         if (!bridgeTx!.success) {
           setTransferState("error");
-          setErrorMessage("Transfer failed");
+          toast.error("Transfer failed");
         } else {
           setTransferState("success");
-          setTransactionState("success");
+          toast.success("Transfer successful");
         }
       }
     } catch (error) {
       setTransferState("error");
-      setErrorMessage("An error occurred during transfer");
+      toast.error("An error occurred during transfer");
     }
   };
 
@@ -221,7 +228,7 @@ const BridgeTransaction: React.FC = () => {
           <span className="text-[#A6A9B8] text-xs font-bold">You get</span>
           <div className="flex justify-between items-center">
             <span className="text-[#9A9A9A] text-xl">
-              {amount} {toNetwork}
+              {amount} {tokens.find((t) => t.id === fromToken)?.symbol || ""}
             </span>
             <span className="text-[#A6A9B8] text-xs">
               $ {(Number(amount) || 0).toFixed(2)}
@@ -258,7 +265,7 @@ const BridgeTransaction: React.FC = () => {
                 <div className="flex justify-between items-center">
                   <Image src={Usdt} alt="usdt" width={24} height={24} />
                   <div className="flex flex-col gap-1">
-                    <span>{fromToken}</span>
+                    <span>{getTokenSymbol(fromToken)}</span>
                     <span className="font-bold">On {fromNetwork}</span>
                   </div>
                   <Image src={Arrow} alt="arrow" width={20} height={20} />
@@ -271,7 +278,7 @@ const BridgeTransaction: React.FC = () => {
                 <div className="flex justify-between items-center">
                   <Image src={Usdt} alt="usdt" width={24} height={24} />
                   <div className="flex flex-col gap-1">
-                    <span>{toToken}</span>
+                    <span>{getTokenSymbol(toToken)}</span>
                     <span className="font-bold">On {toNetwork}</span>
                   </div>
                   <Image src={Arrow} alt="arrow" width={20} height={20} />
@@ -322,7 +329,7 @@ const BridgeTransaction: React.FC = () => {
   const MobileDesign = () => (
     <div className="bg-[#000000] text-white md:hidden h-screen w-full flex flex-col">
       <MobileNav />
-      <div className="mx-4 my-2 flex flex-col flex-grow rounded-3xl border border-[#3E4347] overflow-auto">
+      <div className="mx-4 my-2 flex flex-col flex-grow rounded-3xl border border-[#3E4347] overflow-y-auto max-h-[calc(100vh-20px)] sm:max-h-[calc(100vh-20px)]">
         <div className="p-4 flex-grow">
           <TransactionContent />
         </div>
