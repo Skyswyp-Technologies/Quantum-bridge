@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import Menu from "./../public/menu.svg";
 import MobConnect from "./ConnectWallet";
+import Link from "next/link";
 
 interface HeaderProps {
   className?: string;
@@ -35,9 +36,9 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
       <header
         className={`bg-[#000000] text-white h-16 border-b border-b-[#3E4347] ${className}`}
       >
-        <div className="container mx-auto flex items-center h-full px-4 relative">
+        <div className="container mx-auto flex items-center h-full px-4 justify-between">
           <div
-            className="absolute left-4 cursor-pointer"
+            className="cursor-pointer"
             onClick={toggleSidebar}
           >
             <Image src={Menu} alt="menu" width={14} height={10} />
@@ -62,7 +63,7 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
           <h2 className="text-[#A6A9B8] text-xl font-bold mb-4">Menu</h2>
           {/* Add your sidebar content here */}
           <ul className="text-[#A6A9B8]">
-            <li className="mb-2 cursor-pointer hover:text-white">Home</li>
+            <Link href={"/"} className="mb-2 cursor-pointer hover:text-white">Home</Link>
             <li className="mb-2 cursor-pointer hover:text-white">Bridge</li>
             <li className="mb-2 cursor-pointer hover:text-white">Settings</li>
           </ul>
