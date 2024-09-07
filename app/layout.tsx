@@ -36,7 +36,7 @@ export default function RootLayout({
           <QueryClientProvider client={queryClient}>
             <RainbowKitProvider>
               <body className={`${urbanist.className} flex flex-col h-full`}>
-                <main className="flex-grow overflow-hidden">{children}</main>
+                <main>{children}</main>
               </body>
             </RainbowKitProvider>
           </QueryClientProvider>
