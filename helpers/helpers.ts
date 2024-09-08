@@ -45,29 +45,40 @@ class Bridge {
     destChain: any,
     walletClient: any
   ) => {
-    if (!destId || !amount || !tokenAddress || !destChain || !receiver || !walletClient) {
+    if (
+      !destId ||
+      !amount ||
+      !tokenAddress ||
+      !destChain ||
+      !receiver ||
+      !walletClient
+    ) {
       throw new Error("Missing required parameters");
     }
 
     try {
-      
       const depositTx = await walletClient.writeContract({
         address: Config.BRIDGE_CONTRACT,
         abi: BRIDGE_ABI,
         functionName: "deposit",
         args: [destId, amount, tokenAddress, destChain, receiver],
-        value: ethers.utils.parseEther(fee) // Send the required fee with the transaction
+        value: ethers.utils.parseEther(fee), // Send the required fee with the transaction
       });
-
 
       // Wait for the transaction to be mined
       const provider = new ethers.providers.JsonRpcProvider(Config.JSON_RPC);
       const receipt = await provider.waitForTransaction(depositTx);
 
       if (receipt.status === 1) {
-        return { success: true, data: { receipt, hash: receipt.transactionHash } };
+        return {
+          success: true,
+          data: { receipt, hash: receipt.transactionHash },
+        };
       } else {
-        return { success: false, data: { receipt, hash: receipt.transactionHash } };
+        return {
+          success: false,
+          data: { receipt, hash: receipt.transactionHash },
+        };
       }
     } catch (error) {
       console.error("Error in depositERC20Assets:", error);
@@ -142,7 +153,7 @@ class Bridge {
       ];
 
       const provider = new ethers.providers.JsonRpcProvider(Config.JSON_RPC);
-      const amount  = ethers.utils.parseUnits(amountApprove.toString());
+      const amount = ethers.utils.parseUnits(amountApprove.toString());
 
       const approveTx = await walletClient.writeContract({
         address: tokenAddress,
@@ -198,6 +209,29 @@ class Bridge {
       return "0";
     }
   };
+    getGasPrice = async (): Promise<GasPriceResult> =>{
+    try {
+      // Get gas price in Gwei
+      const provider = new ethers.providers.JsonRpcProvider(Config.JSON_RPC);
+      const gasPrice = await provider.getGasPrice();
+      const gasPriceGwei = ethers.utils.formatUnits(gasPrice, 'gwei');
+  
+      // Convert Gwei to USDT
+      const ethAmount = ethers.utils.formatUnits(gasPrice, 'ether');
+      const response = await axios.get('https://api.coinbase.com/v2/exchange-rates?currency=ETH');
+      const usdtRate = parseFloat(response.data.data.rates.USDT);
+      const usdtValue = (parseFloat(ethAmount) * usdtRate).toFixed(6);
+  
+      return {
+        gwei: gasPriceGwei,
+        usdt: usdtValue
+      };
+    } catch (error) {
+      console.error("Error fetching gas price:", error);
+      throw error;
+    }
+  }
+
 }
 
 export const bridgeWrapper = new Bridge();

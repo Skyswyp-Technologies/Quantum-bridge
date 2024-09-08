@@ -46,6 +46,7 @@ const BridgeTransaction: React.FC = () => {
     feeInUSD,
     nativeFee,
     getTokenInfo,
+    gasPrice
   } = useBridge();
 
   //wagmi stuff
@@ -234,7 +235,7 @@ const getTokenSymbol = (tokenId: string) => {
           <div className="flex flex-row items-center gap-4">
             <div className="flex flex-row gap-2 items-center">
               <Image src={Gas} alt="gas" width={12} height={12} />
-              <span className="text-[#A6A9B8] text-xs">${feeInUSD}</span>
+              <span className="text-[#A6A9B8] text-xs">${gasPrice}</span>
             </div>
             <div className="flex flex-row gap-2 items-center">
               <Image src={Tools} alt="tools" width={12} height={12} />
@@ -297,7 +298,7 @@ const getTokenSymbol = (tokenId: string) => {
             <div className="flex flex-row items-center gap-4">
               <div className="flex flex-row gap-2 items-center">
                 <Image src={Gas} alt="gas" width={12} height={12} />
-                <span className="text-[#A6A9B8] text-xs">${feeInUSD}</span>
+                <span className="text-[#A6A9B8] text-xs">${gasPrice}</span>
               </div>
               <div className="flex flex-row gap-2 items-center">
                 <Image src={Tools} alt="tools" width={12} height={12} />

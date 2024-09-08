@@ -45,6 +45,8 @@ const BridgeHome: React.FC = () => {
     tokenBal,
     setUserAddress,
     feeInUSD,
+    setGasPrice,
+    gasPrice
   } = useBridge();
 
   const { address } = useAccount();
@@ -391,7 +393,7 @@ const BridgeHome: React.FC = () => {
                 <div className="flex flex-row items-center gap-4">
                   <div className="flex flex-row gap-2 items-center">
                     <Image src={Gas} alt="gas" width={12} height={12} />
-                    <span className="text-[#A6A9B8] text-xs">${feeInUSD}</span>
+                    <span className="text-[#A6A9B8] text-xs">${gasPrice}</span>
                   </div>
                   <div className="flex flex-row gap-2 items-center">
                     <Image src={Tools} alt="tools" width={12} height={12} />
@@ -520,7 +522,7 @@ const BridgeHome: React.FC = () => {
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-1">
                     <Image src={Gas} alt="gas" width={12} height={12} />
-                    <span className="text-[#A6A9B8] text-xs">${feeInUSD}</span>
+                    <span className="text-[#A6A9B8] text-xs">${gasPrice}</span>
                   </div>
                   <div className="flex items-center space-x-1">
                     <Image src={Tools} alt="tools" width={12} height={12} />
