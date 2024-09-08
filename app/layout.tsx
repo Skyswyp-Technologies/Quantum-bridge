@@ -8,7 +8,7 @@ import "@rainbow-me/rainbowkit/styles.css";
 import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { WagmiProvider } from "wagmi";
 import { ToastContainer } from 'react-toastify'
-import { mainnet, polygon, optimism, arbitrumSepolia,sepolia } from "wagmi/chains";
+import { arbitrumSepolia,sepolia } from "wagmi/chains";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { BridgeProvider } from "@/context/BridgeContext";
 
