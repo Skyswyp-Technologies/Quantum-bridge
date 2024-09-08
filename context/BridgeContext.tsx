@@ -6,6 +6,8 @@ import React, {
   useEffect,
 } from "react";
 import Usdt from "./../public/usdt.svg";
+import Eth from "./../public/eth.svg";  // Add this import
+import Arb from "./../public/arb.svg"; 
 import { bridgeWrapper } from "@/helpers/helpers";
 
 interface Token {
@@ -20,6 +22,7 @@ interface Token {
 interface Network {
   id: string;
   name: string;
+  icon: any;
 }
 
 interface BridgeContextType {
@@ -53,8 +56,9 @@ interface BridgeContextType {
   setModalType: (type: "from" | "to") => void;
   networks: Network[];
   tokens: Token[];
-  getTokenInfo: (tokenId: string) => { address: string; symbol: string; destinationID: string } | null;
-  
+  getTokenInfo: (
+    tokenId: string
+  ) => { address: string; symbol: string; destinationID: string } | null;
 }
 
 const BridgeContext = createContext<BridgeContextType | undefined>(undefined);
@@ -78,9 +82,8 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
   const [feeInUSD, setFeeInUSD] = useState("");
 
   const networks: Network[] = [
-    { id: "ETH", name: "Ethereum" },
-    { id: "ARB", name: "Arbitrum" },
-    // Add more networks as needed
+    { id: "ETH", icon: Eth, name: "Ethereum" },
+    { id: "ARB", icon: Arb, name: "Arbitrum" },
   ];
 
   const tokens: Token[] = [
@@ -96,7 +99,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     {
       id: "ETH-MAINNET",
       name: "Ethereum",
-      icon: Usdt,
+      icon: Eth,
       address: "0x0000000000000000000000000000000000000000",
       symbol: "ETH",
       destinationID: "40231",
@@ -114,7 +117,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     {
       id: "ETH-ARB",
       name: "Arbitrum",
-      icon: Usdt,
+      icon: Eth,
       address: "0x0000000000000000000000000000000000000000",
       symbol: "ETH",
       destinationID: "40234",
@@ -123,8 +126,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
 
   const handleUserTokenBalance = async () => {
     try {
-
-      const info = getTokenInfo(fromToken)
+      const info = getTokenInfo(fromToken);
       if (userAddress && info) {
         const walletAddress = userAddress;
         const tokenAddress = info.address;
@@ -183,7 +185,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
   useEffect(() => {
     handleUserTokenBalance();
     handleprepareBridgeUserInfo();
-    getTokenInfo(fromToken)
+    getTokenInfo(fromToken);
   }, [
     recipientAddress,
     userAddress,
@@ -227,8 +229,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
         setNativeFee,
         feeInUSD,
         setFeeInUSD,
-        getTokenInfo
-        
+        getTokenInfo,
       }}
     >
       {children}

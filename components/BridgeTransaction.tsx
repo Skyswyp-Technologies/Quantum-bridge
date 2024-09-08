@@ -9,6 +9,7 @@ import Gas from "./../public/gas.svg";
 import Tools from "./../public/tools.svg";
 import Time from "./../public/time.svg";
 import Arrow from "./../public/arrow.svg";
+import { toast } from 'react-toastify'
 import Loader from "./Loader";
 import Image from "next/image";
 import MobConnect from "./ConnectWallet";
@@ -17,6 +18,7 @@ import { bridgeWrapper } from "@/helpers/helpers";
 import { useWalletClient } from "wagmi";
 import { ethers } from "ethers";
 import Link from "next/link";
+import Navbar from "./Navbar";
 
 const BridgeTransaction: React.FC = () => {
   const {
@@ -68,6 +70,12 @@ const BridgeTransaction: React.FC = () => {
     setErrorMessage(null);
   };
 
+  // Using array
+const getTokenSymbol = (tokenId: string) => {
+  const token = tokens.find((t) => t.id === tokenId);
+  return token ? token.symbol : tokenId; // Fallback to tokenId if not found
+};
+
   const approveBridge = async () => {
     clearError();
 
@@ -85,16 +93,16 @@ const BridgeTransaction: React.FC = () => {
 
         if (!approveTx.success) {
           setApproveState("error");
-          setErrorMessage("Approval failed");
+          toast.error("Approval failed");
         } else {
           setApproveState("success");
           setTransferState("idle"); // Ready for transfer
+          toast.success("Approval successful");
         }
       }
     } catch (error) {
       setApproveState("error");
-      setErrorMessage("An error occurred during approval");
-    }
+      toast.error("An error occurred during approval");    }
   };
 
   const bridgeERC20Asset = async () => {
@@ -102,24 +110,23 @@ const BridgeTransaction: React.FC = () => {
       setErrorMessage("Please complete the approval step first");
       return;
     }
-
+  
     clearError();
-
+  
     try {
       setTransferState("loading");
-
+  
       const info = getTokenInfo(fromToken);
-
+  
       if (walletClient && info) {
-        
-        const destID = info.destinationID
+        const destID = info.destinationID;
         const destChain = "ARB";
         const amountToSend = ethers.utils.parseUnits(amount.toString());
         const tokenAddress = info.address;
         const receiver = recipientAddress;
         const signer = walletClient;
         const fee = nativeFee;
-
+  
         const bridgeTx = await bridgeWrapper.depositERC20Assets(
           fee,
           destID,
@@ -129,28 +136,28 @@ const BridgeTransaction: React.FC = () => {
           destChain,
           signer
         );
-
+  
         if (!bridgeTx!.success) {
           setTransferState("error");
-          setErrorMessage("Transfer failed");
+          toast.error("Transfer failed");
         } else {
           setTransferState("success");
-          setTransactionState("success");
+          setTransactionState("success"); // Add this line
+          toast.success("Transfer successful");
         }
       }
     } catch (error) {
       setTransferState("error");
-      setErrorMessage("An error occurred during transfer");
+      toast.error("An error occurred during transfer");
     }
   };
 
   const handleButtonClick = () => {
     if (approveState === "idle" || approveState === "error") {
       approveBridge();
-    } else if (
-      approveState === "success" &&
-      (transferState === "idle" || transferState === "error")
-    ) {
+    } else if (approveState === "success" && transferState === "idle") {
+      bridgeERC20Asset();
+    } else if (transferState === "error") {
       bridgeERC20Asset();
     } else if (transactionState === "success") {
       router.push("/");
@@ -160,12 +167,9 @@ const BridgeTransaction: React.FC = () => {
   const getButtonText = () => {
     if (approveState === "idle" || approveState === "error") return "Approve";
     if (approveState === "loading") return "Approving...";
-    if (
-      approveState === "success" &&
-      (transferState === "idle" || transferState === "error")
-    )
-      return "Transfer";
+    if (approveState === "success" && transferState === "idle") return "Transfer";
     if (transferState === "loading") return "Transferring...";
+    if (transferState === "error") return "Retry Transfer";
     if (transactionState === "success") return "Done";
     return "Retry";
   };
@@ -221,7 +225,7 @@ const BridgeTransaction: React.FC = () => {
           <span className="text-[#A6A9B8] text-xs font-bold">You get</span>
           <div className="flex justify-between items-center">
             <span className="text-[#9A9A9A] text-xl">
-              {amount} {toNetwork}
+              {amount} {tokens.find((t) => t.id === fromToken)?.symbol || ""}
             </span>
             <span className="text-[#A6A9B8] text-xs">
               $ {(Number(amount) || 0).toFixed(2)}
@@ -258,10 +262,9 @@ const BridgeTransaction: React.FC = () => {
                 <div className="flex justify-between items-center">
                   <Image src={Usdt} alt="usdt" width={24} height={24} />
                   <div className="flex flex-col gap-1">
-                    <span>{fromToken}</span>
+                    <span>{getTokenSymbol(fromToken)}</span>
                     <span className="font-bold">On {fromNetwork}</span>
                   </div>
-                  <Image src={Arrow} alt="arrow" width={20} height={20} />
                 </div>
               </div>
               <Image src={Exchange} alt="exchange" width={30} height={30} />
@@ -271,10 +274,9 @@ const BridgeTransaction: React.FC = () => {
                 <div className="flex justify-between items-center">
                   <Image src={Usdt} alt="usdt" width={24} height={24} />
                   <div className="flex flex-col gap-1">
-                    <span>{toToken}</span>
+                    <span>{getTokenSymbol(toToken)}</span>
                     <span className="font-bold">On {toNetwork}</span>
                   </div>
-                  <Image src={Arrow} alt="arrow" width={20} height={20} />
                 </div>
               </div>
             </div>
@@ -283,7 +285,7 @@ const BridgeTransaction: React.FC = () => {
             </span>
             <div className="flex justify-between items-center">
               <span className="text-[#9A9A9A] text-xl">
-                {amount} {toNetwork}
+                {amount} {tokens.find((t) => t.id === fromToken)?.symbol || ""}
               </span>
               <span className="text-[#A6A9B8] text-xs">
                 $ {(Number(amount) || 0).toFixed(2)}
@@ -322,11 +324,23 @@ const BridgeTransaction: React.FC = () => {
   const MobileDesign = () => (
     <div className="bg-[#000000] text-white md:hidden h-screen w-full flex flex-col">
       <MobileNav />
-      <div className="mx-4 my-2 flex flex-col flex-grow rounded-3xl border border-[#3E4347] overflow-auto">
+      <div className="mx-4 my-2 flex flex-col flex-grow rounded-3xl border border-[#3E4347] overflow-y-auto max-h-[calc(100vh-20px)] sm:max-h-[calc(100vh-20px)] relative">
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/wave.png"
+          alt="wave background"
+          layout="fill"
+          objectFit="cover"
+          quality={100}
+        />
+
+<div className="absolute w-[59px] h-[223px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-radial-glow from-[#6AEFFF33] to-[#6AEFFF] opacity-60 blur-3xl"></div>
+      </div>
+
         <div className="p-4 flex-grow">
           <TransactionContent />
         </div>
-        <div className="p-4 mt-auto">
+        <div className="p-4 mt-auto z-10">
           <button
             className={`w-full p-3 rounded-full border font-bold text-xl ${
               isButtonDisabled()
@@ -347,17 +361,26 @@ const BridgeTransaction: React.FC = () => {
 
   const DesktopDesign = () => (
     <div className="bg-[#000000] text-white h-screen w-full hidden md:flex flex-col">
-      <div className="flex justify-between items-center w-full h-16 px-8 xl:px-20 mx-auto py-4 bg-[#000000] border-b border-b-[#3E4347]">
-        <Link href={"/"} className="text-lg text-[#A6A9B8]">Quantum Protocol</Link>
-        <MobConnect />
-      </div>
+       <Navbar />
       <div className="flex-grow flex">
         <div className="w-full flex items-center justify-center">
-          <div className="w-[360px] h-[calc(100vh-75px)] bg-[#000000] rounded-3xl border border-[#3E4347] overflow-hidden flex flex-col">
-            <div className="flex-grow py-6 px-4 flex flex-col space-y-4">
+          <div className="w-[360px] h-[calc(100vh-75px)] bg-[#000000] rounded-3xl border border-[#3E4347] overflow-hidden flex flex-col relative">
+          <div className="absolute inset-0 z-0">
+        <Image
+          src="/wave.png"
+          alt="wave background"
+          layout="fill"
+          objectFit="cover"
+          quality={100}
+        />
+
+<div className="absolute w-[59px] h-[223px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-radial-glow from-[#6AEFFF33] to-[#6AEFFF] opacity-60 blur-3xl"></div>
+      </div>
+
+            <div className="flex-grow py-6 px-4 flex flex-col space-y-4 z-10">
               <TransactionContent />
             </div>
-            <div className="px-6 pb-3 mt-auto">
+            <div className="px-6 pb-3 mt-auto z-10">
               <button
                 className={`w-full p-3 rounded-full font-bold text-xl ${
                   isButtonDisabled()
