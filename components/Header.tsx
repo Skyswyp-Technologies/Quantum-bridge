@@ -62,11 +62,11 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
         <div className="p-4">
           <h2 className="text-[#A6A9B8] text-xl font-bold mb-4">Menu</h2>
           {/* Add your sidebar content here */}
-          <ul className="text-[#A6A9B8]">
+          <div className="text-[#A6A9B8] flex flex-col gap-[2px]">
             <Link href={"/"} className="mb-2 cursor-pointer hover:text-white">Home</Link>
-            <li className="mb-2 cursor-pointer hover:text-white">Bridge</li>
-            <li className="mb-2 cursor-pointer hover:text-white">Settings</li>
-          </ul>
+            <Link href={"/"} className="mb-2 cursor-pointer hover:text-white">Bridge</Link>
+            <Link href={"/faucet"} className="mb-2 cursor-pointer hover:text-white">Faucet</Link>
+          </div>
         </div>
       </div>
 

@@ -308,6 +308,12 @@ const getTokenSymbol = (tokenId: string) => {
                 <span className="text-[#A6A9B8] text-xs">1 min</span>
               </div>
             </div>
+            <span className="text-[#A6A9B8] text-xs font-bold mt-2">
+              Transaction hash
+            </span>
+            <Link href={"/hash"} target="_blank" className="text-blue-600 underline text-xs mt-2">
+              link
+            </Link>
           </div>
         </div>
       )}
@@ -322,24 +328,26 @@ const getTokenSymbol = (tokenId: string) => {
   );
 
   const MobileDesign = () => (
-    <div className="bg-[#000000] text-white md:hidden h-screen w-full flex flex-col">
+    <div className="bg-[#000000] text-white md:hidden flex flex-col h-screen">
       <MobileNav />
-      <div className="mx-4 my-2 flex flex-col flex-grow rounded-3xl border border-[#3E4347] overflow-y-auto max-h-[calc(100vh-20px)] sm:max-h-[calc(100vh-20px)] relative">
-      <div className="absolute inset-0 z-0">
-        <Image
-          src="/wave.png"
-          alt="wave background"
-          layout="fill"
-          objectFit="cover"
-          quality={100}
-        />
-
-<div className="absolute w-[59px] h-[223px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-radial-glow from-[#6AEFFF33] to-[#6AEFFF] opacity-60 blur-3xl"></div>
-      </div>
-
-        <div className="p-4 flex-grow">
-          <TransactionContent />
+      <div className="flex flex-col flex-grow m-4 rounded-3xl border border-[#3E4347] relative overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/wave.png"
+            alt="wave background"
+            layout="fill"
+            objectFit="cover"
+            quality={100}
+          />
+          <div className="absolute w-[59px] h-[223px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-radial-glow from-[#6AEFFF33] to-[#6AEFFF] opacity-60 blur-3xl"></div>
         </div>
+  
+        <div className="flex flex-col flex-grow overflow-y-auto">
+          <div className="p-4 flex-grow z-10">
+            <TransactionContent />
+          </div>
+        </div>
+  
         <div className="p-4 mt-auto z-10">
           <button
             className={`w-full p-3 rounded-full border font-bold text-xl ${
