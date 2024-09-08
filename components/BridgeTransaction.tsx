@@ -23,29 +23,18 @@ import Navbar from "./Navbar";
 const BridgeTransaction: React.FC = () => {
   const {
     fromNetwork,
-    setFromNetwork,
     toNetwork,
-    setToNetwork,
     fromToken,
-    setFromToken,
     toToken,
-    setToToken,
     amount,
-    setAmount,
     recipientAddress,
-    setRecipientAddress,
-    isModalOpen,
-    setIsModalOpen,
-    modalType,
-    setModalType,
-    networks,
     tokens,
-    setTokenBalance,
-    tokenBal,
-    setUserAddress,
     feeInUSD,
     nativeFee,
+    txHash,
+    setHash,
     getTokenInfo,
+    gasPrice
   } = useBridge();
 
   //wagmi stuff
@@ -141,6 +130,7 @@ const getTokenSymbol = (tokenId: string) => {
           setTransferState("error");
           toast.error("Transfer failed");
         } else {
+          setHash(bridgeTx.data.hash)
           setTransferState("success");
           setTransactionState("success"); // Add this line
           toast.success("Transfer successful");
@@ -234,7 +224,7 @@ const getTokenSymbol = (tokenId: string) => {
           <div className="flex flex-row items-center gap-4">
             <div className="flex flex-row gap-2 items-center">
               <Image src={Gas} alt="gas" width={12} height={12} />
-              <span className="text-[#A6A9B8] text-xs">${feeInUSD}</span>
+              <span className="text-[#A6A9B8] text-xs">${gasPrice}</span>
             </div>
             <div className="flex flex-row gap-2 items-center">
               <Image src={Tools} alt="tools" width={12} height={12} />
@@ -297,7 +287,7 @@ const getTokenSymbol = (tokenId: string) => {
             <div className="flex flex-row items-center gap-4">
               <div className="flex flex-row gap-2 items-center">
                 <Image src={Gas} alt="gas" width={12} height={12} />
-                <span className="text-[#A6A9B8] text-xs">${feeInUSD}</span>
+                <span className="text-[#A6A9B8] text-xs">${gasPrice}</span>
               </div>
               <div className="flex flex-row gap-2 items-center">
                 <Image src={Tools} alt="tools" width={12} height={12} />
@@ -308,11 +298,11 @@ const getTokenSymbol = (tokenId: string) => {
                 <span className="text-[#A6A9B8] text-xs">1 min</span>
               </div>
             </div>
-            <span className="text-[#A6A9B8] text-xs font-bold mt-2">
-              Transaction hash
+            <span className="text-[#A6A9B8] text-xs font-bold mt-1">
+              Receipt
             </span>
-            <Link href={"/hash"} target="_blank" className="text-blue-600 underline text-xs mt-2">
-              link
+            <Link href={`https://testnet.layerzeroscan.com/tx/${txHash}`} target="_blank" className="text-blue-600 underline text-xs mt-2">
+              {bridgeWrapper.shortenHash(txHash)}
             </Link>
           </div>
         </div>
@@ -328,9 +318,9 @@ const getTokenSymbol = (tokenId: string) => {
   );
 
   const MobileDesign = () => (
-    <div className="bg-[#000000] text-white md:hidden flex flex-col h-screen">
+    <div className="bg-[#000000] text-white md:hidden flex flex-col min-h-screen">
       <MobileNav />
-      <div className="flex flex-col flex-grow m-4 rounded-3xl border border-[#3E4347] relative overflow-hidden">
+      <div className="flex-grow flex flex-col m-2 rounded-3xl border border-[#3E4347] relative overflow-hidden">
         <div className="absolute inset-0 z-0">
           <Image
             src="/wave.png"

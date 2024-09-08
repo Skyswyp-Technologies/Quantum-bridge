@@ -49,6 +49,10 @@ interface BridgeContextType {
   nativeFee: string;
   setFeeInUSD: (feeInUSD: string) => void;
   feeInUSD: string;
+  setGasPrice: (gasPrice: string)=> void;
+  gasPrice: string,
+  setHash: (txHash: string) => void;
+  txHash: string,
   userAddress: string;
   isModalOpen: boolean;
   setIsModalOpen: (isOpen: boolean) => void;
@@ -80,6 +84,8 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
   const [options, setOptions] = useState("");
   const [nativeFee, setNativeFee] = useState("");
   const [feeInUSD, setFeeInUSD] = useState("");
+  const [gasPrice, setGasPrice] = useState("")
+  const [txHash, setHash ] = useState("")
 
   const networks: Network[] = [
     { id: "ETH", icon: Eth, name: "Ethereum" },
@@ -182,7 +188,25 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     }
     return null;
   };
+
+
+  const getGasPrice = async()=>{
+    try {
+      const gasPriceResult = await bridgeWrapper.getGasPrice()
+
+      console.log("gasPriceResult", gasPriceResult)
+
+      if(gasPriceResult) {
+        setGasPrice(gasPriceResult.usdt)
+        
+      }
+      
+    } catch (error) {
+      throw error;
+    }
+  }
   useEffect(() => {
+    getGasPrice()
     handleUserTokenBalance();
     handleprepareBridgeUserInfo();
     getTokenInfo(fromToken);
@@ -230,6 +254,11 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
         feeInUSD,
         setFeeInUSD,
         getTokenInfo,
+        gasPrice, 
+        setGasPrice,
+        setHash,
+        txHash
+       
       }}
     >
       {children}
