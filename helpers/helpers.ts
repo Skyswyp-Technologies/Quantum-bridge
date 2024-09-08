@@ -232,6 +232,13 @@ class Bridge {
     }
   }
 
+   shortenHash(hash: string, chars: number = 4): string {
+    if (hash.length <= chars * 2) {
+      return hash;
+    }
+    return `${hash.substring(0, chars)}...${hash.substring(hash.length - chars)}`;
+  }
+
 }
 
 export const bridgeWrapper = new Bridge();

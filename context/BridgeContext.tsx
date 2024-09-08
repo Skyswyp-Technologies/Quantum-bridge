@@ -51,6 +51,8 @@ interface BridgeContextType {
   feeInUSD: string;
   setGasPrice: (gasPrice: string)=> void;
   gasPrice: string,
+  setHash: (txHash: string) => void;
+  txHash: string,
   userAddress: string;
   isModalOpen: boolean;
   setIsModalOpen: (isOpen: boolean) => void;
@@ -83,6 +85,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
   const [nativeFee, setNativeFee] = useState("");
   const [feeInUSD, setFeeInUSD] = useState("");
   const [gasPrice, setGasPrice] = useState("")
+  const [txHash, setHash ] = useState("")
 
   const networks: Network[] = [
     { id: "ETH", icon: Eth, name: "Ethereum" },
@@ -252,7 +255,10 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
         setFeeInUSD,
         getTokenInfo,
         gasPrice, 
-        setGasPrice
+        setGasPrice,
+        setHash,
+        txHash
+       
       }}
     >
       {children}

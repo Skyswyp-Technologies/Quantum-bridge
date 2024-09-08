@@ -23,28 +23,16 @@ import Navbar from "./Navbar";
 const BridgeTransaction: React.FC = () => {
   const {
     fromNetwork,
-    setFromNetwork,
     toNetwork,
-    setToNetwork,
     fromToken,
-    setFromToken,
     toToken,
-    setToToken,
     amount,
-    setAmount,
     recipientAddress,
-    setRecipientAddress,
-    isModalOpen,
-    setIsModalOpen,
-    modalType,
-    setModalType,
-    networks,
     tokens,
-    setTokenBalance,
-    tokenBal,
-    setUserAddress,
     feeInUSD,
     nativeFee,
+    txHash,
+    setHash,
     getTokenInfo,
     gasPrice
   } = useBridge();
@@ -142,6 +130,7 @@ const getTokenSymbol = (tokenId: string) => {
           setTransferState("error");
           toast.error("Transfer failed");
         } else {
+          setHash(bridgeTx.data.hash)
           setTransferState("success");
           setTransactionState("success"); // Add this line
           toast.success("Transfer successful");
@@ -309,11 +298,11 @@ const getTokenSymbol = (tokenId: string) => {
                 <span className="text-[#A6A9B8] text-xs">1 min</span>
               </div>
             </div>
-            <span className="text-[#A6A9B8] text-xs font-bold mt-2">
-              Transaction hash
+            <span className="text-[#A6A9B8] text-xs font-bold mt-1">
+              Receipt
             </span>
-            <Link href={"/hash"} target="_blank" className="text-blue-600 underline text-xs mt-2">
-              link
+            <Link href={`https://testnet.layerzeroscan.com/tx/${txHash}`} target="_blank" className="text-blue-600 underline text-xs mt-2">
+              {bridgeWrapper.shortenHash(txHash)}
             </Link>
           </div>
         </div>
