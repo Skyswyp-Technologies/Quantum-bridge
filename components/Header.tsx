@@ -43,7 +43,7 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
           >
             <Image src={Menu} alt="menu" width={14} height={10} />
           </div>
-          <span className="text-[#A6A9B8] font-bold text-xl flex-grow text-center">
+          <span className="text-[#A6A9B8] font-bold text-sm flex-grow text-center">
             {getHeaderText()}
           </span>
           <MobConnect />

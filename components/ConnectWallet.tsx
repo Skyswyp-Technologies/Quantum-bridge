@@ -67,7 +67,7 @@ const MobConnect: React.FC = () => {
                   <button
                     className="full-width-header font-semibold lg:text-[#fff] text-black dark:text-white hover:text-[#ff4040] dark:lg:text-[#535763] lg:dark:hover:text-white"
                     onClick={openChainModal}
-                    style={{ display: "flex", alignItems: "center", gap: 12 }}
+                    style={{ display: "flex", alignItems: "center", gap: 5 }}
                     type="button"
                   >
                     {chain?.hasIcon && (
