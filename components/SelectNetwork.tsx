@@ -86,7 +86,7 @@ const SelectNetwork = () => {
       </nav>
 
       <div className="flex-grow flex justify-center">
-        <div className="w-full lg:w-[360px] mx-4 my-4 lg:my-8 px-5 py-3 flex flex-col rounded-3xl border border-[#3E4347] relative overflow-hidden">
+        <div className="w-full lg:w-[360px] h-[80vh] mx-4 my-4 lg:my-8 px-5 py-3 flex flex-col rounded-3xl border border-[#3E4347] relative overflow-hidden">
           <div className="absolute inset-0 z-0">
             <Image
               src="/wave.png"

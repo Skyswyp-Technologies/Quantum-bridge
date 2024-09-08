@@ -293,22 +293,21 @@ const BridgeHome: React.FC = () => {
   const MobileDesign = () => {
     return (
       <div className="bg-[#000000] text-white md:hidden h-screen w-full flex flex-col">
-        <Header />
-        <div className="mx-4 my-2 flex flex-col flex-grow rounded-3xl overflow-y-auto max-h-[calc(100vh-20px)] sm:max-h-[calc(100vh-20px)] border border-[#3E4347] relative">
+      <Header />
+      <div className="flex-grow flex flex-col m-4 rounded-3xl border border-[#3E4347] overflow-hidden relative">
         <div className="absolute inset-0 z-0">
-        <Image
-          src="/wave.png"
-          alt="wave background"
-          layout="fill"
-          objectFit="cover"
-          quality={100}
-        />
-
-<div className="absolute w-[59px] h-[223px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-radial-glow from-[#6AEFFF33] to-[#6AEFFF] opacity-60 blur-3xl"></div>
-      </div>
-
-          
-          <div className="p-4 flex-grow z-10">
+          <Image
+            src="/wave.png"
+            alt="wave background"
+            layout="fill"
+            objectFit="cover"
+            quality={100}
+          />
+          <div className="absolute w-[59px] h-[223px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-radial-glow from-[#6AEFFF33] to-[#6AEFFF] opacity-60 blur-3xl"></div>
+        </div>
+        
+        <div className="flex flex-col flex-grow overflow-y-auto z-10">
+          <div className="p-4 flex-grow">
             <div className="flex flex-col space-y-3">
               <div className="flex justify-between items-center">
                 <NetworkSelector type="from" />
@@ -320,10 +319,10 @@ const BridgeHome: React.FC = () => {
                 </div>
                 <NetworkSelector type="to" />
               </div>
-
+    
               <TokenSelector type="from" />
-
-              <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full h-[58px] flex justify-between items-center">
+    
+              <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex justify-between items-center">
                 <div className="flex flex-col gap-1">
                   <span className="text-[#A6A9B8] text-xs">You Pay</span>
                   <span className="text-[#A6A9B8] text-xs">
@@ -352,7 +351,7 @@ const BridgeHome: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full h-[58px] flex flex-col justify-center">
+              <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col justify-center">
                 <div className="relative w-full">
                   <span className="text-[#A6A9B8] text-xs absolute top-0 left-0">
                     Recipient address <span className="text-red-500">*</span>
@@ -373,12 +372,12 @@ const BridgeHome: React.FC = () => {
                   </button>
                 </div>
               </div>
-
-              <div className="rounded border border-[#A6A9B880] bg-[#1A1A1ACC] p-2 w-full  h-[85px] flex flex-col gap-1 justify-center">
+    
+              <div className="rounded border border-[#A6A9B880] bg-[#1A1A1ACC] p-2 w-full flex flex-col gap-1 justify-center">
                 <span className="text-[#A6A9B8] text-xs font-bold">
                   You get
                 </span>
-
+    
                 <div className="flex justify-between items-center">
                   <span className="text-[#9A9A9A] text-xl">
                     {amount || "0"}{" "}
@@ -388,7 +387,7 @@ const BridgeHome: React.FC = () => {
                     $ {(amount || 0).toFixed(2)}
                   </span>
                 </div>
-
+    
                 <div className="flex flex-row items-center gap-4">
                   <div className="flex flex-row gap-2 items-center">
                     <Image src={Gas} alt="gas" width={12} height={12} />
@@ -406,17 +405,18 @@ const BridgeHome: React.FC = () => {
               </div>
             </div>
           </div>
-          <div className="p-4 mt-auto z-10">
-            <button
-              onClick={handleBridge}
-              disabled={buttonStatus.disabled}
-              className={buttonClass}
-            >
-              {buttonStatus.text}
-            </button>
-          </div>
+        </div>
+        <div className="p-4 mt-auto z-10">
+          <button
+            onClick={handleBridge}
+            disabled={buttonStatus.disabled}
+            className={buttonClass}
+          >
+            {buttonStatus.text}
+          </button>
         </div>
       </div>
+    </div>
     );
   };
 
@@ -554,97 +554,6 @@ const BridgeHome: React.FC = () => {
 
       <DesktopDesign />
 
-      {/* Modal (shared between mobile and desktop) */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div
-            className="bg-[#1A1A1A] w-full max-w-lg rounded-3xl p-8 transform transition-all duration-300 ease-out"
-            style={{
-              transform: isModalOpen ? "translateY(0)" : "translateY(100%)",
-            }}
-          >
-            <h2 className="text-2xl font-bold mb-6 text-[#A6A9B8]">
-              Select {modalType === "from" ? "Source" : "Destination"} Network
-              and Token
-            </h2>
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-xl font-semibold mb-3 text-[#A6A9B8]">
-                  Network
-                </h3>
-                <div className="space-y-2">
-                  {networks.map((network) => (
-                    <button
-                      key={network.id}
-                      className="w-full bg-[#2C3B52] text-[#A6A9B8] p-4 rounded-xl text-left text-lg flex items-center justify-between"
-                      onClick={() => {
-                        const currentToken =
-                          modalType === "from" ? fromToken : toToken;
-                        const tokenForNetwork =
-                          tokens.find((t) => t.id.endsWith(network.id))?.id ||
-                          currentToken;
-                        updateNetworkAndToken(
-                          network.id,
-                          tokenForNetwork,
-                          modalType
-                        );
-                      }}
-                    >
-                      <span>
-                        {network.name} ({network.id})
-                      </span>
-                      {((modalType === "from" && fromNetwork === network.id) ||
-                        (modalType === "to" && toNetwork === network.id)) && (
-                        <span className="text-green-500">✓</span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold mb-3 text-[#A6A9B8]">
-                  Token
-                </h3>
-                <div className="space-y-2">
-                  {tokens.map((token) => (
-                    <button
-                      key={token.id}
-                      className="w-full bg-[#2C3B52] text-[#A6A9B8] p-4 rounded-xl text-left text-lg flex items-center justify-between"
-                      onClick={() => {
-                        const network = getNetworkFromToken(token.id);
-                        updateNetworkAndToken(network, token.id, modalType);
-                      }}
-                    >
-                      <div className="flex items-center">
-                        <Image
-                          src={token.icon}
-                          alt={token.name}
-                          width={24}
-                          height={24}
-                          className="mr-3"
-                        />
-                        <span>
-                          {token.name} ({token.id})
-                        </span>
-                      </div>
-                      {((modalType === "from" && fromToken === token.id) ||
-                        (modalType === "to" && toToken === token.id)) && (
-                        <span className="text-green-500">✓</span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <button
-              className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] mt-6 py-4 rounded-full hover:bg-gradient-to-l transition-colors duration-200 font-bold text-2xl text-white"
-              onClick={closeModal}
-            >
-              Confirm
-            </button>
-          </div>
-        </div>
-      )}
     </>
   );
 };

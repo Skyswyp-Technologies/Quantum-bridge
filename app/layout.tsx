@@ -29,14 +29,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="en">
        <ToastContainer position="top-center" />
       <BridgeProvider>
         <WagmiProvider config={config}>
           <QueryClientProvider client={queryClient}>
             <RainbowKitProvider>
-              <body className={`${urbanist.className} flex flex-col h-full`}>
-                <main className="flex-grow overflow-hidden">{children}</main>
+              <body className={`${urbanist.className} flex flex-col`}>
+                <main>{children}</main>
               </body>
             </RainbowKitProvider>
           </QueryClientProvider>
