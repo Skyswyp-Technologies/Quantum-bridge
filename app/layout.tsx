@@ -19,7 +19,7 @@ const queryClient = new QueryClient();
 const config = getDefaultConfig({
   appName: "Quantum Bridge",
   projectId: "c3bb48e466ab4f0e9ccaf92e7bd24dca",
-  chains: [mainnet, polygon, optimism, arbitrumSepolia, sepolia],
+  chains: [ arbitrumSepolia, sepolia],
   ssr: true, // If your dApp uses server side rendering (SSR)
 });
 
