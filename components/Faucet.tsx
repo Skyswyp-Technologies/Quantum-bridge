@@ -11,35 +11,66 @@ interface ContentProps {
   handleClaim: () => void;
 }
 
-const Faucet: React.FC = () => {
-  const [address, setAddress] = useState<string>('');
-  const [isMobile, setIsMobile] = useState(false);
+const SuccessModal: React.FC<{ isOpen: boolean; onClose: () => void; amount: number; tokenSymbol: string }> = ({ isOpen, onClose, amount, tokenSymbol }) => {
+    if (!isOpen) return null;
 
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-[#1A1A1ACC] border border-[#A6A9B880] rounded-lg p-6 max-w-sm w-full mx-4">
+            <h2 className="text-2xl font-bold text-white mb-4">Successful!</h2>
+            <p className="text-gray-300 mb-4">You have successfully claimed your test tokens!</p>
+            <p className="text-white text-xl font-bold mb-6">{amount} {tokenSymbol}</p>
+            <p className="text-white text-xl font-bold mb-6">Tx Hash: link </p>
 
-  const handleClaim = () => {
-    // Implement claim functionality here
-    console.log('Claiming tokens for address:', address);
-  };
+            <button
+              onClick={onClose}
+              className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-2 px-4 rounded-full text-white font-semibold hover:bg-gradient-to-l transition-colors duration-200"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      );
+    };  
 
-  return (
-    <div className="bg-[#000000] text-white min-h-screen w-full flex flex-col">
-      {isMobile ? <MobileNavbar /> : <Navbar />}
-      {isMobile ? (
-        <MobileFaucetContent address={address} setAddress={setAddress} handleClaim={handleClaim} />
-      ) : (
-        <DesktopFaucetContent address={address} setAddress={setAddress} handleClaim={handleClaim} />
-      )}
-    </div>
-  );
-};
+    const Faucet: React.FC = () => {
+        const [address, setAddress] = useState<string>('');
+        const [isMobile, setIsMobile] = useState(false);
+        const [showSuccessModal, setShowSuccessModal] = useState(false);
+      
+        useEffect(() => {
+          const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768);
+          };
+          checkMobile();
+          window.addEventListener('resize', checkMobile);
+          return () => window.removeEventListener('resize', checkMobile);
+        }, []);
+      
+        const handleClaim = () => {
+          // Implement claim functionality here
+          console.log('Claiming tokens for address:', address);
+          // Simulate successful claim
+          setShowSuccessModal(true);
+        };
+      
+        return (
+          <div className="bg-[#000000] text-white w-full flex flex-col">
+            {isMobile ? <MobileNavbar /> : <Navbar />}
+            {isMobile ? (
+              <MobileFaucetContent address={address} setAddress={setAddress} handleClaim={handleClaim} />
+            ) : (
+              <DesktopFaucetContent address={address} setAddress={setAddress} handleClaim={handleClaim} />
+            )}
+            <SuccessModal 
+              isOpen={showSuccessModal} 
+              onClose={() => setShowSuccessModal(false)} 
+              amount={10} 
+              tokenSymbol="ARB" 
+            />
+          </div>
+        );
+      };
 
 const MobileNavbar: React.FC = () => {
   const router = useRouter();
@@ -56,7 +87,7 @@ const MobileNavbar: React.FC = () => {
 }
 
 const MobileFaucetContent: React.FC<ContentProps> = ({ address, setAddress, handleClaim }) => (
-  <main className="flex-grow flex flex-col px-4 py-6 relative">
+  <main className="flex-grow flex flex-col px-4 h-[80vh] py-6 relative rounded-3xl border border-[#3E4347] mx-2 my-4">
     <div className="absolute inset-0 z-0">
       <Image
         src="/wave.png"
