@@ -219,40 +219,68 @@ const BridgeHome: React.FC = () => {
   };
 
   const NetworkSelector = ({ type }: { type: "from" | "to" }) => {
+    const router = useRouter();
+    const { fromNetwork, toNetwork, networks } = useBridge();
+    
     const currentNetwork = type === "from" ? fromNetwork : toNetwork;
-    const currentToken = type === "from" ? fromToken : toToken;
-    const token = tokens.find((t) => t.id === currentToken);
-
+    const network = networks.find((n) => n.id === currentNetwork);
+  
+    const handleNetworkSelect = () => {
+      router.push(`/selectNetwork?type=${type}`);
+    };
+  
     return (
-      <div className="w-[42%] rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 flex flex-col gap-1">
+      <div className="w-[42%] rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 flex flex-col gap-1 relative">
+       <div className="absolute inset-0 z-0">
+        <Image
+          src="/wave.png"
+          alt="wave background"
+          layout="fill"
+          objectFit="cover"
+          quality={100}
+        />
+
+<div className="absolute w-[59px] h-[223px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-radial-glow from-[#6AEFFF33] to-transparent opacity-70 blur-xl"></div>
+      </div>
+
+       <div className="relative z-10">
         <span className="text-[#A6A9B8] text-xs">
           {type === "from" ? "From" : "To"}
         </span>
-        <div className="flex justify-between items-center">
-          <Image src={token?.icon || Usdt} alt="token" width={24} height={24} />
+        <div className="flex justify-between items-center mt-1">
+          {network ? (
+            <Image src={network.icon} alt={network.name} width={24} height={24} />
+          ) : (
+            <div className="w-6 h-6 bg-gray-300 rounded-full"></div> // Placeholder if no network is selected
+          )}
           <span className="font-bold text-xs text-[#A6A9B8]">
-            {networks.find((n) => n.id === currentNetwork)?.name ||
-              "Select Network"}
+            {network?.name || "Select Network"}
           </span>
           <Image
             src={Arrow}
             alt="arrow"
             width={20}
             height={20}
-            onClick={() => openModal(type)}
+            onClick={handleNetworkSelect}
             className="cursor-pointer"
           />
         </div>
       </div>
+    </div>
     );
   };
 
   const TokenSelector = ({ type }: { type: "from" | "to" }) => {
+    const router = useRouter();
     const currentToken = type === "from" ? fromToken : toToken;
     const token = tokens.find((t) => t.id === currentToken);
-
+  
+    const handleAssetSelect = () => {
+      router.push(`/selectAsset?type=${type}`);
+    };
+  
     return (
-      <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex justify-between items-center">
+      <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex justify-between items-center cursor-pointer" onClick={handleAssetSelect}>
         <span className="text-[#A6A9B8] text-xs">
           {token ? "Asset Selected" : "Choose Asset"}
         </span>
@@ -266,8 +294,6 @@ const BridgeHome: React.FC = () => {
             alt="Arrow"
             width={12}
             height={12}
-            className="cursor-pointer"
-            onClick={() => openModal(type)}
           />
         </div>
       </div>

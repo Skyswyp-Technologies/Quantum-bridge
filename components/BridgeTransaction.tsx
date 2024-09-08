@@ -109,24 +109,23 @@ const getTokenSymbol = (tokenId: string) => {
       setErrorMessage("Please complete the approval step first");
       return;
     }
-
+  
     clearError();
-
+  
     try {
       setTransferState("loading");
-
+  
       const info = getTokenInfo(fromToken);
-
+  
       if (walletClient && info) {
-        
-        const destID = info.destinationID
+        const destID = info.destinationID;
         const destChain = "ARB";
         const amountToSend = ethers.utils.parseUnits(amount.toString());
         const tokenAddress = info.address;
         const receiver = recipientAddress;
         const signer = walletClient;
         const fee = nativeFee;
-
+  
         const bridgeTx = await bridgeWrapper.depositERC20Assets(
           fee,
           destID,
@@ -136,12 +135,13 @@ const getTokenSymbol = (tokenId: string) => {
           destChain,
           signer
         );
-
+  
         if (!bridgeTx!.success) {
           setTransferState("error");
           toast.error("Transfer failed");
         } else {
           setTransferState("success");
+          setTransactionState("success"); // Add this line
           toast.success("Transfer successful");
         }
       }
@@ -154,10 +154,9 @@ const getTokenSymbol = (tokenId: string) => {
   const handleButtonClick = () => {
     if (approveState === "idle" || approveState === "error") {
       approveBridge();
-    } else if (
-      approveState === "success" &&
-      (transferState === "idle" || transferState === "error")
-    ) {
+    } else if (approveState === "success" && transferState === "idle") {
+      bridgeERC20Asset();
+    } else if (transferState === "error") {
       bridgeERC20Asset();
     } else if (transactionState === "success") {
       router.push("/");
@@ -167,12 +166,9 @@ const getTokenSymbol = (tokenId: string) => {
   const getButtonText = () => {
     if (approveState === "idle" || approveState === "error") return "Approve";
     if (approveState === "loading") return "Approving...";
-    if (
-      approveState === "success" &&
-      (transferState === "idle" || transferState === "error")
-    )
-      return "Transfer";
+    if (approveState === "success" && transferState === "idle") return "Transfer";
     if (transferState === "loading") return "Transferring...";
+    if (transferState === "error") return "Retry Transfer";
     if (transactionState === "success") return "Done";
     return "Retry";
   };
@@ -268,7 +264,6 @@ const getTokenSymbol = (tokenId: string) => {
                     <span>{getTokenSymbol(fromToken)}</span>
                     <span className="font-bold">On {fromNetwork}</span>
                   </div>
-                  <Image src={Arrow} alt="arrow" width={20} height={20} />
                 </div>
               </div>
               <Image src={Exchange} alt="exchange" width={30} height={30} />
@@ -281,7 +276,6 @@ const getTokenSymbol = (tokenId: string) => {
                     <span>{getTokenSymbol(toToken)}</span>
                     <span className="font-bold">On {toNetwork}</span>
                   </div>
-                  <Image src={Arrow} alt="arrow" width={20} height={20} />
                 </div>
               </div>
             </div>
@@ -329,7 +323,19 @@ const getTokenSymbol = (tokenId: string) => {
   const MobileDesign = () => (
     <div className="bg-[#000000] text-white md:hidden h-screen w-full flex flex-col">
       <MobileNav />
-      <div className="mx-4 my-2 flex flex-col flex-grow rounded-3xl border border-[#3E4347] overflow-y-auto max-h-[calc(100vh-20px)] sm:max-h-[calc(100vh-20px)]">
+      <div className="mx-4 my-2 flex flex-col flex-grow rounded-3xl border border-[#3E4347] overflow-y-auto max-h-[calc(100vh-20px)] sm:max-h-[calc(100vh-20px)] relative">
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/wave.png"
+          alt="wave background"
+          layout="fill"
+          objectFit="cover"
+          quality={100}
+        />
+
+<div className="absolute w-[59px] h-[223px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-radial-glow from-[#6AEFFF33] to-transparent opacity-70 blur-xl"></div>
+      </div>
+
         <div className="p-4 flex-grow">
           <TransactionContent />
         </div>
