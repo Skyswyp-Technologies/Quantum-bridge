@@ -15,6 +15,7 @@ import MobConnect from "./ConnectWallet";
 import { useBridge } from "@/context/BridgeContext";
 import Header from "./Header";
 import Link from "next/link";
+import Navbar from "./Navbar";
 
 const BridgeHome: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
@@ -231,18 +232,7 @@ const BridgeHome: React.FC = () => {
   
     return (
       <div className="w-[42%] rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 flex flex-col gap-1 relative">
-       <div className="absolute inset-0 z-0">
-        <Image
-          src="/wave.png"
-          alt="wave background"
-          layout="fill"
-          objectFit="cover"
-          quality={100}
-        />
-
-<div className="absolute w-[59px] h-[223px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-radial-glow from-[#6AEFFF33] to-transparent opacity-70 blur-xl"></div>
-      </div>
-
+       
        <div className="relative z-10">
         <span className="text-[#A6A9B8] text-xs">
           {type === "from" ? "From" : "To"}
@@ -304,8 +294,21 @@ const BridgeHome: React.FC = () => {
     return (
       <div className="bg-[#000000] text-white md:hidden h-screen w-full flex flex-col">
         <Header />
-        <div className="mx-4 my-2 flex flex-col flex-grow rounded-3xl overflow-y-auto max-h-[calc(100vh-20px)] sm:max-h-[calc(100vh-20px)] border border-[#3E4347]">
-          <div className="p-4 flex-grow">
+        <div className="mx-4 my-2 flex flex-col flex-grow rounded-3xl overflow-y-auto max-h-[calc(100vh-20px)] sm:max-h-[calc(100vh-20px)] border border-[#3E4347] relative">
+        <div className="absolute inset-0 z-0">
+        <Image
+          src="/wave.png"
+          alt="wave background"
+          layout="fill"
+          objectFit="cover"
+          quality={100}
+        />
+
+<div className="absolute w-[59px] h-[223px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-radial-glow from-[#6AEFFF33] to-[#6AEFFF] opacity-60 blur-3xl"></div>
+      </div>
+
+          
+          <div className="p-4 flex-grow z-10">
             <div className="flex flex-col space-y-3">
               <div className="flex justify-between items-center">
                 <NetworkSelector type="from" />
@@ -403,7 +406,7 @@ const BridgeHome: React.FC = () => {
               </div>
             </div>
           </div>
-          <div className="p-4 mt-auto">
+          <div className="p-4 mt-auto z-10">
             <button
               onClick={handleBridge}
               disabled={buttonStatus.disabled}
@@ -419,16 +422,23 @@ const BridgeHome: React.FC = () => {
 
   const DesktopDesign = () => (
     <div className="bg-[#000000] text-white h-screen w-full hidden md:flex flex-col">
-      <div className="flex justify-between items-center w-full h-16 px-8 xl:px-20 mx-auto py-4 bg-[#000000] border-b border-b-[#3E4347]">
-        <Link href={"/"} className="text-lg text-[#A6A9B8]">
-          Quantum Protocol
-        </Link>
-        <MobConnect />
-      </div>
+       <Navbar />
       <div className="flex-grow flex">
         <div className="w-full flex items-center justify-center">
-          <div className="w-[360px] h-[calc(100vh-75px)] bg-[#000000] rounded-3xl border border-[#3E4347] overflow-hidden flex flex-col">
-            <div className="flex-grow py-6 px-4 flex flex-col space-y-4">
+          <div className="w-[360px] h-[calc(100vh-75px)] bg-[#000000] rounded-3xl border border-[#3E4347] overflow-hidden flex flex-col relative">
+          <div className="absolute inset-0 z-0">
+        <Image
+          src="/wave.png"
+          alt="wave background"
+          layout="fill"
+          objectFit="cover"
+          quality={100}
+        />
+
+<div className="absolute w-[59px] h-[223px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-radial-glow from-[#6AEFFF33] to-[#6AEFFF] opacity-60 blur-3xl"></div>
+      </div>
+        
+            <div className="flex-grow py-6 px-4 flex flex-col space-y-4 z-10">
               <div className="flex justify-between items-center">
                 <NetworkSelector type="from" />
                 <div
@@ -523,7 +533,7 @@ const BridgeHome: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="px-6 pb-6 mt-auto">
+            <div className="px-6 pb-6 mt-auto z-10">
               <button
                 onClick={handleBridge}
                 disabled={buttonStatus.disabled}
