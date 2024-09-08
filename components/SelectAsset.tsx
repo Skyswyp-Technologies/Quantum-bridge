@@ -13,7 +13,6 @@ const AssetSelector = () => {
   const [type, setType] = useState<string | null>(null);
 
   useEffect(() => {
-    // Get the type from URL on the client side
     const searchParams = new URLSearchParams(window.location.search);
     setType(searchParams.get('type'));
   }, []);
@@ -41,22 +40,10 @@ const AssetSelector = () => {
   }
 
   return (
-    <div className="mx-4 my-8 px-5 py-3 flex flex-col items-center flex-grow rounded-3xl overflow-y-auto max-h-[calc(100vh-20px)] sm:max-h-[calc(100vh-20px)] border border-[#3E4347] relative">
-      <div className="absolute inset-0 z-0">
-        <Image
-          src="/wave.png"
-          alt="wave background"
-          layout="fill"
-          objectFit="cover"
-          quality={100}
-        />
+    <div className="flex flex-col h-full">
+      <span className="font-bold text-white text-center mb-7">Choose asset to bridge</span>
 
-<div className="absolute w-[59px] h-[223px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-radial-glow from-[#6AEFFF33] to-transparent opacity-50 blur-xl"></div>
-      </div>
-
-      <span className="font-bold text-white">Choose asset to bridge</span>
-
-      <div className="mt-7 w-full flex flex-col gap-4">
+      <div className="w-full flex flex-col flex-grow gap-4 overflow-y-auto">
         <div className='rounded border border-[#3E434773] bg-[#1A1A1A80] p-2 flex justify-between items-center'>
           <input
             type="text"
@@ -84,7 +71,6 @@ const AssetSelector = () => {
           </div>
         ))}
       </div>
-
     </div>
   );
 };
@@ -103,9 +89,25 @@ const SelectAsset = () => {
         </span>
       </nav>
 
-      <Suspense fallback={<div>Loading...</div>}>
-        <AssetSelector />
-      </Suspense>
+      <div className="flex-grow flex justify-center">
+        <div className="w-full lg:w-[360px] mx-4 my-4 lg:my-8 px-5 py-3 flex flex-col rounded-3xl border border-[#3E4347] relative overflow-hidden">
+          <div className="absolute inset-0 z-0">
+            <Image
+              src="/wave.png"
+              alt="wave background"
+              layout="fill"
+              objectFit="cover"
+              quality={100}
+            />
+            <div className="absolute w-[59px] h-[223px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-radial-glow from-[#6AEFFF33] to-[#6AEFFF] opacity-90 blur-3xl"></div>
+          </div>
+          <div className="relative z-10 flex-grow flex flex-col">
+            <Suspense fallback={<div>Loading...</div>}>
+              <AssetSelector />
+            </Suspense>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
