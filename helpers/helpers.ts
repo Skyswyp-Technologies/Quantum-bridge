@@ -227,7 +227,7 @@ class Bridge {
         usdt: usdtValue
       };
     } catch (error) {
-      console.error("Error fetching gas price:", error);
+      console.log("Error fetching gas price:", error);
       throw error;
     }
   }
