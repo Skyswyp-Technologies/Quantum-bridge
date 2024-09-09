@@ -296,7 +296,7 @@ const BridgeHome: React.FC = () => {
     return (
       <div className="bg-[#000000] text-white md:hidden h-screen w-full flex flex-col">
       <Header />
-      <div className="flex-grow flex flex-col m-4 rounded-3xl h-[80vh] border border-[#3E4347] overflow-hidden relative">
+      <div className="flex-grow flex flex-col m-4 rounded-3xl h-[80vh] border border-[#3E4347] relative">
         <div className="absolute inset-0 z-0">
           <Image
             src="/wave.png"
