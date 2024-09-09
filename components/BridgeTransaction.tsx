@@ -239,7 +239,7 @@ const getTokenSymbol = (tokenId: string) => {
       )}
 
       {transactionState === "success" && (
-        <div className="rounded border border-[#A6A9B880] bg-[#1A1A1ACC] p-2 w-full h-[252px] flex flex-col gap-3 justify-center">
+        <div className="rounded border border-[#A6A9B880] bg-[#1A1A1ACC] p-2 w-full flex flex-col gap-3 justify-center">
           <span className="text-[#A6A9B8] text-xs font-bold">
             Transaction Successful
           </span>
@@ -259,7 +259,7 @@ const getTokenSymbol = (tokenId: string) => {
               </div>
               <Image src={Exchange} alt="exchange" width={30} height={30} />
               {/* To network details */}
-              <div className="w-[42%] h-[81px] rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 flex flex-col gap-1">
+              <div className="w-[42%] rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 flex flex-col gap-1">
                 <span className="text-[#A6A9B8] text-xs">To</span>
                 <div className="flex justify-between items-center">
                   <Image src={Usdt} alt="usdt" width={24} height={24} />
@@ -361,7 +361,7 @@ const getTokenSymbol = (tokenId: string) => {
     <div className="bg-[#000000] text-white h-screen w-full hidden md:flex flex-col">
        <Navbar />
       <div className="flex-grow flex">
-        <div className="w-full flex items-center justify-center">
+        <div className="w-full flex items-center justify-center overflow-y-auto">
           <div className="w-[360px] h-[calc(100vh-75px)] bg-[#000000] rounded-3xl border border-[#3E4347] overflow-hidden flex flex-col relative">
           <div className="absolute inset-0 z-0">
         <Image
@@ -378,7 +378,7 @@ const getTokenSymbol = (tokenId: string) => {
             <div className="flex-grow py-6 px-4 flex flex-col space-y-4 z-10">
               <TransactionContent />
             </div>
-            <div className="px-6 pb-3 mt-auto z-10">
+            <div className="px-6 pb-3 mt-3 z-10">
               <button
                 className={`w-full p-3 rounded-full font-bold text-xl ${
                   isButtonDisabled()
