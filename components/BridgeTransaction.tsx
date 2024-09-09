@@ -318,9 +318,9 @@ const getTokenSymbol = (tokenId: string) => {
   );
 
   const MobileDesign = () => (
-    <div className="bg-[#000000] text-white md:hidden flex flex-col min-h-screen">
+    <div className="bg-[#000000] w-full text-white md:hidden flex flex-col min-h-screen">
       <MobileNav />
-      <div className="flex-grow flex flex-col m-2 rounded-3xl border border-[#3E4347] relative overflow-hidden">
+      <div className="flex-grow flex flex-col m-2 rounded-3xl border border-[#3E4347] relative">
         <div className="absolute inset-0 z-0">
           <Image
             src="/wave.png"
