@@ -80,7 +80,7 @@ const MobileNavbar: React.FC = () => {
       <div className="cursor-pointer" onClick={() => router.push('/')}>
         <Image src="/back.svg" alt="back" width={13} height={22} />
       </div>
-      <h1 className="text-xl font-semibold">Faucet</h1>
+      <h1 className="text-xl text-[#A6A9B8] font-semibold">Faucet</h1>
       <div className="w-6"></div>
     </nav>
   );
@@ -101,7 +101,9 @@ const MobileFaucetContent: React.FC<ContentProps> = ({ address, setAddress, hand
         </div>
         <div className="flex-1 flex flex-col justify-between p-4 z-10">
           <div className="w-full max-w-md mx-auto space-y-6">
-            <h2 className="text-xl font-semibold text-center">Get Test Tokens</h2>
+
+         
+            <h2 className="text-xl text-[#A6A9B8] font-semibold text-center">Get Test Tokens</h2>
             
             <div className='w-full bg-[#1A1A1A80] border border-[#3E434773] rounded-lg p-4 flex flex-col gap-4 backdrop-blur-sm'>
               <label className='text-gray-400 text-sm'>Enter your address</label>

@@ -66,6 +66,8 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
             <Link href={"/"} className="mb-2 cursor-pointer hover:text-white">Home</Link>
             <Link href={"/"} className="mb-2 cursor-pointer hover:text-white">Bridge</Link>
             <Link href={"/faucet"} className="mb-2 cursor-pointer hover:text-white">Faucet</Link>
+            <Link href={"/domain"} className="mb-2 cursor-pointer hover:text-white">Domains</Link>
+
           </div>
         </div>
       </div>

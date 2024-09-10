@@ -6,8 +6,13 @@ import React, {
   useEffect,
 } from "react";
 import Usdt from "./../public/usdt.svg";
+import Arb from "./../public/arb.svg";
 import Eth from "./../public/eth.svg";  // Add this import
-import Arb from "./../public/arb.svg"; 
+import Celo from "./../public/celo.svg"; 
+import Op from "./../public/op.svg"; 
+import Base from "./../public/base.svg"; 
+import Lisk from "./../public/lisk.svg"; 
+
 import { bridgeWrapper } from "@/helpers/helpers";
 
 interface Token {
@@ -90,7 +95,12 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
   const networks: Network[] = [
     { id: "ETH", icon: Eth, name: "Ethereum" },
     { id: "ARB", icon: Arb, name: "Arbitrum" },
+    { id: "CELO", icon: Celo, name: "Celo" },
+    { id: "OP", icon: Op, name: "Optimism" },
+    { id: "BASE", icon: Base, name: "Base" },
+    { id: "LISK", icon: Lisk, name: "Lisk" },
   ];
+
 
   const tokens: Token[] = [
     {

@@ -18,6 +18,9 @@ const Navbar = () => {
           <Link href={"/faucet"} className="text-lg text-[#A6A9B8] ">
             Faucet
           </Link>
+          <Link href={"/domain"} className="text-lg text-[#A6A9B8] ">
+            Domains
+          </Link>
         </div>
       </div>
 
