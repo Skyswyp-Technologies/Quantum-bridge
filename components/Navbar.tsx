@@ -5,7 +5,7 @@ import MobConnect from "./ConnectWallet";
 
 const Navbar = () => {
   return (
-    <div className="hidden lg:flex justify-between items-center w-full h-16 px-8 xl:px-20 mx-auto py-4 bg-[#000000] border-b border-b-[#3E4347]">
+    <div className="hidden md:flex justify-between items-center w-full h-16 px-8 xl:px-20 mx-auto py-4 bg-[#000000] border-b border-b-[#3E4347]">
       <div className="flex flex-row gap-16 items-center ">
         <Link href={"/"} className="text-lg text-[#A6A9B8] w-[50px] h-[50px]">
           <Image src="/logo.svg" alt="wave" width={50} height={50} />
@@ -17,6 +17,9 @@ const Navbar = () => {
           </Link>
           <Link href={"/faucet"} className="text-lg text-[#A6A9B8] ">
             Faucet
+          </Link>
+          <Link href={"/domain"} className="text-lg text-[#A6A9B8] ">
+            Domains
           </Link>
         </div>
       </div>
