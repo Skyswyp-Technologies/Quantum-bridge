@@ -72,7 +72,6 @@ const getTokenSymbol = (tokenId: string) => {
 
       const info = getTokenInfo(fromToken);
 
-
       if (walletClient && info) {
         const approveTx = await bridgeWrapper.approveBridge(
           info.sourceChainAddress,
@@ -111,7 +110,7 @@ const getTokenSymbol = (tokenId: string) => {
   
       if (walletClient && info) {
         const destID = info.destinationID;
-        const destChain = "ARB";
+        const sourceChain = info.originChain;
         const amountToSend = ethers.utils.parseUnits(amount.toString());
         const tokenAddress = info.address;
         const receiver = recipientAddress;
@@ -119,12 +118,13 @@ const getTokenSymbol = (tokenId: string) => {
         const fee = nativeFee;
   
         const bridgeTx = await bridgeWrapper.depositERC20Assets(
+          info.sourceChainAddress,
           fee,
           destID,
           amountToSend,
           tokenAddress,
           receiver,
-          destChain,
+          sourceChain,
           signer
         );
   

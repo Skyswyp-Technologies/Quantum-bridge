@@ -214,12 +214,15 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
 
   const handleprepareBridgeUserInfo = async () => {
     try {
+
       const simulationAmount = amount.toString();
       const token = tokenAddress;
       const receiverAddress = recipientAddress;
-      const destID = destinationID;
+      const destID = "40231";
       const contractAddress = sourceContractAddress
       const baseChain = originalChain
+
+      console.log({simulationAmount,token,receiverAddress,  destID, contractAddress, baseChain })
       
       if (receiverAddress && baseChain) {
 
@@ -272,19 +275,26 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
+
   useEffect(() => {
     getGasPrice();
     handleUserTokenBalance();
     handleprepareBridgeUserInfo();
     getTokenInfo(fromToken);
   }, [
+    toToken,
+    tokenSymbol,
+    destinationID,
+    tokenAddress,
+    originalChain,
+    sourceContractAddress,
     recipientAddress,
     userAddress,
     setTokenBalance,
     setPayload,
     setOptions,
-    setNativeFee,
-    setFeeInUSD,
+    setNativeFee
+
   ]);
 
   return (

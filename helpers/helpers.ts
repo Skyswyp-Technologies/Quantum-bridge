@@ -77,7 +77,7 @@ class Bridge {
     amount: any,
     tokenAddress: string,
     receiver: string,
-    destChain: SupportedChain,
+    sourceChain: SupportedChain,
     walletClient: any
   ) => {
     if (
@@ -86,7 +86,7 @@ class Bridge {
       !destId ||
       !amount ||
       !tokenAddress ||
-      !destChain ||
+      !sourceChain ||
       !receiver ||
       !walletClient
       
@@ -96,9 +96,9 @@ class Bridge {
 
     try {
 
-      const chainConfig = chainConfigs[destChain];
+      const chainConfig = chainConfigs[sourceChain];
       if (!chainConfig) {
-        throw new Error(`Unsupported source chain: ${destChain}`);
+        throw new Error(`Unsupported source chain: ${sourceChain}`);
       }
 
 
