@@ -7,13 +7,14 @@ import React, {
 } from "react";
 import Usdt from "./../public/usdt.svg";
 import Arb from "./../public/arb.svg";
-import Eth from "./../public/eth.svg";  // Add this import
-import Celo from "./../public/celo.svg"; 
-import Op from "./../public/op.svg"; 
-import Base from "./../public/base.svg"; 
-import Lisk from "./../public/lisk.svg"; 
+import Eth from "./../public/eth.svg"; // Add this import
+import Celo from "./../public/celo.svg";
+import Op from "./../public/op.svg";
+import Base from "./../public/base.svg";
+import Lisk from "./../public/lisk.svg";
 
 import { bridgeWrapper } from "@/helpers/helpers";
+import { SupportedChain } from "@/helpers/inteface/interface";
 
 interface Token {
   id: string;
@@ -22,6 +23,8 @@ interface Token {
   address: string;
   symbol: string;
   destinationID: string;
+  originChain: SupportedChain;
+  sourceChainAddress: string;
 }
 
 interface Network {
@@ -54,10 +57,18 @@ interface BridgeContextType {
   nativeFee: string;
   setFeeInUSD: (feeInUSD: string) => void;
   feeInUSD: string;
-  setGasPrice: (gasPrice: string)=> void;
-  gasPrice: string,
+  setGasPrice: (gasPrice: string) => void;
+  gasPrice: string;
   setHash: (txHash: string) => void;
-  txHash: string,
+  txHash: string;
+  setDestinationID: (tokenSymbol: string) => void;
+  destinationID: string;
+  setSourceContractAddress: (sourceContractAddress: string) => void;
+  sourceContractAddress: string
+  setTokenSymbol: (tokenSymbol: string) => void;
+  tokenSymbol: string;
+  setOriginalChain: (originChain: SupportedChain | null) => void;
+  originalChain: SupportedChain | null;
   userAddress: string;
   isModalOpen: boolean;
   setIsModalOpen: (isOpen: boolean) => void;
@@ -67,7 +78,7 @@ interface BridgeContextType {
   tokens: Token[];
   getTokenInfo: (
     tokenId: string
-  ) => { address: string; symbol: string; destinationID: string } | null;
+  ) => { address: string; symbol: string; destinationID: string; originChain: SupportedChain;  sourceChainAddress: string; } | null;
 }
 
 const BridgeContext = createContext<BridgeContextType | undefined>(undefined);
@@ -89,8 +100,14 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
   const [options, setOptions] = useState("");
   const [nativeFee, setNativeFee] = useState("");
   const [feeInUSD, setFeeInUSD] = useState("");
-  const [gasPrice, setGasPrice] = useState("")
-  const [txHash, setHash ] = useState("")
+  const [gasPrice, setGasPrice] = useState("");
+  const [txHash, setHash] = useState("");
+  const [tokenSymbol, setTokenSymbol] = useState("");
+  const [destinationID, setDestinationID] = useState("");
+  const [tokenAddress, setTokenAddress] = useState("");
+  const [originalChain , setOriginalChain ] = useState<SupportedChain | null>(null);
+  const [sourceContractAddress, setSourceContractAddress] = useState("")
+
 
   const networks: Network[] = [
     { id: "ETH", icon: Eth, name: "Ethereum" },
@@ -109,18 +126,20 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       icon: Usdt,
       address: "0x84cba2A35398B42127B3148744DB3Cd30981fCDf",
       symbol: "USDT",
-      destinationID: "40231",
-      // destinationChain: ""
+      destinationID: "40161",
+      originChain: "eth-sepolia",
+      sourceChainAddress: "0x67e0B3f4069e59812EecC65DF127811A43AF5Eb9"
     },
     {
-      id: "ETH-MAINNET",
+      id: "ETH-SEPOLIA",
       name: "Ethereum",
       icon: Eth,
       address: "0x0000000000000000000000000000000000000000",
       symbol: "ETH",
-      destinationID: "40231",
-    }, // Replace with actual ETH icon
-    // Add more tokens as needed
+      destinationID: "40161",
+      originChain: "eth-sepolia",
+      sourceChainAddress: "0x67e0B3f4069e59812EecC65DF127811A43AF5Eb9"
+    },
 
     {
       id: "USDT-ARB",
@@ -128,7 +147,9 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       icon: Usdt,
       address: "0x43535C041AF9d270Bd7aaA9ce5313d960BBEABAD",
       symbol: "USDT",
-      destinationID: "40233",
+      destinationID: "40231",
+      originChain: "arbitrum-sepolia",
+      sourceChainAddress: "0x74FCAE483Cd97791078B8E6073757e04356C20bd"
     },
     {
       id: "ETH-ARB",
@@ -136,7 +157,30 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       icon: Eth,
       address: "0x0000000000000000000000000000000000000000",
       symbol: "ETH",
-      destinationID: "40234",
+      destinationID: "40231",
+      originChain: "arbitrum-sepolia",
+      sourceChainAddress: "0x74FCAE483Cd97791078B8E6073757e04356C20bd"
+    },
+
+    {
+      id: "ETH-BASE",
+      name: "Base",
+      icon: Eth,
+      address: "0x0000000000000000000000000000000000000000",
+      symbol: "ETH",
+      destinationID: "40245",
+      originChain: "base-sepolia",
+      sourceChainAddress: "0xf762f004a30CB141d139C900f2Aa3631Db7FD2E7"
+    },
+    {
+      id: "ETH-BASE",
+      name: "Tether",
+      icon: Eth,
+      address: "0x2816a02000B9845C464796b8c36B2D5D199525d5",
+      symbol: "USDT",
+      destinationID: "40245",
+     originChain: "base-sepolia",
+     sourceChainAddress: "0xf762f004a30CB141d139C900f2Aa3631Db7FD2E7"
     },
   ];
 
@@ -146,15 +190,20 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       if (userAddress && info) {
         const walletAddress = userAddress;
         const tokenAddress = info.address;
-
+        const basChain = info.originChain
 
         const bal = await bridgeWrapper.getUSDTBalance(
           walletAddress,
-          tokenAddress
+          tokenAddress,
+          basChain
         );
-
-
-        setTokenBalance(bal);
+        
+        setSourceContractAddress( info.sourceChainAddress)
+        setOriginalChain(basChain)
+        setTokenSymbol(info.symbol);
+        setDestinationID(info.destinationID);
+        setTokenBalance(bal.balance);
+        setTokenAddress(tokenAddress)
         return bal;
       }
     } catch (error) {
@@ -165,17 +214,23 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
 
   const handleprepareBridgeUserInfo = async () => {
     try {
-      const simulationAmount = amount;
-      const tokenAddress = "0x84cba2A35398B42127B3148744DB3Cd30981fCDf";
+
+      const simulationAmount = amount.toString();
+      const token = tokenAddress;
       const receiverAddress = recipientAddress;
       const destID = "40231";
+      const contractAddress = sourceContractAddress
+      const baseChain = originalChain
+      
+      if (receiverAddress && baseChain) {
 
-      if (receiverAddress) {
         const simInfo = await bridgeWrapper.prepareBridgeInfo(
+          contractAddress,
           simulationAmount,
-          tokenAddress,
+          token,
           receiverAddress,
-          destID
+          destID,
+          baseChain
         );
 
         if (simInfo) {
@@ -193,41 +248,49 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
   const getTokenInfo = (tokenId: string) => {
     const token = tokens.find((t) => t.id === tokenId);
     if (token) {
-      const { address, symbol, destinationID } = token;
-      return { address, symbol, destinationID };
+      const { address, symbol, destinationID , originChain, sourceChainAddress} = token;
+      return { address, symbol, destinationID , originChain, sourceChainAddress};
     }
     return null;
   };
 
-
-  const getGasPrice = async()=>{
+  const getGasPrice = async () => {
     try {
-      const gasPriceResult = await bridgeWrapper.getGasPrice()
-
-      console.log("gasPriceResult", gasPriceResult)
-
-      if(gasPriceResult) {
-        setGasPrice(gasPriceResult.usdt)
-        
+      if (!originalChain) {
+        throw new Error("No chain selected");
       }
-      
+
+      const gasPriceResult = await bridgeWrapper.getGasPrice(originalChain);
+
+      if (gasPriceResult) {
+        setGasPrice(gasPriceResult.usdt);
+      }
     } catch (error) {
+      console.error("Error fetching gas price:", error);
       throw error;
     }
-  }
+  };
+
+
   useEffect(() => {
-    getGasPrice()
+    getGasPrice();
     handleUserTokenBalance();
     handleprepareBridgeUserInfo();
     getTokenInfo(fromToken);
   }, [
+    toToken,
+    tokenSymbol,
+    destinationID,
+    tokenAddress,
+    originalChain,
+    sourceContractAddress,
     recipientAddress,
     userAddress,
     setTokenBalance,
     setPayload,
     setOptions,
-    setNativeFee,
-    setFeeInUSD,
+    setNativeFee
+
   ]);
 
   return (
@@ -264,11 +327,18 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
         feeInUSD,
         setFeeInUSD,
         getTokenInfo,
-        gasPrice, 
+        gasPrice,
         setGasPrice,
         setHash,
-        txHash
-       
+        txHash,
+        destinationID,
+        setDestinationID,
+        tokenSymbol,
+        setTokenSymbol,
+        originalChain , 
+        setOriginalChain,
+        sourceContractAddress, 
+        setSourceContractAddress
       }}
     >
       {children}

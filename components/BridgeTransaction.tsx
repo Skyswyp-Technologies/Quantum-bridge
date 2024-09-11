@@ -59,7 +59,6 @@ const BridgeTransaction: React.FC = () => {
     setErrorMessage(null);
   };
 
-  // Using array
 const getTokenSymbol = (tokenId: string) => {
   const token = tokens.find((t) => t.id === tokenId);
   return token ? token.symbol : tokenId; // Fallback to tokenId if not found
@@ -75,9 +74,11 @@ const getTokenSymbol = (tokenId: string) => {
 
       if (walletClient && info) {
         const approveTx = await bridgeWrapper.approveBridge(
+          info.sourceChainAddress,
           info.address,
-          amount,
-          walletClient
+          amount.toString(),
+          walletClient,
+          info.originChain
         );
 
         if (!approveTx.success) {
@@ -108,8 +109,8 @@ const getTokenSymbol = (tokenId: string) => {
       const info = getTokenInfo(fromToken);
   
       if (walletClient && info) {
-        const destID = info.destinationID;
-        const destChain = "ARB";
+        const destID = "40231";
+        const sourceChain = info.originChain;
         const amountToSend = ethers.utils.parseUnits(amount.toString());
         const tokenAddress = info.address;
         const receiver = recipientAddress;
@@ -117,12 +118,13 @@ const getTokenSymbol = (tokenId: string) => {
         const fee = nativeFee;
   
         const bridgeTx = await bridgeWrapper.depositERC20Assets(
+          info.sourceChainAddress,
           fee,
           destID,
           amountToSend,
           tokenAddress,
           receiver,
-          destChain,
+          sourceChain,
           signer
         );
   

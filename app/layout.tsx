@@ -20,7 +20,7 @@ const config = getDefaultConfig({
   appName: "Quantum Bridge",
   projectId: "c3bb48e466ab4f0e9ccaf92e7bd24dca",
   chains: [ arbitrumSepolia, sepolia],
-  ssr: false, // If your dApp uses server side rendering (SSR)
+  ssr: true, // If your dApp uses server side rendering (SSR)
 });
 
 export default function RootLayout({
