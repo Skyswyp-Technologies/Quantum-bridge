@@ -65,7 +65,7 @@ const AssetSelector = () => {
               <Image src={token.icon} alt={token.name} width={24} height={24} />
               <div className='flex flex-col gap-2'>
                 <span className="text-white">{token.symbol}</span>
-                <span className="text-[#9A9A9A] text-sm">{token.name}</span>
+                <span className="text-[#9A9A9A] text-sm">{token.id}</span>
               </div>
             </div>
           </div>

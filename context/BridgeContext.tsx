@@ -64,7 +64,7 @@ interface BridgeContextType {
   setDestinationID: (tokenSymbol: string) => void;
   destinationID: string;
   setSourceContractAddress: (sourceContractAddress: string) => void;
-  sourceContractAddress: string
+  sourceContractAddress: string;
   setTokenSymbol: (tokenSymbol: string) => void;
   tokenSymbol: string;
   setOriginalChain: (originChain: SupportedChain | null) => void;
@@ -78,7 +78,13 @@ interface BridgeContextType {
   tokens: Token[];
   getTokenInfo: (
     tokenId: string
-  ) => { address: string; symbol: string; destinationID: string; originChain: SupportedChain;  sourceChainAddress: string; } | null;
+  ) => {
+    address: string;
+    symbol: string;
+    destinationID: string;
+    originChain: SupportedChain;
+    sourceChainAddress: string;
+  } | null;
 }
 
 const BridgeContext = createContext<BridgeContextType | undefined>(undefined);
@@ -105,9 +111,10 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
   const [tokenSymbol, setTokenSymbol] = useState("");
   const [destinationID, setDestinationID] = useState("");
   const [tokenAddress, setTokenAddress] = useState("");
-  const [originalChain , setOriginalChain ] = useState<SupportedChain | null>(null);
-  const [sourceContractAddress, setSourceContractAddress] = useState("")
-
+  const [originalChain, setOriginalChain] = useState<SupportedChain | null>(
+    null
+  );
+  const [sourceContractAddress, setSourceContractAddress] = useState("");
 
   const networks: Network[] = [
     { id: "ETH", icon: Eth, name: "Ethereum" },
@@ -118,7 +125,6 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     { id: "LISK", icon: Lisk, name: "Lisk" },
   ];
 
-
   const tokens: Token[] = [
     {
       id: "USDT-ETH",
@@ -128,7 +134,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       symbol: "USDT",
       destinationID: "40161",
       originChain: "eth-sepolia",
-      sourceChainAddress: "0x67e0B3f4069e59812EecC65DF127811A43AF5Eb9"
+      sourceChainAddress: "0x67e0B3f4069e59812EecC65DF127811A43AF5Eb9",
     },
     {
       id: "ETH-SEPOLIA",
@@ -138,7 +144,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       symbol: "ETH",
       destinationID: "40161",
       originChain: "eth-sepolia",
-      sourceChainAddress: "0x67e0B3f4069e59812EecC65DF127811A43AF5Eb9"
+      sourceChainAddress: "0x67e0B3f4069e59812EecC65DF127811A43AF5Eb9",
     },
 
     {
@@ -149,7 +155,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       symbol: "USDT",
       destinationID: "40231",
       originChain: "arbitrum-sepolia",
-      sourceChainAddress: "0x74FCAE483Cd97791078B8E6073757e04356C20bd"
+      sourceChainAddress: "0x74FCAE483Cd97791078B8E6073757e04356C20bd",
     },
     {
       id: "ETH-ARB",
@@ -159,7 +165,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       symbol: "ETH",
       destinationID: "40231",
       originChain: "arbitrum-sepolia",
-      sourceChainAddress: "0x74FCAE483Cd97791078B8E6073757e04356C20bd"
+      sourceChainAddress: "0x74FCAE483Cd97791078B8E6073757e04356C20bd",
     },
 
     {
@@ -170,7 +176,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       symbol: "ETH",
       destinationID: "40245",
       originChain: "base-sepolia",
-      sourceChainAddress: "0xf762f004a30CB141d139C900f2Aa3631Db7FD2E7"
+      sourceChainAddress: "0xf762f004a30CB141d139C900f2Aa3631Db7FD2E7",
     },
     {
       id: "ETH-BASE",
@@ -179,31 +185,36 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       address: "0x2816a02000B9845C464796b8c36B2D5D199525d5",
       symbol: "USDT",
       destinationID: "40245",
-     originChain: "base-sepolia",
-     sourceChainAddress: "0xf762f004a30CB141d139C900f2Aa3631Db7FD2E7"
+      originChain: "base-sepolia",
+      sourceChainAddress: "0xf762f004a30CB141d139C900f2Aa3631Db7FD2E7",
     },
   ];
 
   const handleUserTokenBalance = async () => {
+
     try {
+      const tokenSide = fromToken ? fromToken : toToken
+
+      console.log("From token", tokenSide)
+
       const info = getTokenInfo(fromToken);
       if (userAddress && info) {
         const walletAddress = userAddress;
         const tokenAddress = info.address;
-        const basChain = info.originChain
+        const baseChain = info.originChain;
 
         const bal = await bridgeWrapper.getUSDTBalance(
           walletAddress,
           tokenAddress,
-          basChain
+          baseChain
         );
-        
-        setSourceContractAddress( info.sourceChainAddress)
-        setOriginalChain(basChain)
+
+        setSourceContractAddress(info.sourceChainAddress);
+        setOriginalChain(baseChain);
         setTokenSymbol(info.symbol);
         setDestinationID(info.destinationID);
         setTokenBalance(bal.balance);
-        setTokenAddress(tokenAddress)
+        setTokenAddress(tokenAddress);
         return bal;
       }
     } catch (error) {
@@ -214,16 +225,14 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
 
   const handleprepareBridgeUserInfo = async () => {
     try {
-
       const simulationAmount = amount.toString();
       const token = tokenAddress;
       const receiverAddress = recipientAddress;
       const destID = "40231";
-      const contractAddress = sourceContractAddress
-      const baseChain = originalChain
-      
-      if (receiverAddress && baseChain) {
+      const contractAddress = sourceContractAddress;
+      const baseChain = originalChain;
 
+      if (receiverAddress && baseChain) {
         const simInfo = await bridgeWrapper.prepareBridgeInfo(
           contractAddress,
           simulationAmount,
@@ -248,8 +257,20 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
   const getTokenInfo = (tokenId: string) => {
     const token = tokens.find((t) => t.id === tokenId);
     if (token) {
-      const { address, symbol, destinationID , originChain, sourceChainAddress} = token;
-      return { address, symbol, destinationID , originChain, sourceChainAddress};
+      const {
+        address,
+        symbol,
+        destinationID,
+        originChain,
+        sourceChainAddress,
+      } = token;
+      return {
+        address,
+        symbol,
+        destinationID,
+        originChain,
+        sourceChainAddress,
+      };
     }
     return null;
   };
@@ -271,7 +292,6 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-
   useEffect(() => {
     getGasPrice();
     handleUserTokenBalance();
@@ -289,8 +309,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     setTokenBalance,
     setPayload,
     setOptions,
-    setNativeFee
-
+    setNativeFee,
   ]);
 
   return (
@@ -335,10 +354,10 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
         setDestinationID,
         tokenSymbol,
         setTokenSymbol,
-        originalChain , 
+        originalChain,
         setOriginalChain,
-        sourceContractAddress, 
-        setSourceContractAddress
+        sourceContractAddress,
+        setSourceContractAddress,
       }}
     >
       {children}
