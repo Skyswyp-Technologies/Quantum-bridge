@@ -59,7 +59,6 @@ const BridgeTransaction: React.FC = () => {
     setErrorMessage(null);
   };
 
-  // Using array
 const getTokenSymbol = (tokenId: string) => {
   const token = tokens.find((t) => t.id === tokenId);
   return token ? token.symbol : tokenId; // Fallback to tokenId if not found
@@ -73,11 +72,14 @@ const getTokenSymbol = (tokenId: string) => {
 
       const info = getTokenInfo(fromToken);
 
+
       if (walletClient && info) {
         const approveTx = await bridgeWrapper.approveBridge(
+          info.sourceChainAddress,
           info.address,
-          amount,
-          walletClient
+          amount.toString(),
+          walletClient,
+          info.originChain
         );
 
         if (!approveTx.success) {
