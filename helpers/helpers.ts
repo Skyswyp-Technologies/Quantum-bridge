@@ -4,6 +4,8 @@ import axios from "axios";
 import { ethers } from "ethers";
 
 class Bridge {
+  constructor() {}
+
   depositNativeAssets = async (
     destId: any,
     amount: any,
@@ -196,8 +198,8 @@ class Bridge {
   getUSDTBalance = async (walletAddress: string, tokenAddress: string) => {
     try {
       const usdtABI = ["function balanceOf(address) view returns (uint)"];
-      const provider = new ethers.providers.JsonRpcProvider(Config.JSON_RPC);
 
+      const provider = new ethers.providers.JsonRpcProvider(Config.JSON_RPC);
       const usdtContract = new ethers.Contract(tokenAddress, usdtABI, provider);
 
       // Fetch the balance
@@ -209,36 +211,43 @@ class Bridge {
       return "0";
     }
   };
-    getGasPrice = async (): Promise<GasPriceResult> =>{
+
+  getGasPrice = async () => {
     try {
       // Get gas price in Gwei
       const provider = new ethers.providers.JsonRpcProvider(Config.JSON_RPC);
       const gasPrice = await provider.getGasPrice();
-      const gasPriceGwei = ethers.utils.formatUnits(gasPrice, 'gwei');
-  
+      const gasPriceGwei = ethers.utils.formatUnits(gasPrice, "gwei");
+
       // Convert Gwei to USDT
-      const ethAmount = ethers.utils.formatUnits(gasPrice, 'ether');
-      const response = await axios.get('https://api.coinbase.com/v2/exchange-rates?currency=ETH');
+      const ethAmount = ethers.utils.formatUnits(gasPrice, "ether");
+      const response = await axios.get(
+        "https://api.coinbase.com/v2/exchange-rates?currency=ETH"
+      );
       const usdtRate = parseFloat(response.data.data.rates.USDT);
       const usdtValue = (parseFloat(ethAmount) * usdtRate).toFixed(6);
-  
+
       return {
         gwei: gasPriceGwei,
-        usdt: usdtValue
+        usdt: usdtValue,
       };
     } catch (error) {
       console.log("Error fetching gas price:", error);
       throw error;
     }
-  }
+  };
 
-   shortenHash(hash: string, chars: number = 4): string {
+  shortenHash(hash: string, chars: number = 4): string {
     if (hash.length <= chars * 2) {
       return hash;
     }
-    return `${hash.substring(0, chars)}...${hash.substring(hash.length - chars)}`;
+    return `${hash.substring(0, chars)}...${hash.substring(
+      hash.length - chars
+    )}`;
   }
 
+   
+  
 }
 
 export const bridgeWrapper = new Bridge();

@@ -109,7 +109,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       icon: Usdt,
       address: "0x84cba2A35398B42127B3148744DB3Cd30981fCDf",
       symbol: "USDT",
-      destinationID: "40231",
+      destinationID: "40161",
       // destinationChain: ""
     },
     {
@@ -118,17 +118,16 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       icon: Eth,
       address: "0x0000000000000000000000000000000000000000",
       symbol: "ETH",
-      destinationID: "40231",
-    }, // Replace with actual ETH icon
-    // Add more tokens as needed
-
+      destinationID: "40161",
+    }, 
+  
     {
       id: "USDT-ARB",
       name: "Tether",
       icon: Usdt,
       address: "0x43535C041AF9d270Bd7aaA9ce5313d960BBEABAD",
       symbol: "USDT",
-      destinationID: "40233",
+      destinationID: "40231",
     },
     {
       id: "ETH-ARB",
@@ -136,7 +135,24 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       icon: Eth,
       address: "0x0000000000000000000000000000000000000000",
       symbol: "ETH",
-      destinationID: "40234",
+      destinationID: "40231",
+    },
+
+    {
+      id: "ETH-BASE",
+      name: "Base",
+      icon: Eth,
+      address: "0x0000000000000000000000000000000000000000",
+      symbol: "ETH",
+      destinationID: "40245",
+    },
+    {
+      id: "ETH-BASE",
+      name: "Tether",
+      icon: Eth,
+      address: "0x2816a02000B9845C464796b8c36B2D5D199525d5",
+      symbol: "USDT",
+      destinationID: "40245",
     },
   ];
 
@@ -146,7 +162,6 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       if (userAddress && info) {
         const walletAddress = userAddress;
         const tokenAddress = info.address;
-
 
         const bal = await bridgeWrapper.getUSDTBalance(
           walletAddress,
