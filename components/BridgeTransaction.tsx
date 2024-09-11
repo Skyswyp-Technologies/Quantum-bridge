@@ -109,7 +109,8 @@ const getTokenSymbol = (tokenId: string) => {
       const info = getTokenInfo(fromToken);
   
       if (walletClient && info) {
-        const destID = "40231";
+        
+        const destID = "40245";
         const sourceChain = info.originChain;
         const amountToSend = ethers.utils.parseUnits(amount.toString());
         const tokenAddress = info.address;
