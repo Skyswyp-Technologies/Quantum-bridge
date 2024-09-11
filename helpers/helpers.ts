@@ -96,6 +96,8 @@ class Bridge {
 
     try {
 
+      console.log(bridgeContract, fee, destId, amount, tokenAddress, sourceChain, receiver)
+
       const chainConfig = chainConfigs[sourceChain];
       if (!chainConfig) {
         throw new Error(`Unsupported source chain: ${sourceChain}`);
@@ -178,7 +180,6 @@ class Bridge {
       if (fee) {
         const nativeFee = ethers.utils.formatEther(fee.nativeFee);
         const nativeCurrency = this.getNativeCurrency(sourceChain);
-        console.log(`Fee is set: ${nativeFee} ${nativeCurrency}`);
 
         const feeInUSD = await this.convertEthToUsdt(nativeFee, nativeCurrency);
 

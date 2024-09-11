@@ -221,8 +221,6 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       const destID = "40231";
       const contractAddress = sourceContractAddress
       const baseChain = originalChain
-
-      console.log({simulationAmount,token,receiverAddress,  destID, contractAddress, baseChain })
       
       if (receiverAddress && baseChain) {
 
@@ -263,8 +261,6 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       }
 
       const gasPriceResult = await bridgeWrapper.getGasPrice(originalChain);
-
-      console.log("gasPriceResult", gasPriceResult);
 
       if (gasPriceResult) {
         setGasPrice(gasPriceResult.usdt);
