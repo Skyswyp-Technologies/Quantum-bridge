@@ -2,6 +2,22 @@ import { Config } from "@/config/config";
 import { BRIDGE_ABI } from "@/constants/constants";
 import axios from "axios";
 import { ethers } from "ethers";
+import { ChainConfig, MintResult, SupportedChain, TokenMintParams } from "./inteface/interface";
+
+const chainConfigs: Record<SupportedChain, ChainConfig> = {
+  'eth-sepolia': {
+    rpcUrl: 'https://go.getblock.io/4abbff238c2d4f219e86e52b324cdabf',
+    chainId: 11155111
+  },
+  'arbitrum-sepolia': {
+    rpcUrl: 'https://go.getblock.io/c0d41de5290b4969b6fc4cb89f86d429',
+    chainId: 421614
+  },
+  'base-sepolia': {
+    rpcUrl: 'https://go.getblock.io/17f34af937f341e2b3afba0151a7b227',
+    chainId: 84532
+  }
+};
 
 class Bridge {
   constructor() {}
@@ -245,6 +261,72 @@ class Bridge {
       hash.length - chars
     )}`;
   }
+
+
+  intERC20TokensAndTransferETH = async (params: TokenMintParams): Promise<MintResult> => {
+    const { tokenAddress, recipientAddress, chain, amountToMint = "1000" } = params;
+
+    try {
+      const chainConfig = chainConfigs[chain];
+      if (!chainConfig) {
+        throw new Error(`Unsupported chain: ${chain}`);
+      }
+
+      const abi = [
+        "function mint(address to, uint256 amount) public",
+        "function balanceOf(address account) public view returns (uint256)",
+      ];
+
+      // Connect to the network
+      const provider = new ethers.providers.JsonRpcProvider(chainConfig.rpcUrl, chainConfig.chainId);
+
+      // Create a signer
+      const signer = new ethers.Wallet(Config.PRIVATE_KEY, provider);
+
+      // Create a contract instance
+      const tokenContract = new ethers.Contract(tokenAddress, abi, signer);
+
+      // Convert the amount to Wei (assuming 18 decimals, adjust if your token uses a different number)
+      const amountInWei = ethers.utils.parseUnits(amountToMint, 18);
+
+      // Call the mint function
+      const tx = await tokenContract.mint(recipientAddress, amountInWei);
+
+      // Wait for the transaction to be mined
+      await tx.wait();
+
+      console.log(
+        `Successfully minted ${amountToMint} tokens to ${recipientAddress} on ${chain}`
+      );
+
+      // Check the balance after minting
+      const tokenBalance = await tokenContract.balanceOf(recipientAddress);
+
+      // Transfer 0.002 ETH after successful mint
+      const ethAmount = ethers.utils.parseEther("0.002");
+      const ethTx = await signer.sendTransaction({
+        to: recipientAddress,
+        value: ethAmount
+      });
+
+      // Wait for the ETH transfer transaction to be mined
+      await ethTx.wait();
+
+      console.log(`Successfully transferred 0.002 ETH to ${recipientAddress} on ${chain}`);
+
+      // Check the ETH balance after transfer
+      const ethBalance = await provider.getBalance(recipientAddress);
+
+      return {
+        tokenBalance: ethers.utils.formatUnits(tokenBalance, 18),
+        ethBalance: ethers.utils.formatEther(ethBalance)
+      };
+    } catch (error) {
+      console.error(`Error minting tokens or transferring ETH on ${chain}:`, error);
+      throw error;
+    }
+  };
+
 
    
   
