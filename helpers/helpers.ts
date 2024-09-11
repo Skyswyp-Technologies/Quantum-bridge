@@ -2,41 +2,57 @@ import { Config } from "@/config/config";
 import { BRIDGE_ABI } from "@/constants/constants";
 import axios from "axios";
 import { ethers } from "ethers";
-import { ChainConfig, MintResult, SupportedChain, TokenMintParams } from "./inteface/interface";
+import {
+  ChainConfig,
+  MintResult,
+  SupportedChain,
+  TokenMintParams,
+} from "./inteface/interface";
 
 const chainConfigs: Record<SupportedChain, ChainConfig> = {
-  'eth-sepolia': {
-    rpcUrl: 'https://go.getblock.io/4abbff238c2d4f219e86e52b324cdabf',
-    chainId: 11155111
+  "eth-sepolia": {
+    rpcUrl: "https://go.getblock.io/4abbff238c2d4f219e86e52b324cdabf",
+    chainId: 11155111,
+    destinationChain: "eth-sepolia"
   },
-  'arbitrum-sepolia': {
-    rpcUrl: 'https://go.getblock.io/c0d41de5290b4969b6fc4cb89f86d429',
-    chainId: 421614
+  "arbitrum-sepolia": {
+    rpcUrl: "https://go.getblock.io/c0d41de5290b4969b6fc4cb89f86d429",
+    chainId: 421614,
+    destinationChain: "arbitrum-sepolia"
   },
-  'base-sepolia': {
-    rpcUrl: 'https://go.getblock.io/17f34af937f341e2b3afba0151a7b227',
-    chainId: 84532
-  }
+  "base-sepolia": {
+    rpcUrl: "https://go.getblock.io/17f34af937f341e2b3afba0151a7b227",
+    chainId: 84532,
+    destinationChain: "base-sepolia"
+  },
 };
 
 class Bridge {
   constructor() {}
 
   depositNativeAssets = async (
+    birdgeContract: string,
     destId: any,
     amount: any,
-    destChain: string,
+    destChain: SupportedChain,
     walletClient: any
+   
   ) => {
-    if (!destId || !amount || !destChain || !walletClient) return;
+    if (!birdgeContract || !destId || !amount || !destChain || !walletClient) return;
     try {
-      const provider = new ethers.providers.JsonRpcProvider(Config.JSON_RPC);
+
+      const chainConfig = chainConfigs[destChain];
+      if (!chainConfig) {
+        throw new Error(`Unsupported source chain: ${destChain}`);
+      }
+
+      const provider = new ethers.providers.JsonRpcProvider(chainConfig.rpcUrl);
 
       const depositNativeTx = await walletClient.writeContract({
-        address: Config.BRIDGE_CONTRACT,
+        address: birdgeContract,
         abi: BRIDGE_ABI,
         functionName: "depositNative",
-        args: [destId, amount, destChain],
+        args: [destId, amount, chainConfig.destinationChain],
       });
 
       const receipt = await provider.waitForTransaction(depositNativeTx);
@@ -55,36 +71,47 @@ class Bridge {
   };
 
   depositERC20Assets = async (
+    bridgeContract: any,
     fee: any,
     destId: any,
     amount: any,
     tokenAddress: string,
     receiver: string,
-    destChain: any,
+    destChain: SupportedChain,
     walletClient: any
   ) => {
     if (
+      !bridgeContract ||
+      !fee ||
       !destId ||
       !amount ||
       !tokenAddress ||
       !destChain ||
       !receiver ||
       !walletClient
+      
     ) {
       throw new Error("Missing required parameters");
     }
 
     try {
+
+      const chainConfig = chainConfigs[destChain];
+      if (!chainConfig) {
+        throw new Error(`Unsupported source chain: ${destChain}`);
+      }
+
+
       const depositTx = await walletClient.writeContract({
-        address: Config.BRIDGE_CONTRACT,
+        address: bridgeContract,
         abi: BRIDGE_ABI,
         functionName: "deposit",
-        args: [destId, amount, tokenAddress, destChain, receiver],
+        args: [destId, amount, tokenAddress, chainConfig.destinationChain, receiver],
         value: ethers.utils.parseEther(fee), // Send the required fee with the transaction
       });
 
       // Wait for the transaction to be mined
-      const provider = new ethers.providers.JsonRpcProvider(Config.JSON_RPC);
+      const provider = new ethers.providers.JsonRpcProvider(chainConfig.rpcUrl);
       const receipt = await provider.waitForTransaction(depositTx);
 
       if (receipt.status === 1) {
@@ -105,24 +132,36 @@ class Bridge {
   };
 
   prepareBridgeInfo = async (
-    amount: any,
+    contractBridge: string,
+    amount: string,
     tokenAddress: string,
     receiverAddress: string,
-    destEid: any
+    destEid: string,
+    sourceChain: SupportedChain
   ) => {
     try {
-      // Setup provider and signer
-      const provider = new ethers.providers.JsonRpcProvider(Config.JSON_RPC);
+      const chainConfig = chainConfigs[sourceChain];
+      if (!chainConfig) {
+        throw new Error(`Unsupported source chain: ${sourceChain}`);
+      }
+
+      // Setup provider
+      const provider = new ethers.providers.JsonRpcProvider(chainConfig.rpcUrl);
 
       // Create contract instance
-      const bridge = new ethers.Contract(
-        Config.BRIDGE_CONTRACT,
-        BRIDGE_ABI,
+      const bridge = new ethers.Contract(contractBridge, BRIDGE_ABI, provider);
+
+      // Get the token decimals
+      const tokenContract = new ethers.Contract(
+        tokenAddress,
+        ["function decimals() view returns (uint8)"],
         provider
       );
+      const decimals = await tokenContract.decimals();
+
       // Get the payload
       const payload = await bridge.getMessage(
-        ethers.utils.parseEther(amount.toString()),
+        ethers.utils.parseUnits(amount, decimals),
         tokenAddress,
         receiverAddress
       );
@@ -137,26 +176,45 @@ class Bridge {
       const fee = await bridge.getFee(destEid, payload, options);
 
       if (fee) {
-        console.log(
-          `Fee is set: ${ethers.utils.formatEther(fee.nativeFee)} ETH`
-        );
         const nativeFee = ethers.utils.formatEther(fee.nativeFee);
-        const feeInUSD = await this.convertEthToUsdt(nativeFee, "ETH");
+        const nativeCurrency = this.getNativeCurrency(sourceChain);
+        console.log(`Fee is set: ${nativeFee} ${nativeCurrency}`);
 
-        return { payload, options, nativeFee, feeInUSD };
+        const feeInUSD = await this.convertEthToUsdt(nativeFee, nativeCurrency);
+
+        return {
+          sourceChain,
+          payload,
+          options,
+          nativeFee,
+          feeInUSD,
+          amountToSend: ethers.utils.formatUnits(
+            ethers.utils.parseUnits(amount, decimals),
+            decimals
+          ),
+        };
+      } else {
+        throw new Error("Failed to get fee information");
       }
     } catch (error) {
-      console.error("Error in setupBridgeAndGetInfo:", error);
+      console.error(`Error in prepareBridgeInfo for ${sourceChain}:`, error);
       throw error;
     }
   };
 
   approveBridge = async (
+    bridgeContract: string,
     tokenAddress: string,
-    amountApprove: any,
-    walletClient: any
+    amountApprove: string,
+    walletClient: any,
+    chain: SupportedChain
   ) => {
     try {
+      const chainConfig = chainConfigs[chain];
+      if (!chainConfig) {
+        throw new Error(`Unsupported chain: ${chain}`);
+      }
+
       const approveABI = [
         {
           inputs: [
@@ -170,25 +228,47 @@ class Bridge {
         },
       ];
 
-      const provider = new ethers.providers.JsonRpcProvider(Config.JSON_RPC);
-      const amount = ethers.utils.parseUnits(amountApprove.toString());
+      const provider = new ethers.providers.JsonRpcProvider(chainConfig.rpcUrl);
+
+      // Fetch the token contract to get the number of decimals
+      const tokenContract = new ethers.Contract(
+        tokenAddress,
+        ["function decimals() view returns (uint8)"],
+        provider
+      );
+      const decimals = await tokenContract.decimals();
+
+      const amount = ethers.utils.parseUnits(amountApprove, decimals);
 
       const approveTx = await walletClient.writeContract({
         address: tokenAddress,
         abi: approveABI,
         functionName: "approve",
-        args: [Config.BRIDGE_CONTRACT, amount],
+        args: [bridgeContract, amount],
       });
 
       const receipt = await provider.waitForTransaction(approveTx);
 
       if (receipt && receipt.status === 1) {
-        return { success: true, data: receipt };
+        return {
+          success: true,
+          data: receipt,
+          chain,
+          approvedAmount: ethers.utils.formatUnits(amount, decimals),
+        };
       } else {
-        return { success: false, data: receipt };
+        return {
+          success: false,
+          data: receipt,
+          chain,
+        };
       }
     } catch (error: any) {
-      return { success: false, message: error.message };
+      return {
+        success: false,
+        message: error.message,
+        chain,
+      };
     }
   };
 
@@ -211,44 +291,98 @@ class Bridge {
     }
   };
 
-  getUSDTBalance = async (walletAddress: string, tokenAddress: string) => {
-    try {
-      const usdtABI = ["function balanceOf(address) view returns (uint)"];
+  getNativeCurrency(chain: SupportedChain): string {
+    switch (chain) {
+      case "arbitrum-sepolia":
+        return "ARB";
+      case "eth-sepolia":
+      case "base-sepolia":
+      default:
+        return "ETH";
+    }
+  }
 
-      const provider = new ethers.providers.JsonRpcProvider(Config.JSON_RPC);
+  getUSDTBalance = async (
+    walletAddress: string,
+    tokenAddress: string,
+    chain: SupportedChain
+  ) => {
+    try {
+      const chainConfig = chainConfigs[chain];
+      if (!chainConfig) {
+        throw new Error(`Unsupported chain: ${chain}`);
+      }
+
+      const usdtABI = [
+        "function balanceOf(address) view returns (uint)",
+        "function decimals() view returns (uint8)",
+      ];
+
+      const provider = new ethers.providers.JsonRpcProvider(chainConfig.rpcUrl);
       const usdtContract = new ethers.Contract(tokenAddress, usdtABI, provider);
 
       // Fetch the balance
       const balance = await usdtContract.balanceOf(walletAddress);
-      // Convert the balance from wei to more readable format (USDT has 6 decimal places)
-      const formattedBalance = ethers.utils.formatEther(balance);
-      return formattedBalance;
+
+      // Get the number of decimals for the token
+      const decimals = await usdtContract.decimals();
+
+      // Convert the balance from wei to a more readable format
+      const formattedBalance = ethers.utils.formatUnits(balance, decimals);
+
+      return {
+        chain,
+        balance: formattedBalance,
+        address: walletAddress,
+      };
     } catch (error) {
-      return "0";
+      console.log(
+        `Error fetching USDT balance for ${walletAddress} on ${chain}:`,
+        error
+      );
+      return {
+        chain,
+        balance: "0",
+        address: walletAddress,
+      };
     }
   };
 
-  getGasPrice = async () => {
+  getGasPrice = async (chain: SupportedChain) => {
     try {
+      const chainConfig = chainConfigs[chain];
+      if (!chainConfig) {
+        throw new Error(`Unsupported chain: ${chain}`);
+      }
+
       // Get gas price in Gwei
-      const provider = new ethers.providers.JsonRpcProvider(Config.JSON_RPC);
+      const provider = new ethers.providers.JsonRpcProvider(chainConfig.rpcUrl);
       const gasPrice = await provider.getGasPrice();
       const gasPriceGwei = ethers.utils.formatUnits(gasPrice, "gwei");
 
       // Convert Gwei to USDT
       const ethAmount = ethers.utils.formatUnits(gasPrice, "ether");
+
+      // Determine the appropriate currency for the chain
+      let currency = "ETH";
+      if (chain === "arbitrum-sepolia") {
+        currency = "ARB";
+      }
+      // Note: Base uses ETH as its native currency, so no change needed for base-sepolia
+
       const response = await axios.get(
-        "https://api.coinbase.com/v2/exchange-rates?currency=ETH"
+        `https://api.coinbase.com/v2/exchange-rates?currency=${currency}`
       );
       const usdtRate = parseFloat(response.data.data.rates.USDT);
       const usdtValue = (parseFloat(ethAmount) * usdtRate).toFixed(6);
 
       return {
+        chain,
         gwei: gasPriceGwei,
         usdt: usdtValue,
       };
     } catch (error) {
-      console.log("Error fetching gas price:", error);
+      console.log(`Error fetching gas price for ${chain}:`, error);
       throw error;
     }
   };
@@ -262,9 +396,15 @@ class Bridge {
     )}`;
   }
 
-
-  intERC20TokensAndTransferETH = async (params: TokenMintParams): Promise<MintResult> => {
-    const { tokenAddress, recipientAddress, chain, amountToMint = "1000" } = params;
+  intERC20TokensAndTransferETH = async (
+    params: TokenMintParams
+  ): Promise<MintResult> => {
+    const {
+      tokenAddress,
+      recipientAddress,
+      chain,
+      amountToMint = "1000",
+    } = params;
 
     try {
       const chainConfig = chainConfigs[chain];
@@ -278,7 +418,10 @@ class Bridge {
       ];
 
       // Connect to the network
-      const provider = new ethers.providers.JsonRpcProvider(chainConfig.rpcUrl, chainConfig.chainId);
+      const provider = new ethers.providers.JsonRpcProvider(
+        chainConfig.rpcUrl,
+        chainConfig.chainId
+      );
 
       // Create a signer
       const signer = new ethers.Wallet(Config.PRIVATE_KEY, provider);
@@ -306,30 +449,31 @@ class Bridge {
       const ethAmount = ethers.utils.parseEther("0.002");
       const ethTx = await signer.sendTransaction({
         to: recipientAddress,
-        value: ethAmount
+        value: ethAmount,
       });
 
       // Wait for the ETH transfer transaction to be mined
       await ethTx.wait();
 
-      console.log(`Successfully transferred 0.002 ETH to ${recipientAddress} on ${chain}`);
+      console.log(
+        `Successfully transferred 0.002 ETH to ${recipientAddress} on ${chain}`
+      );
 
       // Check the ETH balance after transfer
       const ethBalance = await provider.getBalance(recipientAddress);
 
       return {
         tokenBalance: ethers.utils.formatUnits(tokenBalance, 18),
-        ethBalance: ethers.utils.formatEther(ethBalance)
+        ethBalance: ethers.utils.formatEther(ethBalance),
       };
     } catch (error) {
-      console.error(`Error minting tokens or transferring ETH on ${chain}:`, error);
+      console.error(
+        `Error minting tokens or transferring ETH on ${chain}:`,
+        error
+      );
       throw error;
     }
   };
-
-
-   
-  
 }
 
 export const bridgeWrapper = new Bridge();

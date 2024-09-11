@@ -7,11 +7,11 @@ import React, {
 } from "react";
 import Usdt from "./../public/usdt.svg";
 import Arb from "./../public/arb.svg";
-import Eth from "./../public/eth.svg";  // Add this import
-import Celo from "./../public/celo.svg"; 
-import Op from "./../public/op.svg"; 
-import Base from "./../public/base.svg"; 
-import Lisk from "./../public/lisk.svg"; 
+import Eth from "./../public/eth.svg"; // Add this import
+import Celo from "./../public/celo.svg";
+import Op from "./../public/op.svg";
+import Base from "./../public/base.svg";
+import Lisk from "./../public/lisk.svg";
 
 import { bridgeWrapper } from "@/helpers/helpers";
 
@@ -54,10 +54,14 @@ interface BridgeContextType {
   nativeFee: string;
   setFeeInUSD: (feeInUSD: string) => void;
   feeInUSD: string;
-  setGasPrice: (gasPrice: string)=> void;
-  gasPrice: string,
+  setGasPrice: (gasPrice: string) => void;
+  gasPrice: string;
   setHash: (txHash: string) => void;
-  txHash: string,
+  txHash: string;
+  setDestinationID: (tokenSymbol: string) => void;
+  destinationID: string;
+  setTokenSymbol: (tokenSymbol: string) => void;
+  tokenSymbol: string;
   userAddress: string;
   isModalOpen: boolean;
   setIsModalOpen: (isOpen: boolean) => void;
@@ -89,8 +93,11 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
   const [options, setOptions] = useState("");
   const [nativeFee, setNativeFee] = useState("");
   const [feeInUSD, setFeeInUSD] = useState("");
-  const [gasPrice, setGasPrice] = useState("")
-  const [txHash, setHash ] = useState("")
+  const [gasPrice, setGasPrice] = useState("");
+  const [txHash, setHash] = useState("");
+  const [tokenSymbol, setTokenSymbol] = useState("");
+  const [destinationID, setDestinationID] = useState("");
+  const [tokenAddress, setTokenAddress] = useState("")
 
   const networks: Network[] = [
     { id: "ETH", icon: Eth, name: "Ethereum" },
@@ -100,7 +107,6 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     { id: "BASE", icon: Base, name: "Base" },
     { id: "LISK", icon: Lisk, name: "Lisk" },
   ];
-
 
   const tokens: Token[] = [
     {
@@ -119,8 +125,8 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       address: "0x0000000000000000000000000000000000000000",
       symbol: "ETH",
       destinationID: "40161",
-    }, 
-  
+    },
+
     {
       id: "USDT-ARB",
       name: "Tether",
@@ -167,9 +173,10 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
           walletAddress,
           tokenAddress
         );
-
-
+        setTokenSymbol(info.symbol);
+        setDestinationID(info.destinationID);
         setTokenBalance(bal);
+        setTokenAddress(tokenAddress)
         return bal;
       }
     } catch (error) {
@@ -180,15 +187,15 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
 
   const handleprepareBridgeUserInfo = async () => {
     try {
-      const simulationAmount = amount;
-      const tokenAddress = "0x84cba2A35398B42127B3148744DB3Cd30981fCDf";
+      const simulationAmount = amount.toString();
+      const token = tokenAddress;
       const receiverAddress = recipientAddress;
-      const destID = "40231";
+      const destID = destinationID;
 
       if (receiverAddress) {
         const simInfo = await bridgeWrapper.prepareBridgeInfo(
           simulationAmount,
-          tokenAddress,
+          token,
           receiverAddress,
           destID
         );
@@ -214,24 +221,21 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     return null;
   };
 
-
-  const getGasPrice = async()=>{
+  const getGasPrice = async () => {
     try {
-      const gasPriceResult = await bridgeWrapper.getGasPrice()
+      const gasPriceResult = await bridgeWrapper.getGasPrice();
 
-      console.log("gasPriceResult", gasPriceResult)
+      console.log("gasPriceResult", gasPriceResult);
 
-      if(gasPriceResult) {
-        setGasPrice(gasPriceResult.usdt)
-        
+      if (gasPriceResult) {
+        setGasPrice(gasPriceResult.usdt);
       }
-      
     } catch (error) {
       throw error;
     }
-  }
+  };
   useEffect(() => {
-    getGasPrice()
+    getGasPrice();
     handleUserTokenBalance();
     handleprepareBridgeUserInfo();
     getTokenInfo(fromToken);
@@ -279,11 +283,14 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
         feeInUSD,
         setFeeInUSD,
         getTokenInfo,
-        gasPrice, 
+        gasPrice,
         setGasPrice,
         setHash,
-        txHash
-       
+        txHash,
+        destinationID,
+        setDestinationID,
+        tokenSymbol,
+        setTokenSymbol,
       }}
     >
       {children}
