@@ -107,27 +107,25 @@ const getTokenSymbol = (tokenId: string) => {
       setTransferState("loading");
   
       const info = getTokenInfo(fromToken);
-
-      const ToInfo = getTokenInfo(toToken);
   
-      if ( info || ToInfo) {
-
-        const destID = info?.destinationID || ToInfo?.destinationID;
-        const sourceChain = info?.originChain;
+      if (walletClient && info) {
+        
+        const destID = "40245";
+        const sourceChain = info.originChain;
         const amountToSend = ethers.utils.parseUnits(amount.toString());
-        const tokenAddress = info?.address;
+        const tokenAddress = info.address;
         const receiver = recipientAddress;
         const signer = walletClient;
         const fee = nativeFee;
   
         const bridgeTx = await bridgeWrapper.depositERC20Assets(
-          info?.sourceChainAddress,
+          info.sourceChainAddress,
           fee,
           destID,
           amountToSend,
-          tokenAddress!,
+          tokenAddress,
           receiver,
-          sourceChain!,
+          sourceChain,
           signer
         );
   

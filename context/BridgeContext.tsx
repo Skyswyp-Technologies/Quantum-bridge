@@ -193,9 +193,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
   const handleUserTokenBalance = async () => {
 
     try {
-      const tokenSide = fromToken ? fromToken : toToken
-
-      console.log("From token", tokenSide)
+      
 
       const info = getTokenInfo(fromToken);
       if (userAddress && info) {
@@ -225,10 +223,11 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
 
   const handleprepareBridgeUserInfo = async () => {
     try {
+      
       const simulationAmount = amount.toString();
       const token = tokenAddress;
       const receiverAddress = recipientAddress;
-      const destID = "40231";
+      const destID = "40245";
       const contractAddress = sourceContractAddress;
       const baseChain = originalChain;
 
