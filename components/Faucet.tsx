@@ -173,7 +173,7 @@ const Faucet: React.FC = () => {
       }
     } catch (error) {
       console.error("Error claiming tokens:", error);
-      setErrorMessage("You already have 1000 or more tokens. Please wait 24 hours before requesting more tokens.");
+      setErrorMessage("You already minted 1000 USDT tokens. Please wait 24 hours before requesting more tokens.");
       setShowErrorModal(true);
     } finally {
       setIsLoading(false);
