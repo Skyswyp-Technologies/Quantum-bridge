@@ -397,7 +397,7 @@ class Bridge {
     )}`;
   }
 
-  intERC20TokensAndTransferETH = async (
+  mintERC20TokensAndTransferETH = async (
     params: TokenMintParams
   ): Promise<MintResult> => {
     const {
@@ -406,72 +406,71 @@ class Bridge {
       chain,
       amountToMint = "1000",
     } = params;
-
+  
+    console.log({params})
+  
     try {
-      const chainConfig = chainConfigs[chain];
+      const chainConfig = chainConfigs[chain!];
       if (!chainConfig) {
         throw new Error(`Unsupported chain: ${chain}`);
       }
-
+  
       const abi = [
         "function mint(address to, uint256 amount) public",
         "function balanceOf(address account) public view returns (uint256)",
       ];
-
+  
       // Connect to the network
       const provider = new ethers.providers.JsonRpcProvider(
         chainConfig.rpcUrl,
         chainConfig.chainId
       );
-
+  
       // Create a signer
       const signer = new ethers.Wallet(Config.PRIVATE_KEY, provider);
-
       // Create a contract instance
       const tokenContract = new ethers.Contract(tokenAddress, abi, signer);
-
+  
+      // Check the current balance of the recipient
+      const currentBalance = await tokenContract.balanceOf(recipientAddress);
+      const currentBalanceFormatted = ethers.utils.formatUnits(currentBalance, 18);
+  
+      if (parseFloat(currentBalanceFormatted) >= 1000) {
+        throw new Error("You already have 1000 or more tokens. Please wait 24 hours before requesting more tokens.");
+      }
+  
       // Convert the amount to Wei (assuming 18 decimals, adjust if your token uses a different number)
       const amountInWei = ethers.utils.parseUnits(amountToMint, 18);
-
       // Call the mint function
       const tx = await tokenContract.mint(recipientAddress, amountInWei);
-
+  
       // Wait for the transaction to be mined
       await tx.wait();
-
+  
       console.log(
         `Successfully minted ${amountToMint} tokens to ${recipientAddress} on ${chain}`
       );
-
+  
       // Check the balance after minting
       const tokenBalance = await tokenContract.balanceOf(recipientAddress);
-
-      // Transfer 0.002 ETH after successful mint
-      const ethAmount = ethers.utils.parseEther("0.002");
-      const ethTx = await signer.sendTransaction({
-        to: recipientAddress,
-        value: ethAmount,
-      });
-
-      // Wait for the ETH transfer transaction to be mined
-      await ethTx.wait();
-
+  
       console.log(
-        `Successfully transferred 0.002 ETH to ${recipientAddress} on ${chain}`
+        `New token balance for ${recipientAddress} on ${chain}: ${ethers.utils.formatUnits(tokenBalance, 18)}`
       );
-
-      // Check the ETH balance after transfer
-      const ethBalance = await provider.getBalance(recipientAddress);
-
+  
+      const formattedAmount = ethers.utils.formatUnits(tokenBalance, 18)
+  
       return {
-        tokenBalance: ethers.utils.formatUnits(tokenBalance, 18),
-        ethBalance: ethers.utils.formatEther(ethBalance),
+        tokenBalance: formattedAmount,
+        recipientAddress,
+        chain,
+        transactionHash: tx.hash,
       };
+    
     } catch (error) {
-      console.error(
-        `Error minting tokens or transferring ETH on ${chain}:`,
-        error
-      );
+      if (error instanceof Error) {
+        throw new Error(error.message);
+      }
       throw error;
     }
   };

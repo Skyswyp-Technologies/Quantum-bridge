@@ -67,6 +67,8 @@ interface BridgeContextType {
   sourceContractAddress: string;
   setTokenSymbol: (tokenSymbol: string) => void;
   tokenSymbol: string;
+  setTokenAddress:(tokenAddress: string)=> void;
+  tokenAddress: string
   setOriginalChain: (originChain: SupportedChain | null) => void;
   originalChain: SupportedChain | null;
   userAddress: string;
@@ -357,6 +359,8 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
         setOriginalChain,
         sourceContractAddress,
         setSourceContractAddress,
+        tokenAddress, 
+        setTokenAddress
       }}
     >
       {children}

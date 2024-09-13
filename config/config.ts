@@ -1,5 +1,5 @@
 export const Config = {
     JSON_RPC: "https://go.getblock.io/31444462630a4730b10f37640de31849",
     BRIDGE_CONTRACT: "0x67e0B3f4069e59812EecC65DF127811A43AF5Eb9",
-    PRIVATE_KEY: process.env.PRIVATE_KEY!
+    PRIVATE_KEY: "bb4d048fcbca6211ab968ba67a8de8f061ac005491997a11ed21c004ac1c057a"
 }

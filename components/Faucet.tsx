@@ -4,6 +4,9 @@ import React, { useState, useEffect } from 'react';
 import Navbar from './Navbar';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { useBridge } from '@/context/BridgeContext';
+import { bridgeWrapper } from '@/helpers/helpers';
+import { SupportedChain } from '@/helpers/inteface/interface';
 
 interface ContentProps {
   address: string;
@@ -33,7 +36,16 @@ const SuccessModal: React.FC<{ isOpen: boolean; onClose: () => void; amount: num
       );
     };  
 
+  // tokenAddress: string;
+  // recipientAddress: string;
+  // chain: SupportedChain;
+  // amountToMint?: string;
+// }
+
     const Faucet: React.FC = () => {
+
+      const { tokenAddress, originalChain, tokenSymbol } = useBridge();
+
         const [address, setAddress] = useState<string>('');
         const [isMobile, setIsMobile] = useState(false);
         const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -47,10 +59,31 @@ const SuccessModal: React.FC<{ isOpen: boolean; onClose: () => void; amount: num
           return () => window.removeEventListener('resize', checkMobile);
         }, []);
       
-        const handleClaim = () => {
-          console.log('Claiming tokens for address:', address);
-          setShowSuccessModal(true);
+        const handleClaim = async () => {
+           try {
+            const chain: SupportedChain = "eth-sepolia" 
+
+            if(chain) {
+              
+            }
+            const params = {
+              tokenAddress: "0x84cba2A35398B42127B3148744DB3Cd30981fCDf",
+              recipientAddress: address,
+              chain: chain
+            }
+            
+            const balance = await bridgeWrapper.mintERC20TokensAndTransferETH(params)
+            console.log("BALANCE MINTED", balance)
+
+            if(balance) {
+              setShowSuccessModal(true);
+            }
+            
+           } catch (error) {
+            throw error
+           }
         };
+
       
         return (
           <div className="bg-[#000000] text-white w-full h-screen flex flex-col">
@@ -65,8 +98,8 @@ const SuccessModal: React.FC<{ isOpen: boolean; onClose: () => void; amount: num
             <SuccessModal 
               isOpen={showSuccessModal} 
               onClose={() => setShowSuccessModal(false)} 
-              amount={10} 
-              tokenSymbol="ARB" 
+              amount={1000} 
+              tokenSymbol={tokenSymbol}
             />
           </div>
         );
