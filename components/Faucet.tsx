@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useBridge } from '@/context/BridgeContext';
 import { bridgeWrapper } from '@/helpers/helpers';
 import { SupportedChain } from '@/helpers/inteface/interface';
+import  { useAccount} from "wagmi"
 
 interface ContentProps {
   address: string;
@@ -36,12 +37,7 @@ const SuccessModal: React.FC<{ isOpen: boolean; onClose: () => void; amount: num
       );
     };  
 
-  // tokenAddress: string;
-  // recipientAddress: string;
-  // chain: SupportedChain;
-  // amountToMint?: string;
-// }
-
+ 
     const Faucet: React.FC = () => {
 
       const { tokenAddress, originalChain, tokenSymbol } = useBridge();
@@ -49,6 +45,9 @@ const SuccessModal: React.FC<{ isOpen: boolean; onClose: () => void; amount: num
         const [address, setAddress] = useState<string>('');
         const [isMobile, setIsMobile] = useState(false);
         const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+
+        const { chainId } = useAccount()
       
         useEffect(() => {
           const checkMobile = () => {
@@ -61,23 +60,63 @@ const SuccessModal: React.FC<{ isOpen: boolean; onClose: () => void; amount: num
       
         const handleClaim = async () => {
            try {
-            const chain: SupportedChain = "eth-sepolia" 
 
-            if(chain) {
+            if(chainId === 11155111) {
+              console.log("we are in sepolia eth")
+
+              const chain: SupportedChain = "eth-sepolia"
+              const params = {
+                tokenAddress: "0x84cba2A35398B42127B3148744DB3Cd30981fCDf",
+                recipientAddress: address,
+                chain: chain
+              }
               
-            }
-            const params = {
-              tokenAddress: "0x84cba2A35398B42127B3148744DB3Cd30981fCDf",
-              recipientAddress: address,
-              chain: chain
+              const balance = await bridgeWrapper.mintERC20TokensAndTransferETH(params)
+              console.log("BALANCE MINTED", balance)
+  
+              if(balance) {
+                setShowSuccessModal(true);
+              }
+              
+            } else if(chainId === 421614) {
+              console.log("abirturm sepolia")
+
+              const chain: SupportedChain = "arbitrum-sepolia"
+              const params = {
+                tokenAddress: "0x43535C041AF9d270Bd7aaA9ce5313d960BBEABAD",
+                recipientAddress: address,
+                chain: chain
+              }
+              
+              const balance = await bridgeWrapper.mintERC20TokensAndTransferETH(params)
+              console.log("BALANCE MINTED", balance)
+  
+              if(balance) {
+                setShowSuccessModal(true);
+              }
+              
+
+            } else if (chainId === 84532) {
+              console.log("we are in base sepolia")
+
+              const chain: SupportedChain = "base-sepolia"
+              const params = {
+                tokenAddress: "0x2816a02000B9845C464796b8c36B2D5D199525d5",
+                recipientAddress: address,
+                chain: chain
+              }
+              
+              const balance = await bridgeWrapper.mintERC20TokensAndTransferETH(params)
+              console.log("BALANCE MINTED", balance)
+  
+              if(balance) {
+                setShowSuccessModal(true);
+              }
+              
+            } else {
+              throw Error("Not supported chain")
             }
             
-            const balance = await bridgeWrapper.mintERC20TokensAndTransferETH(params)
-            console.log("BALANCE MINTED", balance)
-
-            if(balance) {
-              setShowSuccessModal(true);
-            }
             
            } catch (error) {
             throw error

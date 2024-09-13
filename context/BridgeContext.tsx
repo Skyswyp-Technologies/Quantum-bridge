@@ -181,7 +181,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       sourceChainAddress: "0xf762f004a30CB141d139C900f2Aa3631Db7FD2E7",
     },
     {
-      id: "ETH-BASE",
+      id: "USDT-BASE",
       name: "Tether",
       icon: Eth,
       address: "0x2816a02000B9845C464796b8c36B2D5D199525d5",
