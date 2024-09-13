@@ -67,6 +67,8 @@ interface BridgeContextType {
   sourceContractAddress: string;
   setTokenSymbol: (tokenSymbol: string) => void;
   tokenSymbol: string;
+  setTokenAddress:(tokenAddress: string)=> void;
+  tokenAddress: string
   setOriginalChain: (originChain: SupportedChain | null) => void;
   originalChain: SupportedChain | null;
   userAddress: string;
@@ -179,7 +181,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       sourceChainAddress: "0xf762f004a30CB141d139C900f2Aa3631Db7FD2E7",
     },
     {
-      id: "ETH-BASE",
+      id: "USDT-BASE",
       name: "Tether",
       icon: Eth,
       address: "0x2816a02000B9845C464796b8c36B2D5D199525d5",
@@ -357,6 +359,8 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
         setOriginalChain,
         sourceContractAddress,
         setSourceContractAddress,
+        tokenAddress, 
+        setTokenAddress
       }}
     >
       {children}

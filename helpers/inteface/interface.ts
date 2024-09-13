@@ -16,11 +16,14 @@ export interface ChainConfig {
 export interface TokenMintParams {
   tokenAddress: string;
   recipientAddress: string;
-  chain: SupportedChain;
+  chain: SupportedChain ;
   amountToMint?: string;
 }
 
 export interface MintResult {
   tokenBalance: string;
-  ethBalance: string;
+  recipientAddress: string,
+  chain: SupportedChain,
+  transactionHash: string
+  // ethBalance: string;
 }
