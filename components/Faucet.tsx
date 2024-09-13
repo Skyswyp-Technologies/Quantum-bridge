@@ -7,142 +7,206 @@ import { useRouter } from 'next/navigation';
 import { useBridge } from '@/context/BridgeContext';
 import { bridgeWrapper } from '@/helpers/helpers';
 import { SupportedChain } from '@/helpers/inteface/interface';
-import  { useAccount} from "wagmi"
+import { useAccount } from "wagmi"
 
 interface ContentProps {
   address: string;
   setAddress: (address: string) => void;
-  handleClaim: () => void;
+  handleClaim: () => Promise<void>;
+  isLoading: boolean;
 }
 
-const SuccessModal: React.FC<{ isOpen: boolean; onClose: () => void; amount: number; tokenSymbol: string }> = ({ isOpen, onClose, amount, tokenSymbol }) => {
-    if (!isOpen) return null;
+interface SuccessModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  amount: number;
+  tokenSymbol: string;
+  chain: string;
+  recipientAddress: string;
+  txHash: string;
+}
 
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-[#1A1A1ACC] border border-[#A6A9B880] rounded-lg p-6 max-w-sm w-full mx-4">
-            <h2 className="text-2xl font-bold text-white mb-4">Successful!</h2>
-            <p className="text-gray-300 mb-4">You have successfully claimed your test tokens!</p>
-            <p className="text-white text-xl font-bold mb-6">{amount} {tokenSymbol}</p>
-            <p className="text-white text-xl font-bold mb-6">Tx Hash: link </p>
+const Loader: React.FC = () => (
+  <div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 animate-spin"></div>
+);
 
-            <button
-              onClick={onClose}
-              className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-2 px-4 rounded-full text-white font-semibold hover:bg-gradient-to-l transition-colors duration-200"
-            >
-              Close
-            </button>
-          </div>
+const shortenAddress = (address: string): string => {
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+};
+
+const shortenTxHash = (hash: string): string => {
+  return `${hash.slice(0, 10)}...${hash.slice(-8)}`;
+};
+
+const getExplorerUrl = (chain: string, txHash: string): string => {
+  switch (chain) {
+    case 'eth-sepolia':
+      return `https://sepolia.etherscan.io/tx/${txHash}`;
+    case 'arbitrum-sepolia':
+      return `https://sepolia-explorer.arbitrum.io/tx/${txHash}`;
+    case 'base-sepolia':
+      return `https://sepolia-explorer.base.org/tx/${txHash}`;
+    default:
+      return '#';
+  }
+};
+
+const SuccessModal: React.FC<SuccessModalProps> = ({ isOpen, onClose, amount, tokenSymbol, chain, recipientAddress, txHash }) => {
+  if (!isOpen) return null;
+
+  const shortAddress = shortenAddress(recipientAddress);
+  const shortTxHash = shortenTxHash(txHash);
+  const explorerUrl = getExplorerUrl(chain, txHash);
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-[#1A1A1ACC] border border-[#A6A9B880] rounded-lg p-6 max-w-sm w-full mx-4">
+        <h2 className="text-2xl font-bold text-white mb-4">Successful!</h2>
+        <p className="text-gray-300 mb-4">You have successfully claimed your test tokens!</p>
+        <div className="space-y-2 mb-6">
+          <p className="text-white"><span className="font-bold">Amount:</span> {amount} {tokenSymbol} (USDT)</p>
+          <p className="text-white"><span className="font-bold">Chain:</span> {chain}</p>
+          <p className="text-white"><span className="font-bold">Recipient:</span> {shortAddress}</p>
+          <p className="text-white">
+            <span className="font-bold">Tx Hash:</span>{' '}
+            <a href={explorerUrl} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
+              {shortTxHash}
+            </a>
+          </p>
         </div>
-      );
-    };  
+        <button
+          onClick={onClose}
+          className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-2 px-4 rounded-full text-white font-semibold hover:bg-gradient-to-l transition-colors duration-200"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  );
+};
 
- 
-    const Faucet: React.FC = () => {
+const ErrorModal: React.FC<{ isOpen: boolean; onClose: () => void; message: string }> = ({ isOpen, onClose, message }) => {
+  if (!isOpen) return null;
 
-      const { tokenAddress, originalChain, tokenSymbol } = useBridge();
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-[#1A1A1ACC] border border-[#A6A9B880] rounded-lg p-6 max-w-sm w-full mx-4">
+        <h2 className="text-2xl font-bold text-red-500 mb-4">Error</h2>
+        <p className="text-gray-300 mb-6">{message}</p>
+        <button
+          onClick={onClose}
+          className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-2 px-4 rounded-full text-white font-semibold hover:bg-gradient-to-l transition-colors duration-200"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  );
+};
 
-        const [address, setAddress] = useState<string>('');
-        const [isMobile, setIsMobile] = useState(false);
-        const [showSuccessModal, setShowSuccessModal] = useState(false);
+const Faucet: React.FC = () => {
+  const { tokenAddress, originalChain, tokenSymbol } = useBridge();
+  const [address, setAddress] = useState<string>('');
+  const [isMobile, setIsMobile] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [successData, setSuccessData] = useState({
+    amount: 0,
+    chain: '',
+    recipientAddress: '',
+    txHash: ''
+  });
 
+  const { chainId } = useAccount()
 
-        const { chainId } = useAccount()
-      
-        useEffect(() => {
-          const checkMobile = () => {
-            setIsMobile(window.innerWidth < 768);
-          };
-          checkMobile();
-          window.addEventListener('resize', checkMobile);
-          return () => window.removeEventListener('resize', checkMobile);
-        }, []);
-      
-        const handleClaim = async () => {
-           try {
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
-            if(chainId === 11155111) {
-              console.log("we are in sepolia eth")
+  const handleClaim = async () => {
+    setIsLoading(true);
+    try {
+      let chain: SupportedChain;
+      let tokenAddress: string;
+      let amount: number;
 
-              const chain: SupportedChain = "eth-sepolia"
-              const params = {
-                tokenAddress: "0x84cba2A35398B42127B3148744DB3Cd30981fCDf",
-                recipientAddress: address,
-                chain: chain
-              }
-              
-              const balance = await bridgeWrapper.mintERC20TokensAndTransferETH(params)
-              console.log("BALANCE MINTED", balance)
-  
-              if(balance) {
-                setShowSuccessModal(true);
-              }
-              
-            } else if(chainId === 421614) {
-              console.log("abirturm sepolia")
+      if(chainId === 11155111) {
+        chain = "eth-sepolia";
+        tokenAddress = "0x84cba2A35398B42127B3148744DB3Cd30981fCDf";
+      } else if(chainId === 421614) {
+        chain = "arbitrum-sepolia";
+        tokenAddress = "0x43535C041AF9d270Bd7aaA9ce5313d960BBEABAD";
+      } else if (chainId === 84532) {
+        chain = "base-sepolia";
+        tokenAddress = "0x2816a02000B9845C464796b8c36B2D5D199525d5";
+      } else {
+        throw Error("Not supported chain");
+      }
 
-              const chain: SupportedChain = "arbitrum-sepolia"
-              const params = {
-                tokenAddress: "0x43535C041AF9d270Bd7aaA9ce5313d960BBEABAD",
-                recipientAddress: address,
-                chain: chain
-              }
-              
-              const balance = await bridgeWrapper.mintERC20TokensAndTransferETH(params)
-              console.log("BALANCE MINTED", balance)
-  
-              if(balance) {
-                setShowSuccessModal(true);
-              }
-              
-
-            } else if (chainId === 84532) {
-              console.log("we are in base sepolia")
-
-              const chain: SupportedChain = "base-sepolia"
-              const params = {
-                tokenAddress: "0x2816a02000B9845C464796b8c36B2D5D199525d5",
-                recipientAddress: address,
-                chain: chain
-              }
-              
-              const balance = await bridgeWrapper.mintERC20TokensAndTransferETH(params)
-              console.log("BALANCE MINTED", balance)
-  
-              if(balance) {
-                setShowSuccessModal(true);
-              }
-              
-            } else {
-              throw Error("Not supported chain")
-            }
-            
-            
-           } catch (error) {
-            throw error
-           }
-        };
-
-      
-        return (
-          <div className="bg-[#000000] text-white w-full h-screen flex flex-col">
-            {isMobile ? <MobileNavbar /> : <Navbar />}
-            <div className="flex-1 flex">
-              {isMobile ? (
-                <MobileFaucetContent address={address} setAddress={setAddress} handleClaim={handleClaim} />
-              ) : (
-                <DesktopFaucetContent address={address} setAddress={setAddress} handleClaim={handleClaim} />
-              )}
-            </div>
-            <SuccessModal 
-              isOpen={showSuccessModal} 
-              onClose={() => setShowSuccessModal(false)} 
-              amount={1000} 
-              tokenSymbol={tokenSymbol}
-            />
-          </div>
-        );
+      const params = {
+        tokenAddress,
+        recipientAddress: address,
+        chain
       };
+      
+      const result = await bridgeWrapper.mintERC20TokensAndTransferETH(params);
+      console.log("RESULT:", result);
+      
+      if(result && result.transactionHash) {
+        amount = 1000; // Assuming 1000 tokens are minted each time
+        setSuccessData({
+          amount,
+          chain,
+          recipientAddress: address,
+          txHash: result.transactionHash
+        });
+        setShowSuccessModal(true);
+      } else {
+        throw Error("Transaction failed");
+      }
+    } catch (error) {
+      console.error("Error claiming tokens:", error);
+      setErrorMessage("You already have 1000 or more tokens. Please wait 24 hours before requesting more tokens.");
+      setShowErrorModal(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="bg-[#000000] text-white w-full h-screen flex flex-col">
+      {isMobile ? <MobileNavbar /> : <Navbar />}
+      <div className="flex-1 flex">
+        {isMobile ? (
+          <MobileFaucetContent address={address} setAddress={setAddress} handleClaim={handleClaim} isLoading={isLoading} />
+        ) : (
+          <DesktopFaucetContent address={address} setAddress={setAddress} handleClaim={handleClaim} isLoading={isLoading} />
+        )}
+      </div>
+      <SuccessModal 
+        isOpen={showSuccessModal} 
+        onClose={() => setShowSuccessModal(false)} 
+        amount={successData.amount}
+        tokenSymbol={tokenSymbol}
+        chain={successData.chain}
+        recipientAddress={successData.recipientAddress}
+        txHash={successData.txHash}
+      />
+      <ErrorModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        message={errorMessage}
+      />
+    </div>
+  );
+};
 
 const MobileNavbar: React.FC = () => {
   const router = useRouter();
@@ -158,94 +222,116 @@ const MobileNavbar: React.FC = () => {
   );
 }
 
-const MobileFaucetContent: React.FC<ContentProps> = ({ address, setAddress, handleClaim }) => (
-    <main className="flex-1 flex flex-col py-6 px-4 w-full">
-      <div className="flex-1 flex flex-col rounded-3xl border border-[#3E4347] relative overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/wave.png"
-            alt="wave background"
-            layout="fill"
-            objectFit="cover"
-            quality={100}
-          />
-          <div className="absolute w-[59px] h-[223px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-radial-glow from-[#6AEFFF33] to-[#6AEFFF] opacity-60 blur-3xl"></div>
-        </div>
-        <div className="flex-1 flex flex-col justify-between p-4 z-10">
-          <div className="w-full max-w-md mx-auto space-y-6">
-
-         
-            <h2 className="text-xl text-[#A6A9B8] font-semibold text-center">Get Test Tokens</h2>
-            
-            <div className='w-full bg-[#1A1A1A80] border border-[#3E434773] rounded-lg p-4 flex flex-col gap-4 backdrop-blur-sm'>
-              <label className='text-gray-400 text-sm'>Enter your address</label>
-              
-              <div className='flex w-full items-center gap-2 relative'>
-                <input
-                  type="text"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder="0x85F...76cf"
-                  className="w-full bg-transparent border-b border-gray-700 py-2 pr-16 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500"
-                />
-                <button className='absolute right-2 p-1 px-2 bg-[#1E1E1E] text-xs rounded text-gray-400 hover:bg-[#2A2A2A] transition-colors'>
-                  paste
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          <div className="w-full">
-            <button
-              className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 px-7 rounded-full font-semibold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200"
-              onClick={handleClaim}
-            >
-              Claim
-            </button>
-          </div>
-        </div>
+const MobileFaucetContent: React.FC<ContentProps> = ({ address, setAddress, handleClaim, isLoading }) => (
+  <main className="flex-1 flex flex-col py-6 px-4 w-full">
+    <div className="flex-1 flex flex-col rounded-3xl border border-[#3E4347] relative overflow-hidden">
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/wave.png"
+          alt="wave background"
+          layout="fill"
+          objectFit="cover"
+          quality={100}
+        />
+        <div className="absolute w-[59px] h-[223px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-radial-glow from-[#6AEFFF33] to-[#6AEFFF] opacity-60 blur-3xl"></div>
       </div>
-    </main>
-  );
-  
-  const DesktopFaucetContent: React.FC<ContentProps> = ({ address, setAddress, handleClaim }) => (
-    <main className="flex-1 flex items-center justify-center relative w-full">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-[#6AEFFF] opacity-30 blur-[100px] rounded-full"></div>
-      
-      <div className="w-full max-w-3xl space-y-5 text-center relative z-10">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-[#2859A9] to-[#6AEFFF] text-transparent bg-clip-text">
-          FAUCET
-        </h1>
-        <p className="text-xl text-gray-300">Get Test Tokens</p>
-        
-        <div className='w-full mx-auto bg-[#1A1A1A80] border border-[#3E434773] rounded-lg p-6 flex flex-col gap-8 backdrop-blur-sm'>
-          <label className='text-[#FFFFFF] text-xl text-left'>Enter your address</label>
+      <div className="flex-1 flex flex-col justify-between p-4 z-10">
+        <div className="w-full max-w-md mx-auto space-y-6">
+          <h2 className="text-xl text-[#A6A9B8] font-semibold text-center">Get Test Tokens</h2>
           
-          <div className='flex w-full items-center gap-4'>
-            <div className='flex w-full items-center gap-2'>
-              <button className='p-2 bg-[#1E1E1E] rounded hover:bg-[#2A2A2A] transition-colors flex-shrink-0'>
-                Paste
-              </button>
-              
+          <div className='w-full bg-[#1A1A1A80] border border-[#3E434773] rounded-lg p-4 flex flex-col gap-4 backdrop-blur-sm'>
+            <label className='text-gray-400 text-sm'>Enter your address</label>
+            
+            <div className='flex w-full items-center gap-2 relative'>
               <input
                 type="text"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                placeholder="Enter your address"
-                className="w-full bg-transparent border-b border-gray-700 py-2 px-4 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 relative z-10"
+                placeholder="0x85F...76cf"
+                className="w-full bg-transparent border-b border-gray-700 py-2 pr-16 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500"
               />
+              <button className='absolute right-2 p-1 px-2 bg-[#1E1E1E] text-xs rounded text-gray-400 hover:bg-[#2A2A2A] transition-colors'>
+                paste
+              </button>
             </div>
-            
-            <button
-              className="w-auto bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 px-7 rounded-full hover:bg-gradient-to-l transition-colors duration-200 font-bold text-xl text-white whitespace-nowrap"
-              onClick={handleClaim}
-            >
-              Claim
-            </button>
           </div>
         </div>
+        
+        <div className="w-full">
+          <button
+            className={`w-full py-3 px-7 rounded-full font-semibold text-lg text-white transition-colors duration-200 flex items-center justify-center ${
+              isLoading
+                ? 'bg-gray-500 cursor-not-allowed'
+                : 'bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] hover:bg-gradient-to-l'
+            }`}
+            onClick={handleClaim}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <Loader />
+                <span className="ml-2">Claiming...</span>
+              </>
+            ) : (
+              'Claim'
+            )}
+          </button>
+        </div>
       </div>
-    </main>
-  );
+    </div>
+  </main>
+);
+
+const DesktopFaucetContent: React.FC<ContentProps> = ({ address, setAddress, handleClaim, isLoading }) => (
+  <main className="flex-1 flex items-center justify-center relative w-full">
+    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-[#6AEFFF] opacity-30 blur-[100px] rounded-full"></div>
+    
+    <div className="w-full max-w-3xl space-y-5 text-center relative z-10">
+      <h1 className="text-4xl font-bold bg-gradient-to-r from-[#2859A9] to-[#6AEFFF] text-transparent bg-clip-text">
+        FAUCET
+      </h1>
+      <p className="text-xl text-gray-300">Get Test Tokens</p>
+      
+      <div className='w-full mx-auto bg-[#1A1A1A80] border border-[#3E434773] rounded-lg p-6 flex flex-col gap-8 backdrop-blur-sm'>
+        <label className='text-[#FFFFFF] text-xl text-left'>Enter your address</label>
+        
+        <div className='flex w-full items-center gap-4'>
+          <div className='flex w-full items-center gap-2'>
+            <button className='p-2 bg-[#1E1E1E] rounded hover:bg-[#2A2A2A] transition-colors flex-shrink-0'>
+              Paste
+            </button>
+            
+            <input
+              type="text"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder="Enter your address"
+              className="w-full bg-transparent border-b border-gray-700 py-2 px-4 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 relative z-10"
+            />
+          </div>
+          
+          <button
+            className={`w-auto py-3 px-7 rounded-full font-bold text-xl text-white whitespace-nowrap transition-colors duration-200 flex items-center justify-center ${
+              isLoading
+                ? 'bg-gray-500 cursor-not-allowed'
+                : 'bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] hover:bg-gradient-to-l'
+            }`}
+            onClick={handleClaim}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <Loader />
+                <span className="ml-2">Claiming...</span>
+              </>
+            ) : (
+              'Claim'
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+);
 
 export default Faucet;
