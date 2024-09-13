@@ -7,13 +7,16 @@ import { useRouter } from 'next/navigation';
 import { useBridge } from '@/context/BridgeContext';
 import { bridgeWrapper } from '@/helpers/helpers';
 import { SupportedChain } from '@/helpers/inteface/interface';
-import { useAccount } from "wagmi"
+import { useAccount, useConnect } from "wagmi"
 
 interface ContentProps {
   address: string;
   setAddress: (address: string) => void;
   handleClaim: () => Promise<void>;
   isLoading: boolean;
+  isWalletConnected: boolean;
+  chainId: number | undefined;
+  connectWallet: () => void;
 }
 
 interface SuccessModalProps {
@@ -121,6 +124,8 @@ const Faucet: React.FC = () => {
 
   const { chainId } = useAccount()
 
+  const { connect, connectors } = useConnect();
+
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -131,6 +136,8 @@ const Faucet: React.FC = () => {
   }, []);
 
   const handleClaim = async () => {
+    if (!chainId) return;
+
     setIsLoading(true);
     try {
       let chain: SupportedChain;
@@ -180,14 +187,23 @@ const Faucet: React.FC = () => {
     }
   };
 
+  const connectWallet = () => {
+    const injectedConnector = connectors.find((c) => c.id === 'injected');
+    if (injectedConnector) {
+      connect({ connector: injectedConnector });
+    }
+  };
+
+  const isWalletConnected = !!chainId;
+
   return (
     <div className="bg-[#000000] text-white w-full h-screen flex flex-col">
       {isMobile ? <MobileNavbar /> : <Navbar />}
       <div className="flex-1 flex">
         {isMobile ? (
-          <MobileFaucetContent address={address} setAddress={setAddress} handleClaim={handleClaim} isLoading={isLoading} />
+          <MobileFaucetContent connectWallet={connectWallet} address={address} setAddress={setAddress} handleClaim={handleClaim} isWalletConnected={isWalletConnected} isLoading={isLoading} chainId={chainId} />
         ) : (
-          <DesktopFaucetContent address={address} setAddress={setAddress} handleClaim={handleClaim} isLoading={isLoading} />
+          <DesktopFaucetContent connectWallet={connectWallet} address={address} setAddress={setAddress} handleClaim={handleClaim} isWalletConnected={isWalletConnected} isLoading={isLoading} chainId={chainId} />
         )}
       </div>
       <SuccessModal 
@@ -222,7 +238,7 @@ const MobileNavbar: React.FC = () => {
   );
 }
 
-const MobileFaucetContent: React.FC<ContentProps> = ({ address, setAddress, handleClaim, isLoading }) => (
+const MobileFaucetContent: React.FC<ContentProps> = ({ connectWallet ,address, setAddress, handleClaim, isLoading, chainId, isWalletConnected }) => (
   <main className="flex-1 flex flex-col py-6 px-4 w-full">
     <div className="flex-1 flex flex-col rounded-3xl border border-[#3E4347] relative overflow-hidden">
       <div className="absolute inset-0 z-0">
@@ -248,11 +264,17 @@ const MobileFaucetContent: React.FC<ContentProps> = ({ address, setAddress, hand
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 placeholder="0x85F...76cf"
+                disabled={!isWalletConnected}
                 className="w-full bg-transparent border-b border-gray-700 py-2 pr-16 text-white placeholder-gray-600 focus:outline-none focus:border-blue-500"
               />
-              <button className='absolute right-2 p-1 px-2 bg-[#1E1E1E] text-xs rounded text-gray-400 hover:bg-[#2A2A2A] transition-colors'>
-                paste
-              </button>
+              {isWalletConnected && (
+                <button 
+                  className='absolute right-2 p-1 px-2 bg-[#1E1E1E] text-xs rounded text-gray-400 hover:bg-[#2A2A2A] transition-colors'
+                  onClick={() => navigator.clipboard.readText().then(text => setAddress(text))}
+                >
+                  paste
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -260,11 +282,11 @@ const MobileFaucetContent: React.FC<ContentProps> = ({ address, setAddress, hand
         <div className="w-full">
           <button
             className={`w-full py-3 px-7 rounded-full font-semibold text-lg text-white transition-colors duration-200 flex items-center justify-center ${
-              isLoading
+              (!isWalletConnected || !address || isLoading)
                 ? 'bg-gray-500 cursor-not-allowed'
                 : 'bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] hover:bg-gradient-to-l'
             }`}
-            onClick={handleClaim}
+            onClick={isWalletConnected ? handleClaim : connectWallet}
             disabled={isLoading}
           >
             {isLoading ? (
@@ -272,6 +294,10 @@ const MobileFaucetContent: React.FC<ContentProps> = ({ address, setAddress, hand
                 <Loader />
                 <span className="ml-2">Claiming...</span>
               </>
+            ) : !isWalletConnected ? (
+              'Connect Wallet'
+            ) : !address ? (
+              'Input Address'
             ) : (
               'Claim'
             )}
@@ -282,7 +308,7 @@ const MobileFaucetContent: React.FC<ContentProps> = ({ address, setAddress, hand
   </main>
 );
 
-const DesktopFaucetContent: React.FC<ContentProps> = ({ address, setAddress, handleClaim, isLoading }) => (
+const DesktopFaucetContent: React.FC<ContentProps> = ({ connectWallet ,address, setAddress, handleClaim, isLoading, chainId, isWalletConnected }) => (
   <main className="flex-1 flex items-center justify-center relative w-full">
     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-[#6AEFFF] opacity-30 blur-[100px] rounded-full"></div>
     
@@ -297,9 +323,14 @@ const DesktopFaucetContent: React.FC<ContentProps> = ({ address, setAddress, han
         
         <div className='flex w-full items-center gap-4'>
           <div className='flex w-full items-center gap-2'>
-            <button className='p-2 bg-[#1E1E1E] rounded hover:bg-[#2A2A2A] transition-colors flex-shrink-0'>
-              Paste
-            </button>
+            {isWalletConnected && (
+              <button 
+                className='p-2 bg-[#1E1E1E] rounded hover:bg-[#2A2A2A] transition-colors flex-shrink-0'
+                onClick={() => navigator.clipboard.readText().then(text => setAddress(text))}
+              >
+                Paste
+              </button>
+            )}
             
             <input
               type="text"
@@ -307,23 +338,28 @@ const DesktopFaucetContent: React.FC<ContentProps> = ({ address, setAddress, han
               onChange={(e) => setAddress(e.target.value)}
               placeholder="Enter your address"
               className="w-full bg-transparent border-b border-gray-700 py-2 px-4 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 relative z-10"
+              disabled={!isWalletConnected}
             />
           </div>
           
           <button
-            className={`w-auto py-3 px-7 rounded-full font-bold text-xl text-white whitespace-nowrap transition-colors duration-200 flex items-center justify-center ${
-              isLoading
+            className={`w-auto py-3 px-7 rounded-full font-bold text-xl text-white whitespace-nowrap transition-colors duration-200 flex items-center justify-center
+              ${(!isWalletConnected || !address || isLoading)
                 ? 'bg-gray-500 cursor-not-allowed'
                 : 'bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] hover:bg-gradient-to-l'
-            }`}
-            onClick={handleClaim}
-            disabled={isLoading}
+              }`}
+              onClick={isWalletConnected ? handleClaim : connectWallet}
+            disabled={isWalletConnected && isLoading}
           >
             {isLoading ? (
               <>
                 <Loader />
                 <span className="ml-2">Claiming...</span>
               </>
+            ) : !isWalletConnected ? (
+              'Connect Wallet'
+            ) : !address ? (
+              'Input Address'
             ) : (
               'Claim'
             )}
