@@ -32,7 +32,7 @@ const AssetSelector = () => {
     } else if (type === 'to') {
       setToToken(tokenId);
     }
-    router.push('/');
+    router.back();
   };
 
   if (type === null) {
@@ -81,7 +81,7 @@ const SelectAsset = () => {
   return (
     <div className="w-full h-screen flex flex-col bg-[#000000]">
       <nav className="bg-[#000000] text-white h-16 border-b border-b-[#3E4347] container mx-auto flex items-center px-4 relative">
-        <div className="absolute left-4 cursor-pointer" onClick={() => router.push('/')}>
+        <div className="absolute left-4 cursor-pointer" onClick={() => router.back()}>
           <Image src="/back.svg" alt="back" width={13} height={22} />
         </div>
         <span className="text-[#A6A9B8] font-bold text-xl flex-grow text-center">
