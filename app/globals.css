@@ -38,3 +38,24 @@ body {
     transform: rotate(360deg);
   }
 }
+
+/* Custom Scrollbar for desktop screens */
+@media (min-width: 768px) {
+  /* Webkit browsers (Chrome, Safari) */
+  ::-webkit-scrollbar {
+    width: 10px; /* Scrollbar width */
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #6AEFFF, #2859A9); /* Custom gradient color for scrollbar thumb */
+    border-radius: 10px; /* Rounded edges */
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #1E1E1E; /* Background of the scrollbar */
+  }
+
+  /* Firefox */
+  scrollbar-width: thin; /* Scrollbar width */
+  scrollbar-color: #6AEFFF #1E1E1E; /* Scrollbar thumb and track colors */
+}

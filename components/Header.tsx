@@ -21,7 +21,16 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
         return "Bridge Assets";
       case "/bridge-transaction":
         return "Bridge Transaction";
-      // Add more cases for other routes as needed
+      case "/lending":
+      return "Lending";
+      case "/lending/borrow":
+      return "Borrow";
+      case "/lending/supply":
+        return "Supply";
+        case "/lending/withdraw":
+          return "Withdraw Supply";
+          case "/lending/repay":
+            return "Repay Loan";
       default:
         return "Bridge dApp";
     }
@@ -67,6 +76,7 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
             <Link href={"/"} className="mb-2 cursor-pointer hover:text-white">Bridge</Link>
             <Link href={"/faucet"} className="mb-2 cursor-pointer hover:text-white">Faucet</Link>
             <Link href={"/domain"} className="mb-2 cursor-pointer hover:text-white">Domains</Link>
+            <Link href={"/lending"} className="mb-2 cursor-pointer hover:text-white">Lending</Link>
 
           </div>
         </div>
