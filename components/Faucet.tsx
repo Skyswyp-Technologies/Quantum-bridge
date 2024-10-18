@@ -45,8 +45,6 @@ const getExplorerUrl = (chain: string, txHash: string): string => {
   switch (chain) {
     case 'eth-sepolia':
       return `https://sepolia.etherscan.io/tx/${txHash}`;
-    case 'arbitrum-sepolia':
-      return `https://sepolia-explorer.arbitrum.io/tx/${txHash}`;
     case 'base-sepolia':
       return `https://sepolia-explorer.base.org/tx/${txHash}`;
     default:
@@ -147,9 +145,6 @@ const Faucet: React.FC = () => {
       if(chainId === 11155111) {
         chain = "eth-sepolia";
         tokenAddress = "0x84cba2A35398B42127B3148744DB3Cd30981fCDf";
-      } else if(chainId === 421614) {
-        chain = "arbitrum-sepolia";
-        tokenAddress = "0x43535C041AF9d270Bd7aaA9ce5313d960BBEABAD";
       } else if (chainId === 84532) {
         chain = "base-sepolia";
         tokenAddress = "0x2816a02000B9845C464796b8c36B2D5D199525d5";

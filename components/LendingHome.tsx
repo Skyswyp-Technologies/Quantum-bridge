@@ -4,11 +4,36 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { useAccount } from "wagmi";
+import { useAccount, useWalletClient } from "wagmi";
 import Header from "./Header";
 import Navbar from "./Navbar";
+import { useBridge } from "@/context/BridgeContext";
+
 
 const LendingHome: React.FC = () => {
+
+  const { data: walletClient } = useWalletClient({});
+
+  
+  const { chain, address } = useAccount()
+
+  const { 
+    getSuppliedBalance, 
+    getBorrowedBalance,
+    updateCreditLimit,
+    updateMarketTotals,
+    userAddress,
+    setUserAddress,
+    supplyBalance,
+    borrowBalance,
+    creditLimit,
+    supplyMarket,
+    loanMarket,
+  } = useBridge();
+
+  
+
+
   const MobileDesign = () => {
     return (
       <div className="bg-[#000000] text-white md:hidden min-h-screen w-full flex flex-col overflow-y-auto">
