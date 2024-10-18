@@ -1,5 +1,5 @@
 import { Config } from "@/config/config";
-import { BRIDGE_ABI } from "@/constants/constants";
+import { BRIDGE_ABI, POOL_ABI } from "@/constants/constants";
 import axios from "axios";
 import { ethers } from "ethers";
 import {
@@ -14,11 +14,6 @@ const chainConfigs: Record<SupportedChain, ChainConfig> = {
     rpcUrl: "https://go.getblock.io/4abbff238c2d4f219e86e52b324cdabf",
     chainId: 11155111,
     destinationChain: "eth-sepolia"
-  },
-  "arbitrum-sepolia": {
-    rpcUrl: "https://go.getblock.io/c0d41de5290b4969b6fc4cb89f86d429",
-    chainId: 421614,
-    destinationChain: "arbitrum-sepolia"
   },
   "base-sepolia": {
     rpcUrl: "https://go.getblock.io/17f34af937f341e2b3afba0151a7b227",
@@ -294,8 +289,7 @@ class Bridge {
 
   getNativeCurrency(chain: SupportedChain): string {
     switch (chain) {
-      case "arbitrum-sepolia":
-        return "ARB";
+      
       case "eth-sepolia":
       case "base-sepolia":
       default:
@@ -366,9 +360,6 @@ class Bridge {
 
       // Determine the appropriate currency for the chain
       let currency = "ETH";
-      if (chain === "arbitrum-sepolia") {
-        currency = "ARB";
-      }
       // Note: Base uses ETH as its native currency, so no change needed for base-sepolia
 
       const response = await axios.get(
@@ -476,4 +467,153 @@ class Bridge {
   };
 }
 
+class LendingPool {
+  private getPoolContract(chainConfig: ChainConfig) {
+    const provider = new ethers.providers.JsonRpcProvider(chainConfig.rpcUrl);
+    return new ethers.Contract(Config.POOL_CONTRACT_ADDRESS, POOL_ABI, provider);
+  }
+
+  async supply(tokenAddress: string, amount: string, walletClient: any, chain: SupportedChain) {
+    const chainConfig = chainConfigs[chain];
+    if (!chainConfig) {
+      throw new Error(`Unsupported chain: ${chain}`);
+    }
+
+    const tx = await walletClient.writeContract({
+      address: Config.POOL_CONTRACT_ADDRESS,
+      abi: POOL_ABI,
+      functionName: "supply",
+      args: [tokenAddress, ethers.utils.parseUnits(amount, 18)],
+    });
+
+    const receipt = await tx.wait();
+    return receipt;
+  }
+
+  async borrow(tokenAddress: string, amount: string, walletClient: any, chain: SupportedChain) {
+    const chainConfig = chainConfigs[chain];
+    if (!chainConfig) {
+      throw new Error(`Unsupported chain: ${chain}`);
+    }
+
+    const tx = await walletClient.writeContract({
+      address: Config.POOL_CONTRACT_ADDRESS,
+      abi: POOL_ABI,
+      functionName: "borrow",
+      args: [ethers.utils.parseUnits(amount, 18), tokenAddress],
+    });
+
+    const receipt = await tx.wait();
+    return receipt;
+  }
+
+  async repay(tokenAddress: string, amount: string, walletClient: any, chain: SupportedChain) {
+    const chainConfig = chainConfigs[chain];
+    if (!chainConfig) {
+      throw new Error(`Unsupported chain: ${chain}`);
+    }
+
+    const tx = await walletClient.writeContract({
+      address: Config.POOL_CONTRACT_ADDRESS,
+      abi: POOL_ABI,
+      functionName: "payDebt",
+      args: [tokenAddress, ethers.utils.parseUnits(amount, 18)],
+    });
+
+    const receipt = await tx.wait();
+    return receipt;
+  }
+
+  async withdraw(tokenAddress: string, amount: string, walletClient: any, chain: SupportedChain) {
+    const chainConfig = chainConfigs[chain];
+    if (!chainConfig) {
+      throw new Error(`Unsupported chain: ${chain}`);
+    }
+
+    const tx = await walletClient.writeContract({
+      address: Config.POOL_CONTRACT_ADDRESS,
+      abi: POOL_ABI,
+      functionName: "withdraw",
+      args: [tokenAddress, ethers.utils.parseUnits(amount, 18)],
+    });
+
+    const receipt = await tx.wait();
+    return receipt;
+  }
+
+  async getSuppliedBalance(userAddress: string, chain: SupportedChain): Promise<string> {
+    const chainConfig = chainConfigs[chain];
+    if (!chainConfig) {
+      throw new Error(`Unsupported chain: ${chain}`);
+    }
+
+    const poolContract = this.getPoolContract(chainConfig);
+    const balance = await poolContract.getTotalAmountLentInDollars(userAddress);
+    return ethers.utils.formatUnits(balance, 18);
+  }
+
+  async getBorrowedBalance(userAddress: string, chain: SupportedChain): Promise<string> {
+    const chainConfig = chainConfigs[chain];
+    if (!chainConfig) {
+      throw new Error(`Unsupported chain: ${chain}`);
+    }
+
+    const poolContract = this.getPoolContract(chainConfig);
+    const balance = await poolContract.getTotalAmountBorrowedInDollars(userAddress);
+    return ethers.utils.formatUnits(balance, 18);
+  }
+
+  // New method to get total supply for a specific token
+  async getTotalSupply(tokenAddress: string, chain: SupportedChain): Promise<string> {
+    const chainConfig = chainConfigs[chain];
+    if (!chainConfig) {
+      throw new Error(`Unsupported chain: ${chain}`);
+    }
+
+    const poolContract = this.getPoolContract(chainConfig);
+    const totalSupply = await poolContract.getTotalTokenSupplied(tokenAddress);
+    return ethers.utils.formatUnits(totalSupply, 18);
+  }
+
+  // New method to get total borrowed for a specific token
+  async getTotalBorrowed(tokenAddress: string, chain: SupportedChain): Promise<string> {
+    const chainConfig = chainConfigs[chain];
+    if (!chainConfig) {
+      throw new Error(`Unsupported chain: ${chain}`);
+    }
+
+    const poolContract = this.getPoolContract(chainConfig);
+    const totalBorrowed = await poolContract.getTotalTokenBorrowed(tokenAddress);
+    return ethers.utils.formatUnits(totalBorrowed, 18);
+  }
+
+  // New method to get all whitelisted tokens for lending
+  async getWhitelistedTokens(chain: SupportedChain): Promise<string[]> {
+    const chainConfig = chainConfigs[chain];
+    if (!chainConfig) {
+      throw new Error(`Unsupported chain: ${chain}`);
+    }
+
+    const poolContract = this.getPoolContract(chainConfig);
+    const tokens = await poolContract.getAllWhitelistedTokenNames();
+    return tokens;
+  }
+
+  // New method to get user's credit limit
+  async getCreditLimit(userAddress: string, chain: SupportedChain): Promise<string> {
+    const chainConfig = chainConfigs[chain];
+    if (!chainConfig) {
+      throw new Error(`Unsupported chain: ${chain}`);
+    }
+
+    const poolContract = this.getPoolContract(chainConfig);
+    const creditLimit = await poolContract.getUserTotalAmountAvailableForBorrowInDollars(userAddress);
+    return ethers.utils.formatUnits(creditLimit, 18);
+  }
+}
+
+
 export const bridgeWrapper = new Bridge();
+
+export const lendingPoolWrapper = new LendingPool();
+

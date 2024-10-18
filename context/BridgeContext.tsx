@@ -1,3 +1,5 @@
+
+
 import React, {
   createContext,
   useState,
@@ -7,13 +9,14 @@ import React, {
 } from "react";
 import Usdt from "./../public/usdt.svg";
 import Arb from "./../public/arb.svg";
-import Eth from "./../public/eth.svg"; // Add this import
+import Eth from "./../public/eth.svg"; 
 import Celo from "./../public/celo.svg";
 import Op from "./../public/op.svg";
 import Base from "./../public/base.svg";
+import { toast } from 'react-toastify';
 import Lisk from "./../public/lisk.svg";
 
-import { bridgeWrapper } from "@/helpers/helpers";
+import { bridgeWrapper, lendingPoolWrapper } from "@/helpers/helpers";
 import { SupportedChain } from "@/helpers/inteface/interface";
 
 interface Token {
@@ -34,9 +37,10 @@ interface Network {
 }
 
 interface BridgeContextType {
+ 
   fromNetwork: string;
   setFromNetwork: (network: string) => void;
-  toNetwork: string;
+  toNetwork: string;  // Keep this as string if it's not part of SupportedChain
   setToNetwork: (network: string) => void;
   fromToken: string;
   setFromToken: (token: string) => void;
@@ -84,9 +88,30 @@ interface BridgeContextType {
     address: string;
     symbol: string;
     destinationID: string;
-    originChain: SupportedChain;
+    originChain: SupportedChain; 
     sourceChainAddress: string;
   } | null;
+  supplyBalance: string;
+  setSupplyBalance: React.Dispatch<React.SetStateAction<string>>;
+  borrowBalance: string;
+  setBorrowBalance: React.Dispatch<React.SetStateAction<string>>;
+  creditLimit: string;
+  setCreditLimit: React.Dispatch<React.SetStateAction<string>>;
+  supplyMarket: string;
+  setSupplyMarket: React.Dispatch<React.SetStateAction<string>>;
+  loanMarket: string;
+  setLoanMarket: React.Dispatch<React.SetStateAction<string>>;
+  whitelistedTokens: string[];
+  setWhitelistedTokens: React.Dispatch<React.SetStateAction<string[]>>;
+  supply: (tokenAddress: string, amount: string, walletClient: any, chain: SupportedChain) => Promise<any>;
+  borrow: (tokenAddress: string, amount: string, walletClient: any, chain: SupportedChain) => Promise<any>;
+  repay: (tokenAddress: string, amount: string, walletClient: any, chain: SupportedChain) => Promise<any>;
+  withdraw: (tokenAddress: string, amount: string, walletClient: any, chain: SupportedChain) => Promise<any>;
+  getSuppliedBalance: (userAddress: string, chain: SupportedChain) => Promise<void>;
+  getBorrowedBalance: (userAddress: string, chain: SupportedChain) => Promise<void>;
+  updateCreditLimit: (userAddress: string, chain: SupportedChain) => Promise<void>;
+  updateMarketTotals: (tokenAddress: string, chain: SupportedChain) => Promise<void>;
+  updateWhitelistedTokens: (chain: SupportedChain) => Promise<void>;
 }
 
 const BridgeContext = createContext<BridgeContextType | undefined>(undefined);
@@ -118,14 +143,23 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
   );
   const [sourceContractAddress, setSourceContractAddress] = useState("");
 
-  const networks: Network[] = [
-    { id: "ETH", icon: Eth, name: "Ethereum" },
-    { id: "ARB", icon: Arb, name: "Arbitrum" },
-    { id: "CELO", icon: Celo, name: "Celo" },
-    { id: "OP", icon: Op, name: "Optimism" },
-    { id: "BASE", icon: Base, name: "Base" },
-    { id: "LISK", icon: Lisk, name: "Lisk" },
+  const [supplyBalance, setSupplyBalance] = useState("0");
+  const [borrowBalance, setBorrowBalance] = useState("0");
+  const [creditLimit, setCreditLimit] = useState("0");
+  const [supplyMarket, setSupplyMarket] = useState("0");
+  const [loanMarket, setLoanMarket] = useState("0");
+  const [whitelistedTokens, setWhitelistedTokens] = useState<string[]>([]);
+
+  const networks: { id: SupportedChain; icon: any; name: string }[] = [
+    { id: "eth-sepolia", icon: Eth, name: "Ethereum (Sepolia)" },
+    // { id: "arbitrum-sepolia", icon: Arb, name: "Arbitrum (Sepolia)" },
+    { id: "base-sepolia", icon: Base, name: "Base (Sepolia)" },
+     // { id: "CELO", icon: Celo, name: "Celo" },
+    // { id: "OP", icon: Op, name: "Optimism" },
+    // { id: "LISK", icon: Lisk, name: "Lisk" },
   ];
+
+
 
   const tokens: Token[] = [
     {
@@ -147,27 +181,6 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       destinationID: "40161",
       originChain: "eth-sepolia",
       sourceChainAddress: "0x67e0B3f4069e59812EecC65DF127811A43AF5Eb9",
-    },
-
-    {
-      id: "USDT-ARB",
-      name: "Tether",
-      icon: Usdt,
-      address: "0x43535C041AF9d270Bd7aaA9ce5313d960BBEABAD",
-      symbol: "USDT",
-      destinationID: "40231",
-      originChain: "arbitrum-sepolia",
-      sourceChainAddress: "0x74FCAE483Cd97791078B8E6073757e04356C20bd",
-    },
-    {
-      id: "ETH-ARB",
-      name: "Arbitrum",
-      icon: Eth,
-      address: "0x0000000000000000000000000000000000000000",
-      symbol: "ETH",
-      destinationID: "40231",
-      originChain: "arbitrum-sepolia",
-      sourceChainAddress: "0x74FCAE483Cd97791078B8E6073757e04356C20bd",
     },
 
     {
@@ -293,6 +306,109 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
+  const supply = async (tokenAddress: string, amount: string, walletClient: any, chain: SupportedChain) => {
+    try {
+      const receipt = await lendingPoolWrapper.supply(tokenAddress, amount, walletClient, chain);
+      await updateMarketTotals(tokenAddress, chain);
+      await getSuppliedBalance(userAddress, chain);
+      await updateCreditLimit(userAddress, chain);
+      return receipt;
+    } catch (error) {
+      console.error("Error in supply:", error);
+      throw error;
+    }
+  };
+
+  const borrow = async (tokenAddress: string, amount: string, walletClient: any, chain: SupportedChain) => {
+    try {
+      const receipt = await lendingPoolWrapper.borrow(tokenAddress, amount, walletClient, chain);
+      await updateMarketTotals(tokenAddress, chain);
+      await getBorrowedBalance(userAddress, chain);
+      await updateCreditLimit(userAddress, chain);
+      return receipt;
+    } catch (error) {
+      console.error("Error in borrow:", error);
+      throw error;
+    }
+  };
+
+  const repay = async (tokenAddress: string, amount: string, walletClient: any, chain: SupportedChain) => {
+    try {
+      const receipt = await lendingPoolWrapper.repay(tokenAddress, amount, walletClient, chain);
+      await updateMarketTotals(tokenAddress, chain);
+      await getBorrowedBalance(userAddress, chain);
+      await updateCreditLimit(userAddress, chain);
+      return receipt;
+    } catch (error) {
+      console.error("Error in repay:", error);
+      throw error;
+    }
+  };
+
+  const withdraw = async (tokenAddress: string, amount: string, walletClient: any, chain: SupportedChain) => {
+    try {
+      const receipt = await lendingPoolWrapper.withdraw(tokenAddress, amount, walletClient, chain);
+      await updateMarketTotals(tokenAddress, chain);
+      await getSuppliedBalance(userAddress, chain);
+      await updateCreditLimit(userAddress, chain);
+      return receipt;
+    } catch (error) {
+      console.error("Error in withdraw:", error);
+      throw error;
+    }
+  };
+
+  const getSuppliedBalance = async (userAddress: string, chain: SupportedChain) => {
+    try {
+      const balance = await lendingPoolWrapper.getSuppliedBalance(userAddress, chain);
+      setSupplyBalance(balance);
+    } catch (error) {
+      console.error("Error in getSuppliedBalance:", error);
+      throw error;
+    }
+  };
+
+  const getBorrowedBalance = async (userAddress: string, chain: SupportedChain) => {
+    try {
+      const balance = await lendingPoolWrapper.getBorrowedBalance(userAddress, chain);
+      setBorrowBalance(balance);
+    } catch (error) {
+      console.error("Error in getBorrowedBalance:", error);
+      throw error;
+    }
+  };
+
+  const updateCreditLimit = async (userAddress: string, chain: SupportedChain) => {
+    try {
+      const limit = await lendingPoolWrapper.getCreditLimit(userAddress, chain);
+      setCreditLimit(limit);
+    } catch (error) {
+      console.error("Error in updateCreditLimit:", error);
+      throw error;
+    }
+  };
+
+  const updateMarketTotals = async (tokenAddress: string, chain: SupportedChain) => {
+    try {
+      const totalSupply = await lendingPoolWrapper.getTotalSupply(tokenAddress, chain);
+      const totalBorrowed = await lendingPoolWrapper.getTotalBorrowed(tokenAddress, chain);
+      setSupplyMarket(totalSupply);
+      setLoanMarket(totalBorrowed);
+    } catch (error) {
+      console.error("Error in updateMarketTotals:", error);
+      throw error;
+    }
+  };
+
+  const updateWhitelistedTokens = async (chain: SupportedChain) => {
+    try {
+      const tokens = await lendingPoolWrapper.getWhitelistedTokens(chain);
+      setWhitelistedTokens(tokens);
+    } catch (error) {
+      console.error("Error in updateWhitelistedTokens:", error);
+      throw error;
+    }
+  };
   useEffect(() => {
     getGasPrice();
     handleUserTokenBalance();
@@ -316,6 +432,21 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
   return (
     <BridgeContext.Provider
       value={{
+        whitelistedTokens,
+        setWhitelistedTokens,
+        updateCreditLimit,
+        updateMarketTotals,
+        updateWhitelistedTokens,
+        supplyBalance,
+        setSupplyBalance,
+        borrowBalance,
+        setBorrowBalance,
+        creditLimit,
+        setCreditLimit,
+        supplyMarket,
+        setSupplyMarket,
+        loanMarket,
+        setLoanMarket,
         fromNetwork,
         setFromNetwork,
         toNetwork,
@@ -360,7 +491,13 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
         sourceContractAddress,
         setSourceContractAddress,
         tokenAddress, 
-        setTokenAddress
+        setTokenAddress, 
+        supply,
+        borrow,
+        repay,
+        withdraw,
+        getSuppliedBalance,
+        getBorrowedBalance,
       }}
     >
       {children}

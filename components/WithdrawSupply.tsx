@@ -10,7 +10,7 @@ import Time from "./../public/time.svg";
 import Arrow from "./../public/arrow.svg";
 import Image from "next/image";
 import { toast } from "react-toastify";
-import { useAccount } from "wagmi";
+import { useAccount, useWalletClient } from "wagmi";
 import MobConnect from "./ConnectWallet";
 import { useBridge } from "@/context/BridgeContext";
 import Header from "./Header";
@@ -18,45 +18,109 @@ import Link from "next/link";
 import Navbar from "./Navbar";
 
 const WithrawSupply: React.FC = () => {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const inputMobRef = useRef<HTMLInputElement | null>(null);
+
+  const router = useRouter();
+  const { address } = useAccount();
+  const { data: walletClient } = useWalletClient();
 
   const {
-    fromNetwork,
-    setFromNetwork,
-    toNetwork,
-    setToNetwork,
     fromToken,
     setFromToken,
-    toToken,
-    setToToken,
+    tokens,
     amount,
     setAmount,
-    recipientAddress,
-    setRecipientAddress,
-    isModalOpen,
-    setIsModalOpen,
-    modalType,
-    setModalType,
-    networks,
-    tokens,
-    setTokenBalance,
-    tokenBal,
-    setUserAddress,
-    feeInUSD,
-    setGasPrice,
-    gasPrice
+    withdraw,
+    getTokenInfo,
+    supplyBalance,
+    getSuppliedBalance,
+    updateCreditLimit,
   } = useBridge();
 
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleWithdraw = async () => {
+    if (!address || !walletClient) {
+      toast.error("Please connect your wallet");
+      return;
+    }
+
+    const tokenInfo = getTokenInfo(fromToken);
+    if (!tokenInfo) {
+      toast.error("Invalid token selected");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await withdraw(
+        tokenInfo.address,
+        amount.toString(),
+        walletClient,
+        tokenInfo.originChain
+      );
+      toast.success("Withdrawal successful");
+      await getSuppliedBalance(address, tokenInfo.originChain);
+      await updateCreditLimit(address, tokenInfo.originChain);
+    } catch (error) {
+      console.error("Withdrawal error:", error);
+      toast.error("Withdrawal failed");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+      // Move cursor to the end of the input
+      inputRef.current.setSelectionRange(
+        inputRef.current.value.length,
+        inputRef.current.value.length
+      );
+    }
+  }, [amount]);
+
+  useEffect(() => {
+    if (inputMobRef.current) {
+      inputMobRef.current.focus();
+      // Move cursor to the end of the input
+      inputMobRef.current.setSelectionRange(
+        inputMobRef.current.value.length,
+        inputMobRef.current.value.length
+      );
+    }
+  }, [amount]);
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (!fromToken) {
+      toast.error("Please select an asset before entering an amount.");
+      return;
+    }
+    if (value === "" || /^\d*\.?\d*$/.test(value)) {
+      const numValue = parseFloat(value);
+      if (!isNaN(numValue)) {
+        setAmount(numValue);
+      } else {
+        setAmount(0);
+      }
+    }
+  };
+
   const TokenSelector = ({ type }: { type: "from" | "to" }) => {
-    const router = useRouter();
-    const currentToken = type === "from" ? fromToken : toToken;
-    const token = tokens.find((t) => t.id === currentToken);
-  
     const handleAssetSelect = () => {
       router.push(`/selectAsset?type=${type}`);
     };
-  
+
+    const token = tokens.find((t) => t.id === fromToken);
+
     return (
-      <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex justify-between items-center cursor-pointer" onClick={handleAssetSelect}>
+      <div
+        className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex justify-between items-center cursor-pointer"
+        onClick={handleAssetSelect}
+      >
         <span className="text-[#A6A9B8] text-xs">
           {token ? "Asset Selected" : "Choose Asset"}
         </span>
@@ -65,12 +129,7 @@ const WithrawSupply: React.FC = () => {
           <span className="text-sm text-[#A6A9B8]">
             {token?.symbol || "Select Token"}
           </span>
-          <Image
-            src={Arrow}
-            alt="Arrow"
-            width={12}
-            height={12}
-          />
+          <Image src={Arrow} alt="Arrow" width={12} height={12} />
         </div>
       </div>
     );
@@ -95,54 +154,63 @@ const WithrawSupply: React.FC = () => {
           <div className="flex flex-col flex-grow overflow-y-auto z-10">
             <div className="p-4 flex-grow">
               <div className="flex flex-col space-y-3">
-              <TokenSelector type="from" />
+                <TokenSelector type="from" />
 
                 <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col gap-1 justify-center">
                   <div className="flex justify-between items-center">
                     <div className="flex flex-col gap-2">
-                    <span className="text-[#A6A9B8] text-sm">
-                  Amount
-                </span>
-                    <span className="text-[#9A9A9A] text-xs">
-                      $ 10
-                    </span>
+                      <span className="text-[#A6A9B8] text-sm">Amount</span>
+                      <span className="text-[#9A9A9A] text-xs">
+                        $ {(amount || 0).toFixed(2)}
+                      </span>
                     </div>
-                
-                    <span className="text-[#A6A9B8] text-sm font-bold">
-                     10 USDT
+
+                    <span className="text-[#9A9A9A] text-sm mr-1">
+                      {tokens.find((t) => t.id === fromToken)?.symbol || ""}
                     </span>
+                    <input
+                      type="text"
+                      ref={inputMobRef}
+                      value={amount === 0 ? "" : amount.toString()}
+                      onChange={handleAmountChange}
+                      className="bg-transparent border-none focus:outline-none focus:ring-0 text-[#9A9A9A] text-xl text-right w-24"
+                      placeholder="0"
+                    />
                   </div>
                 </div>
 
                 <div className="rounded border border-[#A6A9B880] bg-[#1A1A1ACC] p-2 w-full flex flex-col gap-1 justify-center">
-                <span className="text-[#A6A9B8] text-xs font-bold">
-                  Calculated Rewards
-                </span>
-    
-                <div className="flex justify-between items-center">
-                  <span className="text-[#9A9A9A] text-xl">
-                    {amount || "0"}{" "}
-                    {tokens.find((t) => t.id === fromToken)?.symbol || ""}
+                  <span className="text-[#A6A9B8] text-xs font-bold">
+                    Calculated Rewards
                   </span>
-                  <span className="text-[#A6A9B8] text-xs">
-                    $ {(amount || 0).toFixed(2)}
-                  </span>
-                </div>
-    
-                <div className="flex flex-row items-center gap-4">
-                  <div className="flex flex-row gap-2 items-center">
-                  <span className="text-[#A6A9B8] text-xs">APY</span>
-                    <span className="text-[#A6A9B8] text-xs">{gasPrice}%</span>
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#9A9A9A] text-xl">
+                      {amount || "0"}{" "}
+                      {tokens.find((t) => t.id === fromToken)?.symbol || ""}
+                    </span>
+                    <span className="text-[#A6A9B8] text-xs">
+                      $ {(amount || 0).toFixed(2)}
+                    </span>
                   </div>
-                
+
+                  <div className="flex flex-row items-center gap-4">
+                    <div className="flex flex-row gap-2 items-center">
+                      <span className="text-[#A6A9B8] text-xs">APY</span>
+                      <span className="text-[#A6A9B8] text-xs">5%</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
               </div>
             </div>
           </div>
           <div className="p-4 mt-auto z-10">
-            <button className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
-              Proceed
+            <button
+              onClick={handleWithdraw}
+              disabled={isLoading}
+              className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200"
+            >
+              {isLoading ? "Processing..." : "Withdraw"}
             </button>
           </div>
         </div>
@@ -169,32 +237,36 @@ const WithrawSupply: React.FC = () => {
             </div>
 
             <div className="flex-grow py-6 px-4 flex flex-col space-y-4 z-10">
-         
+              <TokenSelector type="from" />
 
-                <TokenSelector type="from" />
-
-                <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col gap-1 justify-center">
+              <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col gap-1 justify-center">
                   <div className="flex justify-between items-center">
                     <div className="flex flex-col gap-2">
-                    <span className="text-[#A6A9B8] text-sm">
-                  Amount
-                </span>
-                    <span className="text-[#9A9A9A] text-xs">
-                      $ 10
-                    </span>
+                      <span className="text-[#A6A9B8] text-sm">Amount</span>
+                      <span className="text-[#9A9A9A] text-xs">
+                        $ {(amount || 0).toFixed(2)}
+                      </span>
                     </div>
-                
-                    <span className="text-[#A6A9B8] text-sm font-bold">
-                     10 USDT
+
+                    <span className="text-[#9A9A9A] text-sm mr-1">
+                      {tokens.find((t) => t.id === fromToken)?.symbol || ""}
                     </span>
+                    <input
+                      type="text"
+                      ref={inputMobRef}
+                      value={amount === 0 ? "" : amount.toString()}
+                      onChange={handleAmountChange}
+                      className="bg-transparent border-none focus:outline-none focus:ring-0 text-[#9A9A9A] text-xl text-right w-24"
+                      placeholder="0"
+                    />
                   </div>
                 </div>
 
-                <div className="rounded border border-[#A6A9B880] bg-[#1A1A1ACC] p-2 w-full flex flex-col gap-1 justify-center">
+              <div className="rounded border border-[#A6A9B880] bg-[#1A1A1ACC] p-2 w-full flex flex-col gap-1 justify-center">
                 <span className="text-[#A6A9B8] text-xs font-bold">
                   Calculated Rewards
                 </span>
-    
+
                 <div className="flex justify-between items-center">
                   <span className="text-[#9A9A9A] text-xl">
                     {amount || "0"}{" "}
@@ -204,19 +276,22 @@ const WithrawSupply: React.FC = () => {
                     $ {(amount || 0).toFixed(2)}
                   </span>
                 </div>
-    
+
                 <div className="flex flex-row items-center gap-4">
                   <div className="flex flex-row gap-2 items-center">
-                  <span className="text-[#A6A9B8] text-xs">APY</span>
-                    <span className="text-[#A6A9B8] text-xs">{gasPrice}%</span>
+                    <span className="text-[#A6A9B8] text-xs">APY</span>
+                    <span className="text-[#A6A9B8] text-xs">5%</span>
                   </div>
-                
                 </div>
               </div>
             </div>
             <div className="px-6 pb-6 mt-auto z-10">
-              <button className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
-                Proceed
+              <button
+                onClick={handleWithdraw}
+                disabled={isLoading}
+                className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200"
+              >
+                {isLoading ? "Processing..." : "Withdraw"}
               </button>
             </div>
           </div>
