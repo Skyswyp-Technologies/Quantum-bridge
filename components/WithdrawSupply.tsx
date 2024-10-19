@@ -155,8 +155,70 @@ const WithrawSupply: React.FC = () => {
             />
             <div className="absolute w-[59px] h-[223px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-radial-glow from-[#6AEFFF33] to-[#6AEFFF] opacity-60 blur-3xl"></div>
           </div>
+          {isSuccess ? (
+              <>
+                <div className="flex-grow py-6 px-4 flex flex-col space-y-4 z-10 overflow-y-auto">
+                  <div className="rounded border border-[#A6A9B880] bg-[#1A1A1ACC] p-2 w-full flex flex-col gap-3 justify-center">
+                    <span className="text-[#A6A9B8] text-xs font-bold">
+                      Transaction Successful
+                    </span>
+                    <div className="flex flex-col">
+                      <span className="text-[#A6A9B8] text-xs font-bold">
+                        Withdrawal Details
+                      </span>
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="text-[#9A9A9A] text-sm">
+                          Withdrawn Amount:
+                        </span>
+                        <span className="text-white text-sm">
+                          {" "}
+                          {amount || "0"}{" "}
+                          {tokens.find((t) => t.id === fromToken)?.symbol || ""}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center mt-1">
+                        <span className="text-[#9A9A9A] text-sm">
+                          USD Value:
+                        </span>
+                        <span className="text-white text-sm">
+                          $ {amount.toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center mt-1">
+                        <span className="text-[#9A9A9A] text-sm">APY:</span>
+                        <span className="text-white text-sm">5%</span>
+                      </div>
 
-          <div className="flex flex-col flex-grow overflow-y-auto z-10">
+                      <span className="text-[#A6A9B8] text-xs font-bold mt-4">
+                        Transaction Details
+                      </span>
+                      <div className="mt-2">
+                        <span className="text-[#9A9A9A] text-sm">
+                          Transaction Hash:
+                        </span>
+                        <a
+                          href={`https://sepolia.etherscan.io/tx/${txHash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-500 text-sm ml-2 break-all"
+                        >
+                          {txHash}
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-4 mt-auto z-10">
+                  <Link href="/lending">
+                    <button className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
+                      Back to Lending
+                    </button>
+                  </Link>
+                </div>
+              </>
+            ) : (
+              <>
+              <div className="flex flex-col flex-grow overflow-y-auto z-10">
             <div className="p-4 flex-grow">
               <div className="flex flex-col space-y-3">
                 <TokenSelector type="from" />
@@ -218,6 +280,10 @@ const WithrawSupply: React.FC = () => {
               {isLoading ? "Processing..." : "Withdraw"}
             </button>
           </div>
+              </>
+            )}
+
+          
         </div>
       </div>
     );
