@@ -1,24 +1,18 @@
 "use client";
 
-import React from "react";
-import { useRouter } from "next/navigation";
+import React, { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useAccount, useWalletClient } from "wagmi";
 import Header from "./Header";
+import { useAccount } from "wagmi";
 import Navbar from "./Navbar";
 import { useBridge } from "@/context/BridgeContext";
 
-
 const LendingHome: React.FC = () => {
+  const { address } = useAccount();
 
-  const { data: walletClient } = useWalletClient({});
-
-  
-  const { chain, address } = useAccount()
-
-  const { 
-    getSuppliedBalance, 
+  const {
+    getSuppliedBalance,
     getBorrowedBalance,
     updateCreditLimit,
     updateMarketTotals,
@@ -31,8 +25,28 @@ const LendingHome: React.FC = () => {
     loanMarket,
   } = useBridge();
 
-  
+  useEffect(() => {
+    if (address) {
+      setUserAddress(address);
+      fetchUserData(address);
+    }
+  }, [address]);
 
+  const fetchUserData = async (userAddress: string) => {
+    try {
+      await Promise.all([
+        getSuppliedBalance(userAddress, "base-sepolia"),
+        getBorrowedBalance(userAddress, "base-sepolia"),
+        updateCreditLimit(userAddress, "base-sepolia"),
+        updateMarketTotals(
+          "0x2816a02000B9845C464796b8c36B2D5D199525d5",
+          "base-sepolia"
+        ), // Using USDT-BASE address
+      ]);
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
 
   const MobileDesign = () => {
     return (
@@ -53,30 +67,48 @@ const LendingHome: React.FC = () => {
           <div className="flex flex-col flex-grow overflow-y-auto z-10 p-4">
             <div className="flex flex-col space-y-3">
               <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col gap-1 justify-center">
-                <span className="text-[#A6A9B8] text-xs font-bold">Your Balance</span>
+                <span className="text-[#A6A9B8] text-xs font-bold">
+                  Your Balance
+                </span>
                 <div className="flex justify-between items-center">
-                  <span className="text-[#9A9A9A] text-sm font-bold">Supply</span>
-                  <span className="text-[#A6A9B8] text-sm font-bold">$ 0</span>
+                  <span className="text-[#9A9A9A] text-sm font-bold">
+                    Supply
+                  </span>
+                  <span className="text-[#A6A9B8] text-sm font-bold">
+                    $ {parseFloat(supplyBalance).toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-[#9A9A9A] text-sm font-bold">Loan</span>
-                  <span className="text-[#A6A9B8] text-sm font-bold">$ 0</span>
+                  <span className="text-[#A6A9B8] text-sm font-bold">
+                    $ {parseFloat(borrowBalance).toFixed(2)}
+                  </span>
                 </div>
               </div>
 
               <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col gap-1 justify-center">
                 <div className="flex justify-between items-center">
-                  <span className="text-[#9A9A9A] text-xs">Your Credit Limit</span>
-                  <span className="text-[#A6A9B8] text-sm font-bold">$ 10</span>
+                  <span className="text-[#9A9A9A] text-xs">
+                    Your Credit Limit
+                  </span>
+                  <span className="text-[#A6A9B8] text-sm font-bold">
+                    $ {parseFloat(creditLimit).toFixed(2)}
+                  </span>
                 </div>
               </div>
 
               {/* Other sections for Supply, Borrow, Withdraw, etc. */}
               {["Supply", "Borrow", "Withdraw", "Repay"].map((item) => (
-                <div key={item} className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col gap-1 justify-center">
+                <div
+                  key={item}
+                  className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col gap-1 justify-center"
+                >
                   <div className="flex justify-between items-center">
                     <span className="text-[#9A9A9A] text-xs">{item}</span>
-                    <Link href={`/lending/${item.toLowerCase()}`} className="rounded bg-[#1E1E1E] py-1 font-semibold px-5 text-white flex justify-center items-center text-xs cursor-pointer">
+                    <Link
+                      href={`/lending/${item.toLowerCase()}`}
+                      className="rounded bg-[#1E1E1E] py-1 font-semibold px-5 text-white flex justify-center items-center text-xs cursor-pointer"
+                    >
                       Go
                     </Link>
                   </div>
@@ -84,17 +116,25 @@ const LendingHome: React.FC = () => {
               ))}
 
               <div className="rounded border border-[#A6A9B880] bg-[#1A1A1A80] p-3 w-full flex flex-col gap-2 justify-center">
-                <span className="text-[#A6A9B8] text-xs font-bold">Markets</span>
+                <span className="text-[#A6A9B8] text-xs font-bold">
+                  Markets
+                </span>
                 <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col gap-1 justify-center">
                   <div className="flex justify-between items-center">
-                    <span className="text-[#9A9A9A] text-xs">Supply Market</span>
-                    <div className="rounded bg-[#1E1E1E] p-1 font-semibold text-white flex justify-center items-center text-xs cursor-pointer">$ 2000</div>
+                    <span className="text-[#9A9A9A] text-xs">
+                      Supply Market
+                    </span>
+                    <div className="rounded bg-[#1E1E1E] p-1 font-semibold text-white flex justify-center items-center text-xs cursor-pointer">
+                      $ {parseFloat(supplyMarket).toFixed(2)}
+                    </div>
                   </div>
                 </div>
                 <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col gap-1 justify-center">
                   <div className="flex justify-between items-center">
                     <span className="text-[#9A9A9A] text-xs">Loan Market</span>
-                    <div className="rounded bg-[#1E1E1E] p-1 font-semibold text-white flex justify-center items-center text-xs cursor-pointer">$ 1800</div>
+                    <div className="rounded bg-[#1E1E1E] p-1 font-semibold text-white flex justify-center items-center text-xs cursor-pointer">
+                      $ {parseFloat(loanMarket).toFixed(2)}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -102,8 +142,8 @@ const LendingHome: React.FC = () => {
           </div>
 
           <div className="p-4 z-10">
-            <button className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
-              Connect Wallet
+          <button className="w-full border cur bg-[#141618] cursor-not-allowed border-[#A6A9B8] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
+              {userAddress ? "Wallet Connected" : "Connect Wallet"}
             </button>
           </div>
         </div>
@@ -130,23 +170,35 @@ const LendingHome: React.FC = () => {
           <div className="flex-grow py-6 px-4 flex flex-col space-y-4 z-10 overflow-y-auto">
             {/* Balance Section */}
             <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col gap-1 justify-center">
-              <span className="text-[#A6A9B8] text-xs font-bold">Your Balance</span>
+              <span className="text-[#A6A9B8] text-xs font-bold">
+                Your Balance
+              </span>
               <div className="flex justify-between items-center">
                 <span className="text-[#9A9A9A] text-sm font-bold">Supply</span>
-                <span className="text-[#A6A9B8] text-sm font-bold">$ 0</span>
+                <span className="text-[#A6A9B8] text-sm font-bold">
+                  $ {parseFloat(supplyBalance).toFixed(2)}
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-[#9A9A9A] text-sm font-bold">Loan</span>
-                <span className="text-[#A6A9B8] text-sm font-bold">$ 0</span>
+                <span className="text-[#A6A9B8] text-sm font-bold">
+                  $ {parseFloat(borrowBalance).toFixed(2)}
+                </span>
               </div>
             </div>
 
             {/* Other Sections */}
             {["Supply", "Borrow", "Withdraw", "Repay"].map((item) => (
-              <div key={item} className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col gap-1 justify-center">
+              <div
+                key={item}
+                className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col gap-1 justify-center"
+              >
                 <div className="flex justify-between items-center">
                   <span className="text-[#9A9A9A] text-xs">{item}</span>
-                  <Link href={`/lending/${item.toLowerCase()}`} className="rounded bg-[#1E1E1E] py-1 font-semibold px-5 text-white flex justify-center items-center text-xs cursor-pointer">
+                  <Link
+                    href={`/lending/${item.toLowerCase()}`}
+                    className="rounded bg-[#1E1E1E] py-1 font-semibold px-5 text-white flex justify-center items-center text-xs cursor-pointer"
+                  >
                     Go
                   </Link>
                 </div>
@@ -159,21 +211,25 @@ const LendingHome: React.FC = () => {
               <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col gap-1 justify-center">
                 <div className="flex justify-between items-center">
                   <span className="text-[#9A9A9A] text-xs">Supply Market</span>
-                  <div className="rounded bg-[#1E1E1E] p-1 font-semibold text-white flex justify-center items-center text-xs cursor-pointer">$ 2000</div>
+                  <div className="rounded bg-[#1E1E1E] p-1 font-semibold text-white flex justify-center items-center text-xs cursor-pointer">
+                    $ {parseFloat(supplyMarket).toFixed(2)}
+                  </div>
                 </div>
               </div>
               <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col gap-1 justify-center">
                 <div className="flex justify-between items-center">
                   <span className="text-[#9A9A9A] text-xs">Loan Market</span>
-                  <div className="rounded bg-[#1E1E1E] p-1 font-semibold text-white flex justify-center items-center text-xs cursor-pointer">$ 1800</div>
+                  <div className="rounded bg-[#1E1E1E] p-1 font-semibold text-white flex justify-center items-center text-xs cursor-pointer">
+                    $ {parseFloat(loanMarket).toFixed(2)}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
           <div className="p-4 z-10">
-            <button className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
-              Connect Wallet
+            <button className="w-full border cur bg-[#141618] cursor-not-allowed border-[#A6A9B8] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
+              {userAddress ? "Wallet Connected" : "Connect Wallet"}
             </button>
           </div>
         </div>
