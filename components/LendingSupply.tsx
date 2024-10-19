@@ -112,8 +112,6 @@ const LendingSupply: React.FC = () => {
     }
   }, [amount]);
 
- 
-
   const TokenSelector = ({ type }: { type: "from" | "to" }) => {
     const handleAssetSelect = () => {
       router.push(`/selectAsset?type=${type}`);
@@ -166,66 +164,139 @@ const LendingSupply: React.FC = () => {
             <div className="absolute w-[59px] h-[223px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-radial-glow from-[#6AEFFF33] to-[#6AEFFF] opacity-60 blur-3xl"></div>
           </div>
 
-          <div className="flex flex-col flex-grow overflow-y-auto z-10">
-            <div className="p-4 flex-grow">
-              <div className="flex flex-col space-y-3">
-                <TokenSelector type="from" />
-
-                <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col gap-1 justify-center">
-                  <div className="flex justify-between items-center">
-                    <div className="flex flex-col gap-2">
-                      <span className="text-[#A6A9B8] text-sm">You Pay</span>
-
-                      <span className="text-[#A6A9B8] text-sm font-bold">
-                        $ {(amount || 0).toFixed(2)}
+          {isSuccess ? (
+            <>
+              <div className="flex-grow py-6 px-4 flex flex-col space-y-4 z-10 overflow-y-auto">
+                <div className="rounded border border-[#A6A9B880] bg-[#1A1A1ACC] p-2 w-full flex flex-col gap-3 justify-center">
+                  <span className="text-[#A6A9B8] text-xs font-bold">
+                    Transaction Successful
+                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-[#A6A9B8] text-xs font-bold">
+                      Supply Details
+                    </span>
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="text-[#9A9A9A] text-sm">
+                        Supplied Amount:
+                      </span>
+                      <span className="text-white text-sm">
+                        {amount} {tokenSymbol}
                       </span>
                     </div>
-                    <span className="text-[#9A9A9A] text-sm mr-1">
-                      {tokens.find((t) => t.id === fromToken)?.symbol || ""}
-                    </span>
-                    <input
-                      type="text"
-                      ref={inputMobRef}
-                      value={amount === 0 ? "" : amount.toString()}
-                      onChange={handleAmountChange}
-                      className="bg-transparent border-none focus:outline-none focus:ring-0 text-[#9A9A9A] text-xl text-right w-24"
-                      placeholder="0"
-                    />
-                  </div>
-                </div>
+                    <div className="flex justify-between items-center mt-1">
+                      <span className="text-[#9A9A9A] text-sm">USD Value:</span>
+                      <span className="text-white text-sm">
+                        $ {amount.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center mt-1">
+                      <span className="text-[#9A9A9A] text-sm">APY:</span>
+                      <span className="text-white text-sm">
+                        {(apy * 100).toFixed(2)}%
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center mt-1">
+                      <span className="text-[#9A9A9A] text-sm">
+                        Estimated Yearly Earnings:
+                      </span>
+                      <span className="text-white text-sm">
+                        $ {calculatedRewards.toFixed(2)}
+                      </span>
+                    </div>
 
-                <div className="rounded border border-[#A6A9B880] bg-[#1A1A1ACC] p-2 w-full flex flex-col gap-1 justify-center">
-                  <span className="text-[#A6A9B8] text-xs font-bold">
-                    Calculated Rewards
-                  </span>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-[#9A9A9A] text-xl">
-                      {calculatedRewards.toFixed(4)} {tokenSymbol}
+                    <span className="text-[#A6A9B8] text-xs font-bold mt-4">
+                      Transaction Details
                     </span>
-                    <span className="text-[#A6A9B8] text-xs">
-                      $ {rewardsInUSD.toFixed(2)}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-row items-center gap-4">
-                    <div className="flex flex-row gap-2 items-center">
-                      <span className="text-[#A6A9B8] text-xs">APY</span>
-                      <span className="text-[#A6A9B8] text-xs">5%</span>
+                    <div className="mt-2">
+                      <span className="text-[#9A9A9A] text-sm">
+                        Transaction Hash:
+                      </span>
+                      <a
+                        href={`https://sepolia.etherscan.io/tx/${txHash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 text-sm ml-2 break-all"
+                      >
+                        {txHash}
+                      </a>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-          <div className="p-4 mt-auto z-10">
-            <button
-              onClick={handleSupply}
-              className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200"
-            >
-              Proceed
-            </button>
-          </div>
+              <div className="p-4 mt-auto z-10">
+                <Link href="/lending">
+                  <button className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
+                    Back to Lending
+                  </button>
+                </Link>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex flex-col flex-grow overflow-y-auto z-10">
+                <div className="p-4 flex-grow">
+                  <div className="flex flex-col space-y-3">
+                    <TokenSelector type="from" />
+
+                    <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col gap-1 justify-center">
+                      <div className="flex justify-between items-center">
+                        <div className="flex flex-col gap-2">
+                          <span className="text-[#A6A9B8] text-sm">
+                            You Pay
+                          </span>
+
+                          <span className="text-[#A6A9B8] text-sm font-bold">
+                            $ {(amount || 0).toFixed(2)}
+                          </span>
+                        </div>
+                        <span className="text-[#9A9A9A] text-sm mr-1">
+                          {tokens.find((t) => t.id === fromToken)?.symbol || ""}
+                        </span>
+                        <input
+                          type="text"
+                          ref={inputMobRef}
+                          value={amount === 0 ? "" : amount.toString()}
+                          onChange={handleAmountChange}
+                          className="bg-transparent border-none focus:outline-none focus:ring-0 text-[#9A9A9A] text-xl text-right w-24"
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="rounded border border-[#A6A9B880] bg-[#1A1A1ACC] p-2 w-full flex flex-col gap-1 justify-center">
+                      <span className="text-[#A6A9B8] text-xs font-bold">
+                        Calculated Rewards
+                      </span>
+
+                      <div className="flex justify-between items-center">
+                        <span className="text-[#9A9A9A] text-xl">
+                          {calculatedRewards.toFixed(4)} {tokenSymbol}
+                        </span>
+                        <span className="text-[#A6A9B8] text-xs">
+                          $ {rewardsInUSD.toFixed(2)}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-row items-center gap-4">
+                        <div className="flex flex-row gap-2 items-center">
+                          <span className="text-[#A6A9B8] text-xs">APY</span>
+                          <span className="text-[#A6A9B8] text-xs">5%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="p-4 mt-auto z-10">
+                <button
+                  onClick={handleSupply}
+                  className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200"
+                >
+                  Proceed
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     );
@@ -324,7 +395,7 @@ const LendingSupply: React.FC = () => {
                   <div className="p-4 mt-auto z-10">
                     <Link href="/lending">
                       <button className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
-                        Back to Lending 
+                        Back to Lending
                       </button>
                     </Link>
                   </div>
