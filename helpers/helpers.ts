@@ -724,14 +724,19 @@ class LendingPool {
     tokenAddress: string,
     chain: SupportedChain
   ): Promise<string> {
-    const chainConfig = chainConfigs[chain];
+    try {
+      const chainConfig = chainConfigs[chain];
     if (!chainConfig) {
       throw new Error(`Unsupported chain: ${chain}`);
     }
-
     const poolContract = this.getPoolContract(chainConfig);
     const totalSupply = await poolContract.getTotalTokenSupplied(tokenAddress);
-    return ethers.utils.formatUnits(totalSupply, 18);
+    return totalSupply;
+      
+    } catch (error) {
+      throw error;
+    }
+    
   }
 
   // New method to get total borrowed for a specific token
@@ -742,18 +747,15 @@ class LendingPool {
         throw new Error(`Unsupported chain: ${chain}`);
       }
 
-      const provider = new ethers.providers.JsonRpcProvider(chainConfig.rpcUrl);
-
       const poolContract = this.getPoolContract(chainConfig);
-      const totalBorrowedTx = await poolContract.getTotalTokenBorrowed(
+      const totalBorrowed = await poolContract.getTotalTokenBorrowed(
         tokenAddress
       );
 
-      const receipt = await provider.waitForTransaction(totalBorrowedTx, 1);
-
-      if (receipt) {
-        return ethers.utils.formatUnits(totalBorrowedTx, 18);
+      if(totalBorrowed){
+        return  ethers.utils.formatUnits(totalBorrowed)
       }
+
     } catch (error) {
       throw error;
     }
