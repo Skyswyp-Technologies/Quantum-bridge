@@ -234,31 +234,30 @@ const BridgeHome: React.FC = () => {
   
     return (
       <div className="w-[42%] rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 flex flex-col gap-1 relative">
-       
-       <div className="relative z-10">
-        <span className="text-[#A6A9B8] text-xs">
-          {type === "from" ? "From" : "To"}
-        </span>
-        <div className="flex justify-between items-center mt-1">
-          {network ? (
-            <Image src={network.icon} alt={network.name} width={24} height={24} />
-          ) : (
-            <div className="w-6 h-6 bg-gray-300 rounded-full"></div> // Placeholder if no network is selected
-          )}
-          <span className="font-bold text-xs text-[#A6A9B8]">
-            {network?.name || "Select Network"}
+        <div className="relative z-10">
+          <span className="text-[#A6A9B8] text-xs">
+            {type === "from" ? "From" : "To"}
           </span>
-          <Image
-            src={Arrow}
-            alt="arrow"
-            width={20}
-            height={20}
-            onClick={handleNetworkSelect}
-            className="cursor-pointer"
-          />
+          <div className="flex items-center justify-between mt-1">
+            {network ? (
+              <Image src={network.icon} alt={network.name} width={24} height={24} />
+            ) : 
+            null
+            }
+            <span className="font-bold text-xs text-[#A6A9B8] flex-grow text-center">
+              {network?.name || "Select Network"}
+            </span>
+            <Image
+              src={Arrow}
+              alt="arrow"
+              width={20}
+              height={20}
+              onClick={handleNetworkSelect}
+              className="cursor-pointer"
+            />
+          </div>
         </div>
       </div>
-    </div>
     );
   };
 
