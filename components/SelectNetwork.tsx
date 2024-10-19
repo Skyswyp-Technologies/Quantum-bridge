@@ -46,7 +46,7 @@ const SelectNetworkContent = () => {
               onClick={() => handleNetworkSelect(network.id)}
             >
               <Image
-                src={`/${network.id.toLowerCase()}.svg`}
+                src={network.icon}
                 alt={network.id}
                 width={24}
                 height={24}

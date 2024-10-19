@@ -1,5 +1,3 @@
-
-
 import React, {
   createContext,
   useState,
@@ -9,11 +7,11 @@ import React, {
 } from "react";
 import Usdt from "./../public/usdt.svg";
 import Arb from "./../public/arb.svg";
-import Eth from "./../public/eth.svg"; 
+import Eth from "./../public/eth.svg";
 import Celo from "./../public/celo.svg";
 import Op from "./../public/op.svg";
 import Base from "./../public/base.svg";
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify";
 import Lisk from "./../public/lisk.svg";
 
 import { bridgeWrapper, lendingPoolWrapper } from "@/helpers/helpers";
@@ -37,10 +35,9 @@ interface Network {
 }
 
 interface BridgeContextType {
- 
   fromNetwork: string;
   setFromNetwork: (network: string) => void;
-  toNetwork: string;  // Keep this as string if it's not part of SupportedChain
+  toNetwork: string; // Keep this as string if it's not part of SupportedChain
   setToNetwork: (network: string) => void;
   fromToken: string;
   setFromToken: (token: string) => void;
@@ -71,8 +68,8 @@ interface BridgeContextType {
   sourceContractAddress: string;
   setTokenSymbol: (tokenSymbol: string) => void;
   tokenSymbol: string;
-  setTokenAddress:(tokenAddress: string)=> void;
-  tokenAddress: string
+  setTokenAddress: (tokenAddress: string) => void;
+  tokenAddress: string;
   setOriginalChain: (originChain: SupportedChain | null) => void;
   originalChain: SupportedChain | null;
   userAddress: string;
@@ -82,13 +79,11 @@ interface BridgeContextType {
   setModalType: (type: "from" | "to") => void;
   networks: Network[];
   tokens: Token[];
-  getTokenInfo: (
-    tokenId: string
-  ) => {
+  getTokenInfo: (tokenId: string) => {
     address: string;
     symbol: string;
     destinationID: string;
-    originChain: SupportedChain; 
+    originChain: SupportedChain;
     sourceChainAddress: string;
   } | null;
   supplyBalance: string;
@@ -103,14 +98,46 @@ interface BridgeContextType {
   setLoanMarket: React.Dispatch<React.SetStateAction<string>>;
   whitelistedTokens: string[];
   setWhitelistedTokens: React.Dispatch<React.SetStateAction<string[]>>;
-  supply: (tokenAddress: string, amount: string, walletClient: any, chain: SupportedChain) => Promise<any>;
-  borrow: (tokenAddress: string, amount: string, walletClient: any, chain: SupportedChain) => Promise<any>;
-  repay: (tokenAddress: string, amount: string, walletClient: any, chain: SupportedChain) => Promise<any>;
-  withdraw: (tokenAddress: string, amount: string, walletClient: any, chain: SupportedChain) => Promise<any>;
-  getSuppliedBalance: (userAddress: string, chain: SupportedChain) => Promise<void>;
-  getBorrowedBalance: (userAddress: string, chain: SupportedChain) => Promise<void>;
-  updateCreditLimit: (userAddress: string, chain: SupportedChain) => Promise<void>;
-  updateMarketTotals: (tokenAddress: string, chain: SupportedChain) => Promise<void>;
+  supply: (
+    tokenAddress: string,
+    amount: string,
+    walletClient: any,
+    chain: SupportedChain
+  ) => Promise<any>;
+  borrow: (
+    tokenAddress: string,
+    amount: string,
+    walletClient: any,
+    chain: SupportedChain
+  ) => Promise<any>;
+  repay: (
+    tokenAddress: string,
+    amount: string,
+    walletClient: any,
+    chain: SupportedChain
+  ) => Promise<any>;
+  withdraw: (
+    tokenAddress: string,
+    amount: string,
+    walletClient: any,
+    chain: SupportedChain
+  ) => Promise<any>;
+  getSuppliedBalance: (
+    userAddress: string,
+    chain: SupportedChain
+  ) => Promise<void>;
+  getBorrowedBalance: (
+    userAddress: string,
+    chain: SupportedChain
+  ) => Promise<void>;
+  updateCreditLimit: (
+    userAddress: string,
+    chain: SupportedChain
+  ) => Promise<void>;
+  updateMarketTotals: (
+    tokenAddress: string,
+    chain: SupportedChain
+  ) => Promise<void>;
   updateWhitelistedTokens: (chain: SupportedChain) => Promise<void>;
 }
 
@@ -159,7 +186,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     // { id: "LISK", icon: Lisk, name: "Lisk" },
   ];
 
-
+  
 
   const tokens: Token[] = [
     {
@@ -206,10 +233,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
   ];
 
   const handleUserTokenBalance = async () => {
-
     try {
-      
-
       const info = getTokenInfo(fromToken);
       if (userAddress && info) {
         const walletAddress = userAddress;
@@ -238,7 +262,6 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
 
   const handleprepareBridgeUserInfo = async () => {
     try {
-      
       const simulationAmount = amount.toString();
       const token = tokenAddress;
       const receiverAddress = recipientAddress;
@@ -306,9 +329,19 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const supply = async (tokenAddress: string, amount: string, walletClient: any, chain: SupportedChain) => {
+  const supply = async (
+    tokenAddress: string,
+    amount: string,
+    walletClient: any,
+    chain: SupportedChain
+  ) => {
     try {
-      const receipt = await lendingPoolWrapper.supply(tokenAddress, amount, walletClient, chain);
+      const receipt = await lendingPoolWrapper.supply(
+        tokenAddress,
+        amount,
+        walletClient,
+        chain
+      );
       await updateMarketTotals(tokenAddress, chain);
       await getSuppliedBalance(userAddress, chain);
       await updateCreditLimit(userAddress, chain);
@@ -319,9 +352,19 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const borrow = async (tokenAddress: string, amount: string, walletClient: any, chain: SupportedChain) => {
+  const borrow = async (
+    tokenAddress: string,
+    amount: string,
+    walletClient: any,
+    chain: SupportedChain
+  ) => {
     try {
-      const receipt = await lendingPoolWrapper.borrow(tokenAddress, amount, walletClient, chain);
+      const receipt = await lendingPoolWrapper.borrow(
+        tokenAddress,
+        amount,
+        walletClient,
+        chain
+      );
       await updateMarketTotals(tokenAddress, chain);
       await getBorrowedBalance(userAddress, chain);
       await updateCreditLimit(userAddress, chain);
@@ -332,9 +375,19 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const repay = async (tokenAddress: string, amount: string, walletClient: any, chain: SupportedChain) => {
+  const repay = async (
+    tokenAddress: string,
+    amount: string,
+    walletClient: any,
+    chain: SupportedChain
+  ) => {
     try {
-      const receipt = await lendingPoolWrapper.repay(tokenAddress, amount, walletClient, chain);
+      const receipt = await lendingPoolWrapper.repay(
+        tokenAddress,
+        amount,
+        walletClient,
+        chain
+      );
       await updateMarketTotals(tokenAddress, chain);
       await getBorrowedBalance(userAddress, chain);
       await updateCreditLimit(userAddress, chain);
@@ -345,9 +398,19 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const withdraw = async (tokenAddress: string, amount: string, walletClient: any, chain: SupportedChain) => {
+  const withdraw = async (
+    tokenAddress: string,
+    amount: string,
+    walletClient: any,
+    chain: SupportedChain
+  ) => {
     try {
-      const receipt = await lendingPoolWrapper.withdraw(tokenAddress, amount, walletClient, chain);
+      const receipt = await lendingPoolWrapper.withdraw(
+        tokenAddress,
+        amount,
+        walletClient,
+        chain
+      );
       await updateMarketTotals(tokenAddress, chain);
       await getSuppliedBalance(userAddress, chain);
       await updateCreditLimit(userAddress, chain);
@@ -358,9 +421,15 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const getSuppliedBalance = async (userAddress: string, chain: SupportedChain) => {
+  const getSuppliedBalance = async (
+    userAddress: string,
+    chain: SupportedChain
+  ) => {
     try {
-      const balance = await lendingPoolWrapper.getSuppliedBalance(userAddress, chain);
+      const balance = await lendingPoolWrapper.getSuppliedBalance(
+        userAddress,
+        chain
+      );
       setSupplyBalance(balance);
     } catch (error) {
       console.error("Error in getSuppliedBalance:", error);
@@ -368,9 +437,15 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const getBorrowedBalance = async (userAddress: string, chain: SupportedChain) => {
+  const getBorrowedBalance = async (
+    userAddress: string,
+    chain: SupportedChain
+  ) => {
     try {
-      const balance = await lendingPoolWrapper.getBorrowedBalance(userAddress, chain);
+      const balance = await lendingPoolWrapper.getBorrowedBalance(
+        userAddress,
+        chain
+      );
       setBorrowBalance(balance);
     } catch (error) {
       console.error("Error in getBorrowedBalance:", error);
@@ -378,7 +453,10 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const updateCreditLimit = async (userAddress: string, chain: SupportedChain) => {
+  const updateCreditLimit = async (
+    userAddress: string,
+    chain: SupportedChain
+  ) => {
     try {
       const limit = await lendingPoolWrapper.getCreditLimit(userAddress, chain);
       setCreditLimit(limit);
@@ -388,10 +466,19 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const updateMarketTotals = async (tokenAddress: string, chain: SupportedChain) => {
+  const updateMarketTotals = async (
+    tokenAddress: string,
+    chain: SupportedChain
+  ) => {
     try {
-      const totalSupply = await lendingPoolWrapper.getTotalSupply(tokenAddress, chain);
-      const totalBorrowed = await lendingPoolWrapper.getTotalBorrowed(tokenAddress, chain);
+      const totalSupply = await lendingPoolWrapper.getTotalSupply(
+        tokenAddress,
+        chain
+      );
+      const totalBorrowed = await lendingPoolWrapper.getTotalBorrowed(
+        tokenAddress,
+        chain
+      );
       setSupplyMarket(totalSupply);
       setLoanMarket(totalBorrowed);
     } catch (error) {
@@ -490,8 +577,8 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
         setOriginalChain,
         sourceContractAddress,
         setSourceContractAddress,
-        tokenAddress, 
-        setTokenAddress, 
+        tokenAddress,
+        setTokenAddress,
         supply,
         borrow,
         repay,
