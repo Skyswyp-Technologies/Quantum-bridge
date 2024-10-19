@@ -473,6 +473,7 @@ class LendingPool {
     return new ethers.Contract(Config.POOL_CONTRACT_ADDRESS, POOL_ABI, provider);
   }
 
+
   async supply(tokenAddress: string, amount: string, walletClient: any, chain: SupportedChain) {
     const chainConfig = chainConfigs[chain];
     if (!chainConfig) {
@@ -487,7 +488,7 @@ class LendingPool {
     });
 
     const receipt = await tx.wait();
-    return receipt;
+    return { receipt, hash: tx.hash };
   }
 
   async borrow(tokenAddress: string, amount: string, walletClient: any, chain: SupportedChain) {
@@ -504,7 +505,7 @@ class LendingPool {
     });
 
     const receipt = await tx.wait();
-    return receipt;
+    return { receipt, hash: tx.hash };
   }
 
   async repay(tokenAddress: string, amount: string, walletClient: any, chain: SupportedChain) {
@@ -521,7 +522,7 @@ class LendingPool {
     });
 
     const receipt = await tx.wait();
-    return receipt;
+    return { receipt, hash: tx.hash };
   }
 
   async withdraw(tokenAddress: string, amount: string, walletClient: any, chain: SupportedChain) {
@@ -538,7 +539,7 @@ class LendingPool {
     });
 
     const receipt = await tx.wait();
-    return receipt;
+    return { receipt, hash: tx.hash };
   }
 
   async getSuppliedBalance(userAddress: string, chain: SupportedChain): Promise<string> {

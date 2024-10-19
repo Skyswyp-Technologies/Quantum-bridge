@@ -34,6 +34,8 @@ const LendingSupply: React.FC = () => {
     getTokenInfo,
     getSuppliedBalance,
     updateCreditLimit,
+    txHash,
+    setHash,
   } = useBridge();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -53,12 +55,13 @@ const LendingSupply: React.FC = () => {
 
     setIsLoading(true);
     try {
-      await supply(
+      const result = await supply(
         tokenInfo.address,
         amount.toString(),
         walletClient,
         tokenInfo.originChain
       );
+      setHash(result.hash);
       toast.success("Supply successful");
       await getSuppliedBalance(address, tokenInfo.originChain);
       await updateCreditLimit(address, tokenInfo.originChain);
@@ -109,59 +112,7 @@ const LendingSupply: React.FC = () => {
     }
   }, [amount]);
 
-  const Receipt = () => {
-    const selectedToken = tokens.find((t) => t.id === fromToken);
-    const tokenSymbol = selectedToken?.symbol || "";
-
-    return (
-      <div className="rounded-lg bg-[#1A1A1A] p-4 w-full">
-        <h2 className="text-white text-lg font-bold mb-4">Receipt</h2>
-        <div className="space-y-2">
-          <p className="text-green-500">Transaction Successful</p>
-          <div>
-            <p className="text-[#A6A9B8] text-sm">Route</p>
-            <div className="flex justify-between items-center mt-2">
-              <div className="bg-[#2D2D2D] rounded p-2">
-                <p className="text-[#A6A9B8] text-xs">From</p>
-                <div className="flex items-center space-x-2">
-                  <Image src={Usdt} alt="From token" width={20} height={20} />
-                  <p className="text-white">0xquantum</p>
-                </div>
-              </div>
-              <Image src={Exchange} alt="Exchange" width={20} height={20} />
-              <div className="bg-[#2D2D2D] rounded p-2">
-                <p className="text-[#A6A9B8] text-xs">To</p>
-                <div className="flex items-center space-x-2">
-                  <Image src={Usdt} alt="To token" width={20} height={20} />
-                  <p className="text-white">0x46...</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div>
-            <p className="text-[#A6A9B8] text-sm">Amount received</p>
-            <p className="text-white text-lg">
-              {tokenSymbol} {amount}
-            </p>
-            <p className="text-[#A6A9B8] text-sm">$ {amount.toFixed(2)}</p>
-          </div>
-          <div>
-            <p className="text-[#A6A9B8] text-sm">Transaction cost</p>
-            <div className="flex space-x-4">
-              <div className="flex items-center space-x-1">
-                <span className="text-[#A6A9B8] text-xs">APY</span>
-                <span className="text-white text-xs">5%</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <span className="text-[#A6A9B8] text-xs">LTV:</span>
-                <span className="text-white text-xs">0.95</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
+ 
 
   const TokenSelector = ({ type }: { type: "from" | "to" }) => {
     const handleAssetSelect = () => {
@@ -309,79 +260,75 @@ const LendingSupply: React.FC = () => {
                 <div className="absolute w-[59px] h-[223px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-radial-glow from-[#6AEFFF33] to-[#6AEFFF] opacity-60 blur-3xl"></div>
               </div>
 
-              {!isSuccess ? (
+              {isSuccess ? (
                 <>
-                <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col gap-1 justify-center">
-                  <div className="space-y-2">
-                    <p className="text-green-500">Transaction Successful</p>
-                    <div>
-                      <p className="text-[#A6A9B8] text-sm">Route</p>
-                      <div className="flex justify-between items-center mt-2">
-                        <div className="bg-[#2D2D2D] rounded p-2">
-                          <p className="text-[#A6A9B8] text-xs">From</p>
-                          <div className="flex items-center space-x-2">
-                            <Image
-                              src={Usdt}
-                              alt="From token"
-                              width={20}
-                              height={20}
-                            />
-                            <p className="text-white">0xquantum</p>
-                          </div>
+                  <div className="flex-grow py-6 px-4 flex flex-col space-y-4 z-10 overflow-y-auto">
+                    <div className="rounded border border-[#A6A9B880] bg-[#1A1A1ACC] p-2 w-full flex flex-col gap-3 justify-center">
+                      <span className="text-[#A6A9B8] text-xs font-bold">
+                        Transaction Successful
+                      </span>
+                      <div className="flex flex-col">
+                        <span className="text-[#A6A9B8] text-xs font-bold">
+                          Supply Details
+                        </span>
+                        <div className="flex justify-between items-center mt-2">
+                          <span className="text-[#9A9A9A] text-sm">
+                            Supplied Amount:
+                          </span>
+                          <span className="text-white text-sm">
+                            {amount} {tokenSymbol}
+                          </span>
                         </div>
-                        <Image
-                          src={Exchange}
-                          alt="Exchange"
-                          width={20}
-                          height={20}
-                        />
-                        <div className="bg-[#2D2D2D] rounded p-2">
-                          <p className="text-[#A6A9B8] text-xs">To</p>
-                          <div className="flex items-center space-x-2">
-                            <Image
-                              src={Usdt}
-                              alt="To token"
-                              width={20}
-                              height={20}
-                            />
-                            <p className="text-white">0x46...</p>
-                          </div>
+                        <div className="flex justify-between items-center mt-1">
+                          <span className="text-[#9A9A9A] text-sm">
+                            USD Value:
+                          </span>
+                          <span className="text-white text-sm">
+                            $ {amount.toFixed(2)}
+                          </span>
                         </div>
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-[#A6A9B8] text-sm">Amount received</p>
-                      <p className="text-white text-lg">
-                        {tokenSymbol} {amount}
-                      </p>
-                      <p className="text-[#A6A9B8] text-sm">
-                        $ {amount.toFixed(2)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[#A6A9B8] text-sm">Transaction cost</p>
-                      <div className="flex space-x-4">
-                        <div className="flex items-center space-x-1">
-                          <span className="text-[#A6A9B8] text-xs">APY</span>
-                          <span className="text-white text-xs">5%</span>
+                        <div className="flex justify-between items-center mt-1">
+                          <span className="text-[#9A9A9A] text-sm">APY:</span>
+                          <span className="text-white text-sm">
+                            {(apy * 100).toFixed(2)}%
+                          </span>
                         </div>
-                        <div className="flex items-center space-x-1">
-                          <span className="text-[#A6A9B8] text-xs">LTV:</span>
-                          <span className="text-white text-xs">0.95</span>
+                        <div className="flex justify-between items-center mt-1">
+                          <span className="text-[#9A9A9A] text-sm">
+                            Estimated Yearly Earnings:
+                          </span>
+                          <span className="text-white text-sm">
+                            $ {calculatedRewards.toFixed(2)}
+                          </span>
+                        </div>
+
+                        <span className="text-[#A6A9B8] text-xs font-bold mt-4">
+                          Transaction Details
+                        </span>
+                        <div className="mt-2">
+                          <span className="text-[#9A9A9A] text-sm">
+                            Transaction Hash:
+                          </span>
+                          <a
+                            href={`https://sepolia.etherscan.io/tx/${txHash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-500 text-sm ml-2 break-all"
+                          >
+                            {txHash}
+                          </a>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-                 <Link
-                 href="/lending"
-                 className="px-6 pb-6 mt-auto z-10"
-               >
-                 <button className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
-                   Proceed
-                 </button>
-               </Link>
-               </>
+                  <div className="p-4 mt-auto z-10">
+                    <Link href="/lending">
+                      <button className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
+                        Back to Lending 
+                      </button>
+                    </Link>
+                  </div>
+                </>
               ) : (
                 <>
                   <div className="flex-grow py-6 px-4 flex flex-col space-y-4 z-10">

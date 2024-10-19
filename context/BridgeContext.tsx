@@ -221,7 +221,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       sourceChainAddress: "0xf762f004a30CB141d139C900f2Aa3631Db7FD2E7",
     },
     {
-      id: "USDT-BASE",
+      id: "USDT-BASE", 
       name: "Tether",
       icon: Eth,
       address: "0x2816a02000B9845C464796b8c36B2D5D199525d5",
@@ -336,16 +336,17 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     chain: SupportedChain
   ) => {
     try {
-      const receipt = await lendingPoolWrapper.supply(
+      const result = await lendingPoolWrapper.supply(
         tokenAddress,
         amount,
         walletClient,
         chain
       );
+      setHash(result.hash);
       await updateMarketTotals(tokenAddress, chain);
       await getSuppliedBalance(userAddress, chain);
       await updateCreditLimit(userAddress, chain);
-      return receipt;
+      return result;
     } catch (error) {
       console.error("Error in supply:", error);
       throw error;
@@ -359,16 +360,17 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     chain: SupportedChain
   ) => {
     try {
-      const receipt = await lendingPoolWrapper.borrow(
+      const result = await lendingPoolWrapper.borrow(
         tokenAddress,
         amount,
         walletClient,
         chain
       );
+      setHash(result.hash);
       await updateMarketTotals(tokenAddress, chain);
       await getBorrowedBalance(userAddress, chain);
       await updateCreditLimit(userAddress, chain);
-      return receipt;
+      return result;
     } catch (error) {
       console.error("Error in borrow:", error);
       throw error;
@@ -382,16 +384,17 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     chain: SupportedChain
   ) => {
     try {
-      const receipt = await lendingPoolWrapper.repay(
+      const result = await lendingPoolWrapper.repay(
         tokenAddress,
         amount,
         walletClient,
         chain
       );
+      setHash(result.hash);
       await updateMarketTotals(tokenAddress, chain);
       await getBorrowedBalance(userAddress, chain);
       await updateCreditLimit(userAddress, chain);
-      return receipt;
+      return result;
     } catch (error) {
       console.error("Error in repay:", error);
       throw error;
@@ -405,16 +408,17 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     chain: SupportedChain
   ) => {
     try {
-      const receipt = await lendingPoolWrapper.withdraw(
+      const result = await lendingPoolWrapper.withdraw(
         tokenAddress,
         amount,
         walletClient,
         chain
       );
+      setHash(result.hash);
       await updateMarketTotals(tokenAddress, chain);
       await getSuppliedBalance(userAddress, chain);
       await updateCreditLimit(userAddress, chain);
-      return receipt;
+      return result;
     } catch (error) {
       console.error("Error in withdraw:", error);
       throw error;
