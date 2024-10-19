@@ -16,8 +16,8 @@ const LendingHome: React.FC = () => {
     getBorrowedBalance,
     updateCreditLimit,
     updateMarketTotals,
-    userAddress,
     setUserAddress,
+    userAddress,
     supplyBalance,
     borrowBalance,
     creditLimit,
@@ -25,13 +25,7 @@ const LendingHome: React.FC = () => {
     loanMarket,
   } = useBridge();
 
-  useEffect(() => {
-    if (address) {
-      setUserAddress(address);
-      fetchUserData(address);
-    }
-  }, [address]);
-
+  
   const fetchUserData = async (userAddress: string) => {
     try {
       await Promise.all([
@@ -44,9 +38,30 @@ const LendingHome: React.FC = () => {
         ), // Using USDT-BASE address
       ]);
     } catch (error) {
-      console.error("Error fetching user data:", error);
+      console.log("unable to fetch user Data on Token Lending:", error);
     }
   };
+
+
+  useEffect(() => {
+    if (address) {
+      setUserAddress(address);
+
+      fetchUserData(address);
+    
+
+    }
+  }, [
+    address,
+    supplyMarket,
+    creditLimit,
+    loanMarket,
+    borrowBalance,
+    supplyBalance,
+  ]);
+
+  console.log("loan market", loanMarket)
+
 
   const MobileDesign = () => {
     return (
@@ -133,7 +148,7 @@ const LendingHome: React.FC = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-[#9A9A9A] text-xs">Loan Market</span>
                     <div className="rounded bg-[#1E1E1E] p-1 font-semibold text-white flex justify-center items-center text-xs cursor-pointer">
-                      $ {parseFloat(loanMarket).toFixed(2)}
+                      $ {loanMarket}
                     </div>
                   </div>
                 </div>
@@ -142,7 +157,7 @@ const LendingHome: React.FC = () => {
           </div>
 
           <div className="p-4 z-10">
-          <button className="w-full border cur bg-[#141618] cursor-not-allowed border-[#A6A9B8] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
+            <button className="w-full border cur bg-[#141618] cursor-not-allowed border-[#A6A9B8] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
               {userAddress ? "Wallet Connected" : "Connect Wallet"}
             </button>
           </div>

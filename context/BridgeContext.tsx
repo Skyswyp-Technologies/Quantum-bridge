@@ -181,12 +181,10 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     { id: "eth-sepolia", icon: Eth, name: "Ethereum (Sepolia)" },
     // { id: "arbitrum-sepolia", icon: Arb, name: "Arbitrum (Sepolia)" },
     { id: "base-sepolia", icon: Base, name: "Base (Sepolia)" },
-     // { id: "CELO", icon: Celo, name: "Celo" },
+    // { id: "CELO", icon: Celo, name: "Celo" },
     // { id: "OP", icon: Op, name: "Optimism" },
     // { id: "LISK", icon: Lisk, name: "Lisk" },
   ];
-
-  
 
   const tokens: Token[] = [
     {
@@ -221,7 +219,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       sourceChainAddress: "0xf762f004a30CB141d139C900f2Aa3631Db7FD2E7",
     },
     {
-      id: "USDT-BASE", 
+      id: "USDT-BASE",
       name: "Tether",
       icon: Eth,
       address: "0x2816a02000B9845C464796b8c36B2D5D199525d5",
@@ -312,7 +310,6 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     return null;
   };
 
-
   const supply = async (
     tokenAddress: string,
     amount: string,
@@ -391,7 +388,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
         chain
       );
       setHash(result!.hash);
-     
+
       return result;
     } catch (error) {
       console.error("Error in withdraw:", error);
@@ -439,7 +436,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       const limit = await lendingPoolWrapper.getCreditLimit(userAddress, chain);
       setCreditLimit(limit);
     } catch (error) {
-      console.error("Error in updateCreditLimit:", error);
+      console.log("Error in updateCreditLimit:", error);
       throw error;
     }
   };
@@ -453,14 +450,18 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
         tokenAddress,
         chain
       );
-      const totalBorrowed = await lendingPoolWrapper.getTotalBorrowed(
-        tokenAddress,
-        chain
-      );
-      setSupplyMarket(totalSupply);
-      setLoanMarket(totalBorrowed!);
+
+      if (totalSupply) {
+        setSupplyMarket(totalSupply);
+        const totalBorrowed = await lendingPoolWrapper.getTotalBorrowed(
+          tokenAddress,
+          chain
+        );
+
+        setLoanMarket(totalBorrowed!);
+      }
     } catch (error) {
-      console.error("Error in updateMarketTotals:", error);
+      console.log("unable to update markets:", error);
       throw error;
     }
   };
@@ -478,7 +479,6 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     handleUserTokenBalance();
     handleprepareBridgeUserInfo();
     getTokenInfo(fromToken);
-
   }, [
     toToken,
     tokenSymbol,
