@@ -312,22 +312,6 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     return null;
   };
 
-  const getGasPrice = async () => {
-    try {
-      if (!originalChain) {
-        throw new Error("No chain selected");
-      }
-
-      const gasPriceResult = await bridgeWrapper.getGasPrice(originalChain);
-
-      if (gasPriceResult) {
-        setGasPrice(gasPriceResult.usdt);
-      }
-    } catch (error) {
-      console.error("Error fetching gas price:", error);
-      throw error;
-    }
-  };
 
   const supply = async (
     tokenAddress: string,
@@ -342,10 +326,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
         walletClient,
         chain
       );
-      setHash(result.hash);
-      await updateMarketTotals(tokenAddress, chain);
-      await getSuppliedBalance(userAddress, chain);
-      await updateCreditLimit(userAddress, chain);
+      setHash(result!.hash);
       return result;
     } catch (error) {
       console.error("Error in supply:", error);
@@ -366,10 +347,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
         walletClient,
         chain
       );
-      setHash(result.hash);
-      await updateMarketTotals(tokenAddress, chain);
-      await getBorrowedBalance(userAddress, chain);
-      await updateCreditLimit(userAddress, chain);
+      setHash(result!.hash);
       return result;
     } catch (error) {
       console.error("Error in borrow:", error);
@@ -390,10 +368,8 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
         walletClient,
         chain
       );
-      setHash(result.hash);
-      await updateMarketTotals(tokenAddress, chain);
-      await getBorrowedBalance(userAddress, chain);
-      await updateCreditLimit(userAddress, chain);
+      setHash(result!.hash);
+
       return result;
     } catch (error) {
       console.error("Error in repay:", error);
@@ -414,10 +390,8 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
         walletClient,
         chain
       );
-      setHash(result.hash);
-      await updateMarketTotals(tokenAddress, chain);
-      await getSuppliedBalance(userAddress, chain);
-      await updateCreditLimit(userAddress, chain);
+      setHash(result!.hash);
+     
       return result;
     } catch (error) {
       console.error("Error in withdraw:", error);
@@ -484,7 +458,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
         chain
       );
       setSupplyMarket(totalSupply);
-      setLoanMarket(totalBorrowed);
+      setLoanMarket(totalBorrowed!);
     } catch (error) {
       console.error("Error in updateMarketTotals:", error);
       throw error;
@@ -501,10 +475,10 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
   useEffect(() => {
-    getGasPrice();
     handleUserTokenBalance();
     handleprepareBridgeUserInfo();
     getTokenInfo(fromToken);
+
   }, [
     toToken,
     tokenSymbol,

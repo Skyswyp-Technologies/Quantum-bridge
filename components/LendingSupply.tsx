@@ -212,7 +212,7 @@ const LendingSupply: React.FC = () => {
                         Transaction Hash:
                       </span>
                       <a
-                        href={`https://sepolia.etherscan.io/tx/${txHash}`}
+                        href={`https://sepolia.basescan.org/tx/${txHash}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-500 text-sm ml-2 break-all"
@@ -381,7 +381,7 @@ const LendingSupply: React.FC = () => {
                             Transaction Hash:
                           </span>
                           <a
-                            href={`https://sepolia.etherscan.io/tx/${txHash}`}
+                            href={`https://sepolia.basescan.org/tx/${txHash}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-500 text-sm ml-2 break-all"

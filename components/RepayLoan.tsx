@@ -16,6 +16,7 @@ import { useBridge } from "@/context/BridgeContext";
 import Header from "./Header";
 import Link from "next/link";
 import Navbar from "./Navbar";
+import { lendingPoolWrapper } from "@/helpers/helpers";
 
 const RepayLoan: React.FC = () => {
   const router = useRouter();
@@ -39,6 +40,33 @@ const RepayLoan: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [interest, setInterest] = useState("")
+  const [repayAmount, setRepayAmount] = useState("")
+
+
+  useEffect(()=> {
+
+    const tokenInfo = getTokenInfo(fromToken);
+    if (!tokenInfo) {
+      toast.error("Invalid token selected");
+      return;
+    }
+
+
+    const handleIntrest = async()=> {
+      const result = await lendingPoolWrapper.interest(
+        tokenInfo.address,
+        borrowBalance,
+        tokenInfo.originChain
+      )
+
+      setRepayAmount(result!.totalRepayAmount)
+      setInterest(result!.interest)
+    }
+
+    handleIntrest()
+
+  }, [interest, repayAmount])
 
   const handleRepay = async () => {
     if (!address || !walletClient) {
@@ -54,9 +82,10 @@ const RepayLoan: React.FC = () => {
 
     setIsLoading(true);
     try {
+      
       const result = await repay(
         tokenInfo.address,
-        amount.toString(),
+        borrowBalance.toString(),
         walletClient,
         tokenInfo.originChain
       );
@@ -103,7 +132,7 @@ const RepayLoan: React.FC = () => {
     const selectedToken = tokens.find((t) => t.id === fromToken);
     const tokenSymbol = selectedToken?.symbol || "";
     const apy = 0.05; // Assuming 5% APY, you might want to fetch this from the context if available
-    const interest = amount * apy; // Simple interest calculation, adjust as needed
+    // const interest = amount * apy; // Simple interest calculation, adjust as needed
 
     return (
       <div className="bg-[#000000] text-white md:hidden h-screen w-full flex flex-col">
@@ -145,7 +174,7 @@ const RepayLoan: React.FC = () => {
               </div>
               <div className="flex justify-between items-center mt-1">
                 <span className="text-[#9A9A9A] text-sm">Interest Paid:</span>
-                <span className="text-white text-sm">$ {interest.toFixed(2)}</span>
+                <span className="text-white text-sm">$ {interest}</span>
               </div>
 
               <span className="text-[#A6A9B8] text-xs font-bold mt-4">
@@ -154,7 +183,7 @@ const RepayLoan: React.FC = () => {
               <div className="mt-2">
                 <span className="text-[#9A9A9A] text-sm">Transaction Hash:</span>
                 <a
-                  href={`https://sepolia.etherscan.io/tx/${txHash}`}
+                  href={`https://sepolia.basescan.org/tx/${txHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-500 text-sm ml-2 break-all"
@@ -194,11 +223,11 @@ const RepayLoan: React.FC = () => {
                   </span>
                   <div className="flex justify-between items-center">
                     <span className="text-[#A6A9B8] font-bold">
-                      {tokenSymbol} {amount}
+                      {tokenSymbol} {repayAmount}
                     </span>
 
                     <span className="text-[#A6A9B8] text-xs">
-                      $ {amount.toFixed(2)}
+                      $ {repayAmount}
                     </span>
                   </div>
 
@@ -215,7 +244,7 @@ const RepayLoan: React.FC = () => {
                     </div>
 
                     <span className="text-[#A6A9B8] text-xs">
-                      Interest: ${interest.toFixed(2)}
+                      Interest: ${interest}
                     </span>
                   </div>
                 </div>
@@ -240,7 +269,7 @@ const RepayLoan: React.FC = () => {
     const selectedToken = tokens.find((t) => t.id === fromToken);
     const tokenSymbol = selectedToken?.symbol || "";
     const apy = 0.05; // Assuming 5% APY, you might want to fetch this from the context if available
-    const interest = amount * apy; // Simple interest calculation, adjust as needed
+    // const interest = amount * apy; // Simple interest calculation, adjust as needed
 
     return (
       <div className="bg-[#000000] text-white h-screen w-full hidden md:flex flex-col">
@@ -285,7 +314,7 @@ const RepayLoan: React.FC = () => {
               </div>
               <div className="flex justify-between items-center mt-1">
                 <span className="text-[#9A9A9A] text-sm">Interest Paid:</span>
-                <span className="text-white text-sm">$ {interest.toFixed(2)}</span>
+                <span className="text-white text-sm">$ {interest}</span>
               </div>
 
               <span className="text-[#A6A9B8] text-xs font-bold mt-4">
@@ -294,7 +323,7 @@ const RepayLoan: React.FC = () => {
               <div className="mt-2">
                 <span className="text-[#9A9A9A] text-sm">Transaction Hash:</span>
                 <a
-                  href={`https://sepolia.etherscan.io/tx/${txHash}`}
+                  href={`https://sepolia.basescan.org/tx/${txHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-500 text-sm ml-2 break-all"
@@ -332,11 +361,11 @@ const RepayLoan: React.FC = () => {
                   </span>
                   <div className="flex justify-between items-center">
                     <span className="text-[#A6A9B8] font-bold">
-                      {tokenSymbol} {amount}
+                      {tokenSymbol} {repayAmount}
                     </span>
 
                     <span className="text-[#A6A9B8] text-xs">
-                      $ {amount.toFixed(2)}
+                      $ {repayAmount}
                     </span>
                   </div>
 
@@ -353,7 +382,7 @@ const RepayLoan: React.FC = () => {
                     </div>
 
                     <span className="text-[#A6A9B8] text-xs">
-                      Interest: ${interest.toFixed(2)}
+                      Interest: ${interest}
                     </span>
                   </div>
                 </div>

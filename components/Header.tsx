@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import Menu from "./../public/menu.svg";
 import MobConnect from "./ConnectWallet";
 import Link from "next/link";
+import { BaseWallet } from "./BaseWallet";
 
 interface HeaderProps {
   className?: string;
@@ -56,6 +57,7 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
             {getHeaderText()}
           </span>
           <MobConnect />
+          {/* <BaseWallet /> */}
         </div>
         
           
