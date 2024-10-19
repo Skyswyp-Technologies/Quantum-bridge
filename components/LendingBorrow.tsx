@@ -18,6 +18,9 @@ import Link from "next/link";
 import Navbar from "./Navbar";
 
 const LendingBorrow: React.FC = () => {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const inputMobRef = useRef<HTMLInputElement | null>(null);
+
   const router = useRouter();
   const { address } = useAccount();
   const { data: walletClient } = useWalletClient();
@@ -53,6 +56,8 @@ const LendingBorrow: React.FC = () => {
       return;
     }
 
+    console.log("tokenInfo borrow", tokenInfo)
+
     setIsLoading(true);
     try {
       const result = await borrow(
@@ -73,6 +78,44 @@ const LendingBorrow: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (!fromToken) {
+      toast.error("Please select an asset before entering an amount.");
+      return;
+    }
+    if (value === "" || /^\d*\.?\d*$/.test(value)) {
+      const numValue = parseFloat(value);
+      if (!isNaN(numValue)) {
+        setAmount(numValue);
+      } else {
+        setAmount(0);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+      // Move cursor to the end of the input
+      inputRef.current.setSelectionRange(
+        inputRef.current.value.length,
+        inputRef.current.value.length
+      );
+    }
+  }, [amount]);
+
+  useEffect(() => {
+    if (inputMobRef.current) {
+      inputMobRef.current.focus();
+      // Move cursor to the end of the input
+      inputMobRef.current.setSelectionRange(
+        inputMobRef.current.value.length,
+        inputMobRef.current.value.length
+      );
+    }
+  }, [amount]);
 
   const TokenSelector = ({ type }: { type: "from" | "to" }) => {
     const handleAssetSelect = () => {
@@ -121,133 +164,143 @@ const LendingBorrow: React.FC = () => {
             <div className="absolute w-[59px] h-[223px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-radial-glow from-[#6AEFFF33] to-[#6AEFFF] opacity-60 blur-3xl"></div>
           </div>
           {isSuccess ? (
-                <>
-                  <div className="flex-grow py-6 px-4 flex flex-col space-y-4 z-10 overflow-y-auto">
-                    <div className="rounded border border-[#A6A9B880] bg-[#1A1A1ACC] p-2 w-full flex flex-col gap-3 justify-center">
-                      <span className="text-[#A6A9B8] text-xs font-bold">
-                        Transaction Successful
-                      </span>
-                      <div className="flex flex-col">
-                        <span className="text-[#A6A9B8] text-xs font-bold">
-                          Borrow Details
-                        </span>
-                        <div className="flex justify-between items-center mt-2">
-                          <span className="text-[#9A9A9A] text-sm">
-                            Borrowed Amount:
-                          </span>
-                          <span className="text-white text-sm">
-                            {amount} {tokenSymbol}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center mt-1">
-                          <span className="text-[#9A9A9A] text-sm">
-                            USD Value:
-                          </span>
-                          <span className="text-white text-sm">
-                            $ {amount.toFixed(2)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center mt-1">
-                          <span className="text-[#9A9A9A] text-sm">APY:</span>
-                          <span className="text-white text-sm">
-                            {(apy * 100).toFixed(2)}%
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center mt-1">
-                          <span className="text-[#9A9A9A] text-sm">LTV:</span>
-                          <span className="text-white text-sm">
-                            {ltv.toFixed(2)}
-                          </span>
-                        </div>
-
-                        <span className="text-[#A6A9B8] text-xs font-bold mt-4">
-                          Transaction Details
-                        </span>
-                        <div className="mt-2">
-                          <span className="text-[#9A9A9A] text-sm">
-                            Transaction Hash:
-                          </span>
-                          <a
-                            href={`https://sepolia.etherscan.io/tx/${txHash}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-500 text-sm ml-2 break-all"
-                          >
-                            {txHash}
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-4 mt-auto z-10">
-                    <Link href="/lending">
-                      <button className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
-                        Back to Lending
-                      </button>
-                    </Link>
-                  </div>
-                </>
-              ) : (
-                <>
-                 <div className="flex flex-col flex-grow overflow-y-auto z-10">
-            <div className="p-4 flex-grow">
-              <div className="flex flex-col space-y-3">
-                <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col gap-1 justify-center">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[#9A9A9A] text-xs">
-                      Your Credit Limit
-                    </span>
-                    <span className="text-[#A6A9B8] text-sm font-bold">
-                      $ {parseFloat(creditLimit).toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-
-                <TokenSelector type="from" />
-
-                <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col gap-1 justify-center">
+            <>
+              <div className="flex-grow py-6 px-4 flex flex-col space-y-4 z-10 overflow-y-auto">
+                <div className="rounded border border-[#A6A9B880] bg-[#1A1A1ACC] p-2 w-full flex flex-col gap-3 justify-center">
                   <span className="text-[#A6A9B8] text-xs font-bold">
-                    You Get
+                    Transaction Successful
                   </span>
-                  <div className="flex justify-between items-center">
-                    <span className="text-[#A6A9B8] font-bold">
-                      {tokenSymbol} {amount}
+                  <div className="flex flex-col">
+                    <span className="text-[#A6A9B8] text-xs font-bold">
+                      Borrow Details
                     </span>
-
-                    <span className="text-[#A6A9B8] text-xs">
-                      $ {amount.toFixed(2)}
-                    </span>
-                  </div>
-
-                  <span className="text-[#A6A9B8] text-xs">
-                    Transaction details
-                  </span>
-
-                  <div className="flex flex-row gap-4 items-center">
-                    <div className="flex flex-row gap-2">
-                      <span className="text-[#A6A9B8] text-xs">APY</span>
-                      <span className="text-[#A6A9B8] text-xs">
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="text-[#9A9A9A] text-sm">
+                        Borrowed Amount:
+                      </span>
+                      <span className="text-white text-sm">
+                        {amount} {tokenSymbol}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center mt-1">
+                      <span className="text-[#9A9A9A] text-sm">USD Value:</span>
+                      <span className="text-white text-sm">
+                        $ {amount.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center mt-1">
+                      <span className="text-[#9A9A9A] text-sm">APY:</span>
+                      <span className="text-white text-sm">
                         {(apy * 100).toFixed(2)}%
                       </span>
                     </div>
+                    <div className="flex justify-between items-center mt-1">
+                      <span className="text-[#9A9A9A] text-sm">LTV:</span>
+                      <span className="text-white text-sm">
+                        {ltv.toFixed(2)}
+                      </span>
+                    </div>
 
-                    <span className="text-[#A6A9B8] text-xs">
-                      LTV: {ltv.toFixed(2)}
+                    <span className="text-[#A6A9B8] text-xs font-bold mt-4">
+                      Transaction Details
                     </span>
+                    <div className="mt-2">
+                      <span className="text-[#9A9A9A] text-sm">
+                        Transaction Hash:
+                      </span>
+                      <a
+                        href={`https://sepolia.basescan.org/tx/${txHash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 text-sm ml-2 break-all"
+                      >
+                        {txHash}
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-          <div className="p-4 mt-auto z-10">
-            <button onClick={handleBorrow} className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
-              Proceed
-            </button>
-          </div>
-                </>
-              )}
+              <div className="p-4 mt-auto z-10">
+                <Link href="/lending">
+                  <button className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
+                    Back to Lending
+                  </button>
+                </Link>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex flex-col flex-grow overflow-y-auto z-10">
+                <div className="p-4 flex-grow">
+                  <div className="flex flex-col space-y-3">
+                    <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col gap-1 justify-center">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[#9A9A9A] text-xs">
+                          Your Credit Limit
+                        </span>
+                        <span className="text-[#A6A9B8] text-sm font-bold">
+                          $ {parseFloat(creditLimit).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
 
-         
+                    <TokenSelector type="from" />
+
+                    <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col gap-1 justify-center">
+                      <span className="text-[#A6A9B8] text-xs font-bold">
+                        You Get
+                      </span>
+                      <div className="flex justify-between items-center">
+                        <div className="flex flex-row gap-2 items-center">
+                          <span className="text-[#9A9A9A] text-sm mr-1">
+                            {tokens.find((t) => t.id === fromToken)?.symbol ||
+                              ""}
+                          </span>
+                          <input
+                            type="text"
+                            ref={inputMobRef}
+                            value={amount === 0 ? "" : amount.toString()}
+                            onChange={handleAmountChange}
+                            className="bg-transparent border-none focus:outline-none focus:ring-0 text-[#9A9A9A] text-xl text-right w-24"
+                            placeholder="0"
+                          />
+                        </div>
+
+                        <span className="text-[#A6A9B8] text-xs">
+                          $ {(amount || 0).toFixed(2)}
+                        </span>
+                      </div>
+
+                      <span className="text-[#A6A9B8] text-xs">
+                        Transaction details
+                      </span>
+
+                      <div className="flex flex-row gap-4 items-center">
+                        <div className="flex flex-row gap-2">
+                          <span className="text-[#A6A9B8] text-xs">APY</span>
+                          <span className="text-[#A6A9B8] text-xs">
+                            {(apy * 100).toFixed(2)}%
+                          </span>
+                        </div>
+
+                        <span className="text-[#A6A9B8] text-xs">
+                          LTV: {ltv.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="p-4 mt-auto z-10">
+                <button
+                  onClick={handleBorrow}
+                  className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200"
+                >
+                  Proceed
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     );
@@ -325,7 +378,7 @@ const LendingBorrow: React.FC = () => {
                             Transaction Hash:
                           </span>
                           <a
-                            href={`https://sepolia.etherscan.io/tx/${txHash}`}
+                            href={`https://sepolia.basescan.org/tx/${txHash}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-500 text-sm ml-2 break-all"
@@ -365,12 +418,23 @@ const LendingBorrow: React.FC = () => {
                         You Get
                       </span>
                       <div className="flex justify-between items-center">
-                        <span className="text-[#A6A9B8] font-bold">
-                          {tokenSymbol} {amount}
-                        </span>
+                        <div className="flex flex-row gap-2 items-center">
+                          <span className="text-[#9A9A9A] text-sm mr-1">
+                            {tokens.find((t) => t.id === fromToken)?.symbol ||
+                              ""}
+                          </span>
+                          <input
+                            type="text"
+                            ref={inputMobRef}
+                            value={amount === 0 ? "" : amount.toString()}
+                            onChange={handleAmountChange}
+                            className="bg-transparent border-none focus:outline-none focus:ring-0 text-[#9A9A9A] text-xl text-right w-24"
+                            placeholder="0"
+                          />
+                        </div>
 
                         <span className="text-[#A6A9B8] text-xs">
-                          $ {amount.toFixed(2)}
+                          $ {(amount || 0).toFixed(2)}
                         </span>
                       </div>
 
@@ -393,7 +457,10 @@ const LendingBorrow: React.FC = () => {
                     </div>
                   </div>
                   <div className="px-6 pb-6 mt-auto z-10">
-                    <button onClick={handleBorrow} className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
+                    <button
+                      onClick={handleBorrow}
+                      className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200"
+                    >
                       Proceed
                     </button>
                   </div>
