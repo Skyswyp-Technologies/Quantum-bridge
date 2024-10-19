@@ -48,7 +48,6 @@ const RepayLoan: React.FC = () => {
 
     const tokenInfo = getTokenInfo(fromToken);
     if (!tokenInfo) {
-      toast.error("Invalid token selected");
       return;
     }
 

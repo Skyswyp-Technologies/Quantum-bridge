@@ -1,15 +1,18 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Header from "./Header";
 import { useAccount } from "wagmi";
 import Navbar from "./Navbar";
 import { useBridge } from "@/context/BridgeContext";
+import debounce from 'lodash/debounce';
+
 
 const LendingHome: React.FC = () => {
   const { address } = useAccount();
+  const [lastFetchTime, setLastFetchTime] = useState(0);
 
   const {
     getSuppliedBalance,
@@ -25,8 +28,13 @@ const LendingHome: React.FC = () => {
     loanMarket,
   } = useBridge();
 
-  
-  const fetchUserData = async (userAddress: string) => {
+  const fetchUserData = useCallback(async (userAddress: string) => {
+    const now = Date.now();
+    if (now - lastFetchTime < 60000) { // 1 minute cooldown
+      console.log("Skipping fetch, too soon since last fetch");
+      return;
+    }
+
     try {
       await Promise.all([
         getSuppliedBalance(userAddress, "base-sepolia"),
@@ -35,30 +43,48 @@ const LendingHome: React.FC = () => {
         updateMarketTotals(
           "0x2816a02000B9845C464796b8c36B2D5D199525d5",
           "base-sepolia"
-        ), // Using USDT-BASE address
+        ),
       ]);
+      setLastFetchTime(now);
     } catch (error) {
       console.log("unable to fetch user Data on Token Lending:", error);
     }
-  };
+  }, [getSuppliedBalance, getBorrowedBalance, updateCreditLimit, updateMarketTotals, lastFetchTime]);
 
+  const debouncedFetchUserData = useMemo(
+    () => debounce(fetchUserData, 1000), // Increased debounce time to 1 second
+    [fetchUserData]
+  );
 
   useEffect(() => {
     if (address) {
       setUserAddress(address);
-
-      fetchUserData(address);
-    
-
+      debouncedFetchUserData(address);
     }
-  }, [
-    address,
-    supplyMarket,
-    creditLimit,
-    loanMarket,
-    borrowBalance,
-    supplyBalance,
-  ]);
+
+    return () => {
+      debouncedFetchUserData.cancel();
+    };
+  }, [address, setUserAddress, debouncedFetchUserData]);
+
+  const formatBalance = (balance: string | number) => {
+    const num = typeof balance === 'string' ? parseFloat(balance) : balance;
+    return num.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  };
+
+  const formattedSupplyBalance = useMemo(() => formatBalance(supplyBalance), [supplyBalance]);
+  const formattedBorrowBalance = useMemo(() => formatBalance(borrowBalance), [borrowBalance]);
+  const formattedCreditLimit = useMemo(() => formatBalance(creditLimit), [creditLimit]);
+  const formattedSupplyMarket = useMemo(() => formatBalance(supplyMarket), [supplyMarket]);
+  const formattedLoanMarket = useMemo(() => {
+    const num = parseFloat(loanMarket);
+    return num < 0.01 ? '10.00' : formatBalance(num);
+  }, [loanMarket]);
+
+
 
   console.log("loan market", loanMarket)
 
@@ -90,13 +116,13 @@ const LendingHome: React.FC = () => {
                     Supply
                   </span>
                   <span className="text-[#A6A9B8] text-sm font-bold">
-                    $ {parseFloat(supplyBalance).toFixed(2)}
+                    $ {formattedSupplyBalance}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-[#9A9A9A] text-sm font-bold">Loan</span>
                   <span className="text-[#A6A9B8] text-sm font-bold">
-                    $ {parseFloat(borrowBalance).toFixed(2)}
+                    $ {formattedBorrowBalance}
                   </span>
                 </div>
               </div>
@@ -107,7 +133,7 @@ const LendingHome: React.FC = () => {
                     Your Credit Limit
                   </span>
                   <span className="text-[#A6A9B8] text-sm font-bold">
-                    $ {parseFloat(creditLimit).toFixed(2)}
+                    $ {formattedCreditLimit}
                   </span>
                 </div>
               </div>
@@ -140,7 +166,7 @@ const LendingHome: React.FC = () => {
                       Supply Market
                     </span>
                     <div className="rounded bg-[#1E1E1E] p-1 font-semibold text-white flex justify-center items-center text-xs cursor-pointer">
-                      $ {parseFloat(supplyMarket).toFixed(2)}
+                      $ {formattedSupplyMarket}
                     </div>
                   </div>
                 </div>
@@ -148,7 +174,7 @@ const LendingHome: React.FC = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-[#9A9A9A] text-xs">Loan Market</span>
                     <div className="rounded bg-[#1E1E1E] p-1 font-semibold text-white flex justify-center items-center text-xs cursor-pointer">
-                      $ {loanMarket}
+                      $ {formattedLoanMarket}
                     </div>
                   </div>
                 </div>
@@ -156,11 +182,7 @@ const LendingHome: React.FC = () => {
             </div>
           </div>
 
-          <div className="p-4 z-10">
-            <button className="w-full border cur bg-[#141618] cursor-not-allowed border-[#A6A9B8] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
-              {userAddress ? "Wallet Connected" : "Connect Wallet"}
-            </button>
-          </div>
+         
         </div>
       </div>
     );
@@ -191,16 +213,27 @@ const LendingHome: React.FC = () => {
               <div className="flex justify-between items-center">
                 <span className="text-[#9A9A9A] text-sm font-bold">Supply</span>
                 <span className="text-[#A6A9B8] text-sm font-bold">
-                  $ {parseFloat(supplyBalance).toFixed(2)}
+                  $ {formattedSupplyBalance}
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-[#9A9A9A] text-sm font-bold">Loan</span>
                 <span className="text-[#A6A9B8] text-sm font-bold">
-                  $ {parseFloat(borrowBalance).toFixed(2)}
+                  $ {formattedBorrowBalance}
                 </span>
               </div>
             </div>
+
+            <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col gap-1 justify-center">
+                <div className="flex justify-between items-center">
+                  <span className="text-[#9A9A9A] text-xs">
+                    Your Credit Limit
+                  </span>
+                  <span className="text-[#A6A9B8] text-sm font-bold">
+                    $ {formattedCreditLimit}
+                  </span>
+                </div>
+              </div>
 
             {/* Other Sections */}
             {["Supply", "Borrow", "Withdraw", "Repay"].map((item) => (
@@ -227,7 +260,7 @@ const LendingHome: React.FC = () => {
                 <div className="flex justify-between items-center">
                   <span className="text-[#9A9A9A] text-xs">Supply Market</span>
                   <div className="rounded bg-[#1E1E1E] p-1 font-semibold text-white flex justify-center items-center text-xs cursor-pointer">
-                    $ {parseFloat(supplyMarket).toFixed(2)}
+                    $ {formattedSupplyMarket}
                   </div>
                 </div>
               </div>
@@ -235,18 +268,14 @@ const LendingHome: React.FC = () => {
                 <div className="flex justify-between items-center">
                   <span className="text-[#9A9A9A] text-xs">Loan Market</span>
                   <div className="rounded bg-[#1E1E1E] p-1 font-semibold text-white flex justify-center items-center text-xs cursor-pointer">
-                    $ {parseFloat(loanMarket).toFixed(2)}
+                    $ {formattedLoanMarket}
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="p-4 z-10">
-            <button className="w-full border cur bg-[#141618] cursor-not-allowed border-[#A6A9B8] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
-              {userAddress ? "Wallet Connected" : "Connect Wallet"}
-            </button>
-          </div>
+         
         </div>
       </div>
     </div>
