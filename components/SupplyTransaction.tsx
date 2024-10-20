@@ -50,7 +50,7 @@ const SupplyTransaction: React.FC = () => {
         const approveTx = await bridgeWrapper.approveBridge(
           Config.POOL_CONTRACT_ADDRESS,
           info!.address,
-          amount,
+          amount.toString(),
           walletClient,
           info!.originChain
         );
@@ -85,7 +85,7 @@ const SupplyTransaction: React.FC = () => {
           walletClient,
           info!.originChain
         );
-        if (!supplyTx.success) {
+        if (!supplyTx.hash) {
           setSupplyState("error");
           toast.error("Supply failed");
         } else {
