@@ -12,6 +12,8 @@ import Navbar from "./Navbar";
 import Gas from "./../public/gas.svg";
 import Tools from "./../public/tools.svg";
 import Time from "./../public/time.svg";
+import { bridgeWrapper } from "@/helpers/helpers";
+import { Config } from "@/config/config";
 
 const SupplyTransaction: React.FC = () => {
   const router = useRouter();
@@ -44,9 +46,10 @@ const SupplyTransaction: React.FC = () => {
       setApproveState("loading");
       const info = getTokenInfo(fromToken);
       if (walletClient && info) {
-        const approveTx = await supply(
+        const approveTx = await bridgeWrapper.approveBridge(
+          Config.POOL_CONTRACT_ADDRESS,
           info.address,
-          amount.toString(),
+          amount,
           walletClient,
           info.originChain
         );

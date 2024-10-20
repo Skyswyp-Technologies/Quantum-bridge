@@ -3,7 +3,6 @@
 import { Urbanist } from "next/font/google";
 import "./globals.css";
 import 'react-toastify/dist/ReactToastify.css'
-
 import "@rainbow-me/rainbowkit/styles.css";
 import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { WagmiProvider } from "wagmi";
