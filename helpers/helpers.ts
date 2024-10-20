@@ -498,17 +498,9 @@ class LendingPool {
 
       const provider = new ethers.providers.JsonRpcProvider(chainConfig.rpcUrl);
 
-      //TODO approve the pool token ledning contract before supplying
 
-      const approve = await bridgeWrapper.approveBridge(
-        Config.POOL_CONTRACT_ADDRESS,
-        tokenAddress,
-        amount,
-        walletClient,
-        chain
-      );
+     
 
-      if (approve) {
         const tx = await walletClient.writeContract({
           address: Config.POOL_CONTRACT_ADDRESS,
           abi: POOL_ABI,
@@ -523,7 +515,7 @@ class LendingPool {
           const hash = receipt.transactionHash;
           return { receipt, hash: hash };
         }
-      }
+      
     } catch (error) {
       throw error;
     }
