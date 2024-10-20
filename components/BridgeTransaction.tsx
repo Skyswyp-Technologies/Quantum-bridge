@@ -312,7 +312,7 @@ const getTokenSymbol = (tokenId: string) => {
       )}
 
       {errorMessage &&
-        !(
+        (
           <div className="rounded border border-red-500 bg-gray-100 p-2 w-full">
             <span className="text-red-500 text-sm">{errorMessage}</span>
           </div>
