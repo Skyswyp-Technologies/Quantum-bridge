@@ -18,9 +18,10 @@ const RepayTransaction: React.FC = () => {
     fromToken,
     tokens,
     borrowBalance,
+    setBorrowBalance,
     repay,
     getTokenInfo,
-    getBorrowedBalance,
+    getPoolBorrowedBalance,
     updateCreditLimit,
     txHash,
     setHash,
@@ -42,20 +43,39 @@ const RepayTransaction: React.FC = () => {
 
   useEffect(() => {
     const tokenInfo = getTokenInfo(fromToken);
-    if (!tokenInfo) return;
 
-    const handleInterest = async () => {
-      const result = await lendingPoolWrapper.interestAndRepayAMount(
-        tokenInfo.address,
-        borrowBalance,
-        tokenInfo.originChain
-      );
-      setRepayAmount(result!.totalRepayAmount);
-      setInterest(result!.interest);
-    };
+    if (walletClient) {
 
-    handleInterest();
-  }, [fromToken, borrowBalance, getTokenInfo]);
+      console.log("we reached here lads")
+
+      const handleInterest = async () => {
+        const userBorrowedBalace =
+          await lendingPoolWrapper.getUserBorrowedBalance(
+            walletClient.account.address,
+            tokenInfo!.originChain
+          );
+
+          console.log("userBorrowedBalace", userBorrowedBalace)
+
+        if (userBorrowedBalace) {
+          setBorrowBalance(userBorrowedBalace)
+
+          const result = await lendingPoolWrapper.interestAndRepayAMount(
+            tokenInfo!.address,
+            userBorrowedBalace,
+            tokenInfo!.originChain
+          );
+
+          console.log("repayment loan result", result)
+          setRepayAmount(result!.totalRepayAmount);
+          setInterest(result!.interest);
+        }
+      };
+
+      handleInterest();
+    }
+
+  }, [fromToken, setBorrowBalance, getTokenInfo]);
 
   const approveRepay = async () => {
     try {
@@ -66,7 +86,7 @@ const RepayTransaction: React.FC = () => {
         const approveTx = await bridgeWrapper.approveBridge(
           Config.POOL_CONTRACT_ADDRESS,
           info.address,
-          repayAmount.toString(),
+          repayAmount,
           walletClient,
           info.originChain
         );
@@ -93,25 +113,25 @@ const RepayTransaction: React.FC = () => {
 
     try {
       setRepayState("loading");
-      
+
       const info = getTokenInfo(fromToken);
 
-
       if (walletClient && info) {
-        const result = await repay(
+        
+        const result = await lendingPoolWrapper.repay(
           info.address,
-          borrowBalance.toString(),
+          borrowBalance,
           walletClient,
           info.originChain
         );
-        setHash(result.hash);
+
+        console.log("result repayment", result)
+
+        setHash(result!.hash);
         setRepayState("success");
         setIsSuccess(true);
         toast.success("Repayment successful");
-        await getBorrowedBalance(
-          walletClient.account.address,
-          info.originChain
-        );
+        await getPoolBorrowedBalance(info.address, info.originChain);
         await updateCreditLimit(walletClient.account.address, info.originChain);
       }
     } catch (error) {

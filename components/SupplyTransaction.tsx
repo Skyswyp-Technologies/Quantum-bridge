@@ -45,14 +45,14 @@ const SupplyTransaction: React.FC = () => {
     try {
       setApproveState("loading");
       const info = getTokenInfo(fromToken);
-      if (walletClient) {
-        
+      
+      if (walletClient && info) {
         const approveTx = await bridgeWrapper.approveBridge(
           Config.POOL_CONTRACT_ADDRESS,
-          info!.address,
+          info.address,
           amount.toString(),
           walletClient,
-          info!.originChain
+          info.originChain
         );
         if (!approveTx.success) {
           setApproveState("error");
@@ -78,12 +78,12 @@ const SupplyTransaction: React.FC = () => {
     try {
       setSupplyState("loading");
       const info = getTokenInfo(fromToken);
-      if (walletClient) {
+      if (walletClient && info ) {
         const supplyTx = await supply(
-          info!.address,
+          info.address,
           amount.toString(),
           walletClient,
-          info!.originChain
+          info.originChain
         );
         if (!supplyTx.hash) {
           setSupplyState("error");
@@ -93,8 +93,8 @@ const SupplyTransaction: React.FC = () => {
           setSupplyState("success");
           setIsSuccess(true);
           toast.success("Supply successful");
-          await getSuppliedBalance(walletClient.account.address, info!.originChain);
-          await updateCreditLimit(walletClient.account.address, info!.originChain);
+          await getSuppliedBalance(info.address, info.originChain);
+          await updateCreditLimit(walletClient.account.address, info.originChain);
         }
       }
     } catch (error) {

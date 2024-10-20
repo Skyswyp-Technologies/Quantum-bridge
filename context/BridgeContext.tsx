@@ -90,6 +90,8 @@ interface BridgeContextType {
   setSupplyBalance: React.Dispatch<React.SetStateAction<string>>;
   borrowBalance: string;
   setBorrowBalance: React.Dispatch<React.SetStateAction<string>>;
+  poolBorrowedBalance: string
+  setPoolBorrowBalance: React.Dispatch<React.SetStateAction<string>>;
   creditLimit: string;
   setCreditLimit: React.Dispatch<React.SetStateAction<string>>;
   supplyMarket: string;
@@ -126,7 +128,7 @@ interface BridgeContextType {
     userAddress: string,
     chain: SupportedChain
   ) => Promise<void>;
-  getBorrowedBalance: (
+  getPoolBorrowedBalance: (
     userAddress: string,
     chain: SupportedChain
   ) => Promise<void>;
@@ -172,6 +174,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
 
   const [supplyBalance, setSupplyBalance] = useState("0");
   const [borrowBalance, setBorrowBalance] = useState("0");
+  const  [poolBorrowedBalance, setPoolBorrowBalance] = useState("0")
   const [creditLimit, setCreditLimit] = useState("0");
   const [supplyMarket, setSupplyMarket] = useState("0");
   const [loanMarket, setLoanMarket] = useState("0");
@@ -391,39 +394,39 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
 
       return result;
     } catch (error) {
-      console.error("Error in withdraw:", error);
+      console.log("Error in withdraw:", error);
       throw error;
     }
   };
 
   const getSuppliedBalance = async (
-    userAddress: string,
+    tokenAddress: string,
     chain: SupportedChain
   ) => {
     try {
       const balance = await lendingPoolWrapper.getSuppliedBalance(
-        userAddress,
+        tokenAddress,
         chain
       );
       setSupplyBalance(balance);
     } catch (error) {
-      console.error("Error in getSuppliedBalance:", error);
+      console.log("Error in getSuppliedBalance:", error);
       throw error;
     }
   };
 
-  const getBorrowedBalance = async (
-    userAddress: string,
+  const getPoolBorrowedBalance = async (
+    tokenAddress: string,
     chain: SupportedChain
   ) => {
     try {
-      const balance = await lendingPoolWrapper.getBorrowedBalance(
-        userAddress,
+      const balance = await lendingPoolWrapper.getPoolBorrowedBalance(
+        tokenAddress,
         chain
       );
-      setBorrowBalance(balance);
+      setPoolBorrowBalance(balance);
     } catch (error) {
-      console.error("Error in getBorrowedBalance:", error);
+      console.log("Error in getPoolBorrowedBalance:", error);
       throw error;
     }
   };
@@ -562,7 +565,9 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
         repay,
         withdraw,
         getSuppliedBalance,
-        getBorrowedBalance,
+        getPoolBorrowedBalance,
+        poolBorrowedBalance,
+        setPoolBorrowBalance
       }}
     >
       {children}

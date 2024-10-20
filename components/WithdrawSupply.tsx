@@ -65,7 +65,7 @@ const WithrawSupply: React.FC = () => {
       );
       setHash(result.hash);
       toast.success("Withdrawal successful");
-      await getSuppliedBalance(address, tokenInfo.originChain);
+      await getSuppliedBalance(tokenInfo.address, tokenInfo.originChain);
       await updateCreditLimit(address, tokenInfo.originChain);
       setIsSuccess(true);
     } catch (error) {

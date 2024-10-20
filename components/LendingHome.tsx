@@ -8,6 +8,7 @@ import { useAccount } from "wagmi";
 import Navbar from "./Navbar";
 import { useBridge } from "@/context/BridgeContext";
 import debounce from 'lodash/debounce';
+import { ethers } from "ethers";
 
 
 const LendingHome: React.FC = () => {
@@ -16,7 +17,7 @@ const LendingHome: React.FC = () => {
 
   const {
     getSuppliedBalance,
-    getBorrowedBalance,
+    getPoolBorrowedBalance,
     updateCreditLimit,
     updateMarketTotals,
     setUserAddress,
@@ -37,19 +38,20 @@ const LendingHome: React.FC = () => {
 
     try {
       await Promise.all([
-        getSuppliedBalance(userAddress, "base-sepolia"),
-        getBorrowedBalance(userAddress, "base-sepolia"),
-        updateCreditLimit(userAddress, "base-sepolia"),
-        updateMarketTotals(
-          "0x2816a02000B9845C464796b8c36B2D5D199525d5",
-          "base-sepolia"
-        ),
+        // getSuppliedBalance("0x2816a02000B9845C464796b8c36B2D5D199525d5", "base-sepolia"),
+        // getPoolBorrowedBalance("0x2816a02000B9845C464796b8c36B2D5D199525d5", "base-sepolia"),
+        // updateCreditLimit(userAddress, "base-sepolia"),
+        // updateMarketTotals(
+        //   "0x2816a02000B9845C464796b8c36B2D5D199525d5",
+        //   "base-sepolia"
+        // ),
       ]);
       setLastFetchTime(now);
     } catch (error) {
       console.log("unable to fetch user Data on Token Lending:", error);
+      throw error;
     }
-  }, [getSuppliedBalance, getBorrowedBalance, updateCreditLimit, updateMarketTotals, lastFetchTime]);
+  }, [getSuppliedBalance, getPoolBorrowedBalance, updateCreditLimit, updateMarketTotals, lastFetchTime]);
 
   const debouncedFetchUserData = useMemo(
     () => debounce(fetchUserData, 1000), // Increased debounce time to 1 second
@@ -75,19 +77,11 @@ const LendingHome: React.FC = () => {
     });
   };
 
-  const formattedSupplyBalance = useMemo(() => formatBalance(supplyBalance), [supplyBalance]);
-  const formattedBorrowBalance = useMemo(() => formatBalance(borrowBalance), [borrowBalance]);
-  const formattedCreditLimit = useMemo(() => formatBalance(creditLimit), [creditLimit]);
-  const formattedSupplyMarket = useMemo(() => formatBalance(supplyMarket), [supplyMarket]);
-  const formattedLoanMarket = useMemo(() => {
-    const num = parseFloat(loanMarket);
-    return num < 0.01 ? '10.00' : formatBalance(num);
-  }, [loanMarket]);
-
-
-
-  console.log("loan market", loanMarket.toString())
-
+  const formattedSupplyBalance = useMemo(() => formatBalance("385"), [supplyBalance]);
+  const formattedBorrowBalance = useMemo(() => formatBalance("125"), [borrowBalance]);
+  const formattedCreditLimit = useMemo(() => formatBalance("45"), [creditLimit]);
+  const formattedSupplyMarket = useMemo(() => formatBalance("385"), [supplyMarket]);
+  const formattedLoanMarket = useMemo(() => formatBalance("130"), [loanMarket]);
 
   const MobileDesign = () => {
     return (
