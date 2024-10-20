@@ -211,6 +211,8 @@ class Bridge {
         throw new Error(`Unsupported chain: ${chain}`);
       }
 
+      console.log({ bridgeContract, tokenAddress, amountApprove, walletClient, chain});
+
       const approveABI = [
         {
           inputs: [
@@ -242,6 +244,8 @@ class Bridge {
         functionName: "approve",
         args: [bridgeContract, amount],
       });
+
+   console.log("Aproved Tx", approveTx);
 
       const receipt = await provider.waitForTransaction(approveTx);
 
