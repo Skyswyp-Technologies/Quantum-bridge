@@ -140,7 +140,7 @@ const MobileDomainContent: React.FC<ContentProps> = ({
 
         <div className="w-full">
           {/* <button
-            className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 px-7 rounded-full font-semibold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200"
+            className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 px-3 rounded-full font-semibold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200"
             onClick={handleClaim}
           >
             Claim
@@ -192,7 +192,7 @@ const DesktopDomainContent: React.FC<ContentProps> = ({
             Claim
           </button> */}
 
-          <button className="w-full bg-gray-500 cursor-not-allowed py-3 px-7 rounded-full font-semibold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
+          <button className="w-full bg-gray-500 cursor-not-allowed py-3 px-3 rounded-full font-semibold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
             Coming Soon ..
           </button>
         </div>
