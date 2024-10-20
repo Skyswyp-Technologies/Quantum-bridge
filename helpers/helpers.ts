@@ -238,6 +238,8 @@ class Bridge {
 
       const amount = ethers.utils.parseUnits(amountApprove, decimals);
 
+      console.log("we reached at this point")
+
       const approveTx = await walletClient.writeContract({
         address: tokenAddress,
         abi: approveABI,
@@ -245,11 +247,11 @@ class Bridge {
         args: [bridgeContract, amount],
       });
 
-   console.log("Aproved Tx", approveTx);
+       console.log("Aproved Tx", approveTx);
 
       const receipt = await provider.waitForTransaction(approveTx);
 
-      if (receipt && receipt.status === 1) {
+      if (receipt) {
         return {
           success: true,
           data: receipt,

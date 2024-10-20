@@ -46,6 +46,7 @@ const SupplyTransaction: React.FC = () => {
       setApproveState("loading");
       const info = getTokenInfo(fromToken);
       if (walletClient) {
+        
         const approveTx = await bridgeWrapper.approveBridge(
           Config.POOL_CONTRACT_ADDRESS,
           info!.address,
