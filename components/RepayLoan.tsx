@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Exchange from "./../public/exchange.svg";
 import Usdt from "./../public/usdt.svg";
@@ -11,10 +11,8 @@ import Arrow from "./../public/arrow.svg";
 import Image from "next/image";
 import { toast } from "react-toastify";
 import { useAccount, useWalletClient } from "wagmi";
-import MobConnect from "./ConnectWallet";
 import { useBridge } from "@/context/BridgeContext";
 import Header from "./Header";
-import Link from "next/link";
 import Navbar from "./Navbar";
 import { lendingPoolWrapper } from "@/helpers/helpers";
 
@@ -25,34 +23,21 @@ const RepayLoan: React.FC = () => {
 
   const {
     fromToken,
-    setFromToken,
     tokens,
-    amount,
-    setAmount,
-    repay,
-    getTokenInfo,
     borrowBalance,
-    getBorrowedBalance,
-    updateCreditLimit,
-    txHash,
-    setHash,
+    getTokenInfo,
   } = useBridge();
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
   const [interest, setInterest] = useState("")
   const [repayAmount, setRepayAmount] = useState("")
 
-
-  useEffect(()=> {
-
+  useEffect(() => {
     const tokenInfo = getTokenInfo(fromToken);
     if (!tokenInfo) {
       return;
     }
 
-
-    const handleIntrest = async()=> {
+    const handleInterest = async() => {
       const result = await lendingPoolWrapper.interest(
         tokenInfo.address,
         borrowBalance,
@@ -63,11 +48,10 @@ const RepayLoan: React.FC = () => {
       setInterest(result!.interest)
     }
 
-    handleIntrest()
+    handleInterest()
+  }, [fromToken, borrowBalance, getTokenInfo])
 
-  }, [interest, repayAmount])
-
-  const handleRepay = async () => {
+  const handleProceed = () => {
     if (!address || !walletClient) {
       toast.error("Please connect your wallet");
       return;
@@ -79,26 +63,7 @@ const RepayLoan: React.FC = () => {
       return;
     }
 
-    setIsLoading(true);
-    try {
-      
-      const result = await repay(
-        tokenInfo.address,
-        borrowBalance.toString(),
-        walletClient,
-        tokenInfo.originChain
-      );
-      setHash(result.hash);
-      toast.success("Repayment successful");
-      await getBorrowedBalance(address, tokenInfo.originChain);
-      await updateCreditLimit(address, tokenInfo.originChain);
-      setIsSuccess(true);
-    } catch (error) {
-      console.error("Repayment error:", error);
-      toast.error("Repayment failed");
-    } finally {
-      setIsLoading(false);
-    }
+    router.push("/lending/repay/transaction");
   };
 
   const TokenSelector = ({ type }: { type: "from" | "to" }) => {
@@ -131,7 +96,6 @@ const RepayLoan: React.FC = () => {
     const selectedToken = tokens.find((t) => t.id === fromToken);
     const tokenSymbol = selectedToken?.symbol || "";
     const apy = 0.05; // Assuming 5% APY, you might want to fetch this from the context if available
-    // const interest = amount * apy; // Simple interest calculation, adjust as needed
 
     return (
       <div className="bg-[#000000] text-white md:hidden h-screen w-full flex flex-col">
@@ -148,61 +112,7 @@ const RepayLoan: React.FC = () => {
             <div className="absolute w-[59px] h-[223px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-radial-glow from-[#6AEFFF33] to-[#6AEFFF] opacity-60 blur-3xl"></div>
           </div>
 
-          {isSuccess ? (
-                <>
-                  <div className="flex-grow py-6 px-4 flex flex-col space-y-4 z-10 overflow-y-auto">
-                    <div className="rounded border border-[#A6A9B880] bg-[#1A1A1ACC] p-2 w-full flex flex-col gap-3 justify-center">
-                    <span className="text-[#A6A9B8] text-xs font-bold">
-              Transaction Successful
-            </span>
-            <div className="flex flex-col">
-              <span className="text-[#A6A9B8] text-xs font-bold">
-                Repayment Details
-              </span>
-              <div className="flex justify-between items-center mt-2">
-                <span className="text-[#9A9A9A] text-sm">Repaid Amount:</span>
-                <span className="text-white text-sm">{amount} {tokenSymbol}</span>
-              </div>
-              <div className="flex justify-between items-center mt-1">
-                <span className="text-[#9A9A9A] text-sm">USD Value:</span>
-                <span className="text-white text-sm">$ {amount.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between items-center mt-1">
-                <span className="text-[#9A9A9A] text-sm">APY:</span>
-                <span className="text-white text-sm">{(apy * 100).toFixed(2)}%</span>
-              </div>
-              <div className="flex justify-between items-center mt-1">
-                <span className="text-[#9A9A9A] text-sm">Interest Paid:</span>
-                <span className="text-white text-sm">$ {interest}</span>
-              </div>
-
-              <span className="text-[#A6A9B8] text-xs font-bold mt-4">
-                Transaction Details
-              </span>
-              <div className="mt-2">
-                <span className="text-[#9A9A9A] text-sm">Transaction Hash:</span>
-                <a
-                  href={`https://sepolia.basescan.org/tx/${txHash}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-500 text-sm ml-2 break-all"
-                >
-                  {txHash}
-                </a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-4 mt-auto z-10">
-                    <Link href="/lending">
-                      <button className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
-                        Back to Lending 
-                      </button>
-                    </Link>
-                  </div>
-                </>):(
-                  <>
-                    <div className="flex flex-col flex-grow overflow-y-auto z-10">
+          <div className="flex flex-col flex-grow overflow-y-auto z-10">
             <div className="p-4 flex-grow">
               <div className="flex flex-col space-y-3">
                 <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col gap-1 justify-center">
@@ -251,14 +161,10 @@ const RepayLoan: React.FC = () => {
             </div>
           </div>
           <div className="p-4 mt-auto z-10">
-            <button onClick={handleRepay} className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
+            <button onClick={handleProceed} className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
               Proceed
             </button>
           </div>
-                  </>
-                )}
-
-        
         </div>
       </div>
     );
@@ -268,7 +174,6 @@ const RepayLoan: React.FC = () => {
     const selectedToken = tokens.find((t) => t.id === fromToken);
     const tokenSymbol = selectedToken?.symbol || "";
     const apy = 0.05; // Assuming 5% APY, you might want to fetch this from the context if available
-    // const interest = amount * apy; // Simple interest calculation, adjust as needed
 
     return (
       <div className="bg-[#000000] text-white h-screen w-full hidden md:flex flex-col">
@@ -288,61 +193,7 @@ const RepayLoan: React.FC = () => {
                 <div className="absolute w-[59px] h-[223px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-radial-glow from-[#6AEFFF33] to-[#6AEFFF] opacity-60 blur-3xl"></div>
               </div>
 
-              {isSuccess ? (
-                <>
-                  <div className="flex-grow py-6 px-4 flex flex-col space-y-4 z-10 overflow-y-auto">
-                    <div className="rounded border border-[#A6A9B880] bg-[#1A1A1ACC] p-2 w-full flex flex-col gap-3 justify-center">
-                    <span className="text-[#A6A9B8] text-xs font-bold">
-              Transaction Successful
-            </span>
-            <div className="flex flex-col">
-              <span className="text-[#A6A9B8] text-xs font-bold">
-                Repayment Details
-              </span>
-              <div className="flex justify-between items-center mt-2">
-                <span className="text-[#9A9A9A] text-sm">Repaid Amount:</span>
-                <span className="text-white text-sm">{amount} {tokenSymbol}</span>
-              </div>
-              <div className="flex justify-between items-center mt-1">
-                <span className="text-[#9A9A9A] text-sm">USD Value:</span>
-                <span className="text-white text-sm">$ {amount.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between items-center mt-1">
-                <span className="text-[#9A9A9A] text-sm">APY:</span>
-                <span className="text-white text-sm">{(apy * 100).toFixed(2)}%</span>
-              </div>
-              <div className="flex justify-between items-center mt-1">
-                <span className="text-[#9A9A9A] text-sm">Interest Paid:</span>
-                <span className="text-white text-sm">$ {interest}</span>
-              </div>
-
-              <span className="text-[#A6A9B8] text-xs font-bold mt-4">
-                Transaction Details
-              </span>
-              <div className="mt-2">
-                <span className="text-[#9A9A9A] text-sm">Transaction Hash:</span>
-                <a
-                  href={`https://sepolia.basescan.org/tx/${txHash}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-500 text-sm ml-2 break-all"
-                >
-                  {txHash}
-                </a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-4 mt-auto z-10">
-                    <Link href="/lending">
-                      <button className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
-                        Back to Lending 
-                      </button>
-                    </Link>
-                  </div>
-                </>):(
-                  <>
-                  <div className="flex-grow py-6 px-4 flex flex-col space-y-4 z-10">
+              <div className="flex-grow py-6 px-4 flex flex-col space-y-4 z-10">
                 <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col gap-1 justify-center">
                   <div className="flex justify-between items-center">
                     <span className="text-[#9A9A9A] text-xs">Loan Balance</span>
@@ -387,13 +238,10 @@ const RepayLoan: React.FC = () => {
                 </div>
               </div>
               <div className="px-6 pb-6 mt-auto z-10">
-                <button onClick={handleRepay} className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
+                <button onClick={handleProceed} className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
                   Proceed
                 </button>
               </div>
-                  </>
-                )}
-              
             </div>
           </div>
         </div>
@@ -404,7 +252,6 @@ const RepayLoan: React.FC = () => {
   return (
     <>
       <MobileDesign />
-
       <DesktopDesign />
     </>
   );
