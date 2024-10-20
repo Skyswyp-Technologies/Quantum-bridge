@@ -6,6 +6,8 @@ import { usePathname } from "next/navigation";
 import Menu from "./../public/menu.svg";
 import MobConnect from "./ConnectWallet";
 import Link from "next/link";
+import { ConnectWallet } from "@coinbase/onchainkit/wallet";
+import { WalletComponents } from "./BaseConnect";
 
 interface HeaderProps {
   className?: string;
@@ -59,8 +61,8 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
           <span className="text-[#A6A9B8] font-bold flex-grow text-center">
             {getHeaderText()}
           </span>
-          <MobConnect />
-          {/* <BaseWallet /> */}
+         
+          <WalletComponents />
         </div>
         
           

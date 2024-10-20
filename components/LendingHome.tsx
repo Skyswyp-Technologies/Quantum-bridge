@@ -86,7 +86,7 @@ const LendingHome: React.FC = () => {
 
 
 
-  console.log("loan market", loanMarket)
+  console.log("loan market", loanMarket.toString())
 
 
   const MobileDesign = () => {

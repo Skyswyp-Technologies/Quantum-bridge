@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
-import MobConnect from "./ConnectWallet";
+import { ConnectWallet } from "@coinbase/onchainkit/wallet";
+import { WalletComponents } from "./BaseConnect";
 
 const Navbar = () => {
   return (
@@ -27,8 +28,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      <MobConnect />
-      {/* <BaseWallet /> */}
+     <WalletComponents />
     </div>
   );
 };

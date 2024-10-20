@@ -16,7 +16,7 @@ const chainConfigs: Record<SupportedChain, ChainConfig> = {
     destinationChain: "eth-sepolia",
   },
   "base-sepolia": {
-    rpcUrl: "https://go.getblock.io/17f34af937f341e2b3afba0151a7b227",
+    rpcUrl: "https://go.getblock.io/9a41f16fa8e54cf2992a50120c4c43d1",
     chainId: 84532,
     destinationChain: "base-sepolia",
   },
@@ -211,6 +211,8 @@ class Bridge {
         throw new Error(`Unsupported chain: ${chain}`);
       }
 
+      console.log({ bridgeContract, tokenAddress, amountApprove, walletClient, chain});
+
       const approveABI = [
         {
           inputs: [
@@ -227,14 +229,16 @@ class Bridge {
       const provider = new ethers.providers.JsonRpcProvider(chainConfig.rpcUrl);
 
       // Fetch the token contract to get the number of decimals
-      const tokenContract = new ethers.Contract(
-        tokenAddress,
-        ["function decimals() view returns (uint8)"],
-        provider
-      );
-      const decimals = await tokenContract.decimals();
+      // const tokenContract = new ethers.Contract(
+      //   tokenAddress,
+      //   ["function decimals() view returns (uint8)"],
+      //   provider
+      // );
+      // const decimals = await tokenContract.decimals();
 
-      const amount = ethers.utils.parseUnits(amountApprove, decimals);
+      const amount = ethers.utils.parseUnits(amountApprove, 18);
+
+      console.log("we reached at this point")
 
       const approveTx = await walletClient.writeContract({
         address: tokenAddress,
@@ -243,14 +247,16 @@ class Bridge {
         args: [bridgeContract, amount],
       });
 
+       console.log("Aproved Tx", approveTx);
+
       const receipt = await provider.waitForTransaction(approveTx);
 
-      if (receipt && receipt.status === 1) {
+      if (receipt) {
         return {
           success: true,
           data: receipt,
           chain,
-          approvedAmount: ethers.utils.formatUnits(amount, decimals),
+          approvedAmount: ethers.utils.formatUnits(amount, 18),
         };
       } else {
         return {
@@ -506,6 +512,8 @@ class LendingPool {
       });
 
       const receipt = await provider.waitForTransaction(tx, 1);
+
+    console.log("Thee receipt", receipt);
 
       if (receipt) {
         // Get the transaction hash

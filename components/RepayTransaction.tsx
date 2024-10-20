@@ -66,7 +66,7 @@ const RepayTransaction: React.FC = () => {
         const approveTx = await bridgeWrapper.approveBridge(
           Config.POOL_CONTRACT_ADDRESS,
           info.address,
-          repayAmount,
+          repayAmount.toString(),
           walletClient,
           info.originChain
         );
@@ -100,7 +100,7 @@ const RepayTransaction: React.FC = () => {
       if (walletClient && info) {
         const result = await repay(
           info.address,
-          borrowBalance,
+          borrowBalance.toString(),
           walletClient,
           info.originChain
         );
