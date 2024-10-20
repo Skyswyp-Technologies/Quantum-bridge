@@ -356,7 +356,7 @@ const MobileFaucetContent: React.FC<ContentProps> = ({
             )}
           </button> */}
           <button
-            className="w-full bg-gray-500 cursor-not-allowed py-3 px-7 rounded-full font-semibold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200"
+            className="w-full bg-gray-500 cursor-not-allowed py-3 px-3 rounded-full font-semibold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200"
           >
            Coming Soon ..
           </button>
@@ -438,7 +438,7 @@ const DesktopFaucetContent: React.FC<ContentProps> = ({
           </button> */}
 
 <button
-            className="w-full bg-gray-500 cursor-not-allowed py-3 px-7 rounded-full font-semibold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200"
+            className="w-full bg-gray-500 cursor-not-allowed py-3 px-3 rounded-full font-semibold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200"
           >
            Coming Soon ..
           </button>
