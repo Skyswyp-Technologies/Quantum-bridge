@@ -5,7 +5,7 @@ import React, {
   ReactNode,
   useEffect,
 } from "react";
-import Usdt from "./../public/usdt.svg";
+import Usdtc from "./../public/usdtc.svg";
 import Arb from "./../public/arb.svg";
 import Eth from "./../public/eth.svg";
 import Celo from "./../public/celo.svg";
@@ -190,7 +190,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     {
       id: "USDT-ETH",
       name: "Tether",
-      icon: Usdt,
+      icon: Usdtc,
       address: "0x84cba2A35398B42127B3148744DB3Cd30981fCDf",
       symbol: "USDT",
       destinationID: "40161",

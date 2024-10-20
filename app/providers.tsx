@@ -15,8 +15,8 @@ export function Providers(props: { children: ReactNode; inialState?: State }) {
   return (
     <WagmiProvider config={config} initialState={props.inialState}>
       <QueryClientProvider client={queryClient}>
-      <OnchainKitProvider apiKey={Config.ONCHAINKIT} chain={baseSepolia}>
-        <RainbowKitProvider modalSize="compact">{props.children}</RainbowKitProvider>
+        <OnchainKitProvider apiKey={Config.ONCHAINKIT} chain={baseSepolia}>
+          {props.children}
         </OnchainKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
