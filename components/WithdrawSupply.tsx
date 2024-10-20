@@ -44,7 +44,7 @@ const WithrawSupply: React.FC = () => {
   const [isSuccess, setIsSuccess] = useState(false);
 
   const handleWithdraw = async () => {
-    if (!address || !walletClient) {
+    if (!address) {
       toast.error("Please connect your wallet");
       return;
     }

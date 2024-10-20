@@ -45,7 +45,7 @@ const LendingBorrow: React.FC = () => {
   const [isSuccess, setIsSuccess] = useState(false);
 
   const handleBorrow = async () => {
-    if (!address || !walletClient) {
+    if (!address) {
       toast.error("Please connect your wallet");
       return;
     }

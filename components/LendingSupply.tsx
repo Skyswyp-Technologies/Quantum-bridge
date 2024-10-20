@@ -34,7 +34,7 @@ const LendingSupply: React.FC = () => {
   } = useBridge();
 
   const handleProceed = () => {
-    if (!address || !walletClient) {
+    if (!address) {
       toast.error("Please connect your wallet");
       return;
     }
