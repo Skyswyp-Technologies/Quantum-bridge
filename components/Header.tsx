@@ -32,6 +32,10 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
           return "Withdraw Supply";
           case "/lending/repay":
             return "Repay Loan";
+            case "/lending/repay/transaction":
+              return "Repay Transaction";
+            case "/lending/supply/transaction":
+              return "Supply Transaction";
       default:
         return "Bridge dApp";
     }
