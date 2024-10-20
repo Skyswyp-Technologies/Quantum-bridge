@@ -6,12 +6,8 @@ import { toast } from "react-toastify";
 import { useWalletClient } from "wagmi";
 import { useBridge } from "@/context/BridgeContext";
 import Image from "next/image";
-import Link from "next/link";
 import Header from "./Header";
 import Navbar from "./Navbar";
-import Gas from "./../public/gas.svg";
-import Tools from "./../public/tools.svg";
-import Time from "./../public/time.svg";
 import { bridgeWrapper, lendingPoolWrapper } from "@/helpers/helpers";
 import { Config } from "@/config/config";
 
@@ -49,7 +45,7 @@ const RepayTransaction: React.FC = () => {
     if (!tokenInfo) return;
 
     const handleInterest = async () => {
-      const result = await lendingPoolWrapper.interest(
+      const result = await lendingPoolWrapper.interestAndRepayAMount(
         tokenInfo.address,
         borrowBalance,
         tokenInfo.originChain
@@ -65,6 +61,7 @@ const RepayTransaction: React.FC = () => {
     try {
       setApproveState("loading");
       const info = getTokenInfo(fromToken);
+
       if (walletClient && info) {
         const approveTx = await bridgeWrapper.approveBridge(
           Config.POOL_CONTRACT_ADDRESS,
@@ -96,7 +93,10 @@ const RepayTransaction: React.FC = () => {
 
     try {
       setRepayState("loading");
+      
       const info = getTokenInfo(fromToken);
+
+
       if (walletClient && info) {
         const result = await repay(
           info.address,

@@ -38,7 +38,7 @@ const RepayLoan: React.FC = () => {
     }
 
     const handleInterest = async() => {
-      const result = await lendingPoolWrapper.interest(
+      const result = await lendingPoolWrapper.interestAndRepayAMount(
         tokenInfo.address,
         borrowBalance,
         tokenInfo.originChain

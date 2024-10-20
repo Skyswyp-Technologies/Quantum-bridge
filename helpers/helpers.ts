@@ -498,24 +498,20 @@ class LendingPool {
 
       const provider = new ethers.providers.JsonRpcProvider(chainConfig.rpcUrl);
 
+      const tx = await walletClient.writeContract({
+        address: Config.POOL_CONTRACT_ADDRESS,
+        abi: POOL_ABI,
+        functionName: "supply",
+        args: [tokenAddress, ethers.utils.parseUnits(amount, 18)],
+      });
 
-     
+      const receipt = await provider.waitForTransaction(tx, 1);
 
-        const tx = await walletClient.writeContract({
-          address: Config.POOL_CONTRACT_ADDRESS,
-          abi: POOL_ABI,
-          functionName: "supply",
-          args: [tokenAddress, ethers.utils.parseUnits(amount, 18)],
-        });
-
-        const receipt = await provider.waitForTransaction(tx, 1);
-
-        if (receipt) {
-          // Get the transaction hash
-          const hash = receipt.transactionHash;
-          return { receipt, hash: hash };
-        }
-      
+      if (receipt) {
+        // Get the transaction hash
+        const hash = receipt.transactionHash;
+        return { receipt, hash: hash };
+      }
     } catch (error) {
       throw error;
     }
@@ -570,84 +566,64 @@ class LendingPool {
 
       const provider = new ethers.providers.JsonRpcBatchProvider(
         chainConfig.rpcUrl
-      ); 
-
-      console.log("amount to be paid", amount)
-
-      // 4. Calculate repayment amount (borrowed amount + interest)
-      const poolContract  = this.getPoolContract(chainConfig);
-      const borrowedAmount = ethers.utils.parseUnits(amount, 18)
-      const intrestAmountPayable = await poolContract.interest(tokenAddress, borrowedAmount);
-      const totalRepayAmount = borrowedAmount.add(intrestAmountPayable);
-
-
-      console.log("Total amount to pay plus intrest", ethers.utils.formatUnits(totalRepayAmount, 18))
-
-       //TODO approve the pool token ledning contract before supplying
-
-       const approve = await bridgeWrapper.approveBridge(
-        Config.POOL_CONTRACT_ADDRESS,
-        tokenAddress,
-        ethers.utils.formatUnits(totalRepayAmount.toString(), 18),
-        walletClient,
-        chain
       );
 
-      if(approve) {
-
+      const borrowedAmount = ethers.utils.parseUnits(amount, 18);
+    
         const tx = await walletClient.writeContract({
           address: Config.POOL_CONTRACT_ADDRESS,
           abi: POOL_ABI,
           functionName: "payDebt",
           args: [tokenAddress, borrowedAmount],
         });
-  
+
         const receipt = await provider.waitForTransaction(tx, 1);
         if (receipt) {
           const hash = receipt.transactionHash;
           return { receipt, hash: hash };
         }
-
-      }
-
+      
     } catch (error) {
       throw error;
     }
   }
 
- interest= async(
+  interestAndRepayAMount = async (
     tokenAddress: string,
-    borrowedAmount: any ,
+    borrowedAmount: any,
     chain: SupportedChain
   ) => {
-  try {
-
-    const chainConfig = chainConfigs[chain];
+    try {
+      const chainConfig = chainConfigs[chain];
       if (!chainConfig) {
         throw new Error(`Unsupported chain: ${chain}`);
       }
 
-        // 4. Calculate repayment amount (borrowed amount + interest)
-        const poolContract  = this.getPoolContract(chainConfig);
-        const initialBorrowedAmount = ethers.utils.parseUnits(borrowedAmount, 18)
-        const intrestAmountPayable = await poolContract.interest(tokenAddress, initialBorrowedAmount);
-        const repayAmount = initialBorrowedAmount.add(intrestAmountPayable);
+      // 4. Calculate repayment amount (borrowed amount + interest)
+      const poolContract = this.getPoolContract(chainConfig);
+      const initialBorrowedAmount = ethers.utils.parseUnits(borrowedAmount, 18);
+      
+      const intrestAmountPayable = await poolContract.interest(
+        tokenAddress,
+        initialBorrowedAmount
+      );
+      const repayAmount = initialBorrowedAmount.add(intrestAmountPayable);
 
-        if(repayAmount) {
+      if (repayAmount) {
+        const interest = ethers.utils.formatUnits(intrestAmountPayable, 18);
 
-          const interest = ethers.utils.formatUnits(intrestAmountPayable, 18)
+        const totalRepayAmount = ethers.utils.formatUnits(
+          repayAmount.toString(),
+          18
+        );
 
-          const totalRepayAmount = ethers.utils.formatUnits(repayAmount.toString(), 18)
+        return { interest, totalRepayAmount };
+      }
+    } catch (error) {
+      throw error;
+    }
+  };
 
-          return {interest ,  totalRepayAmount}
-        }
-  
-    
-  } catch (error) {
-    throw error;
-  }
-
-  }
 
   async withdraw(
     tokenAddress: string,
@@ -718,17 +694,17 @@ class LendingPool {
   ): Promise<string> {
     try {
       const chainConfig = chainConfigs[chain];
-    if (!chainConfig) {
-      throw new Error(`Unsupported chain: ${chain}`);
-    }
-    const poolContract = this.getPoolContract(chainConfig);
-    const totalSupply = await poolContract.getTotalTokenSupplied(tokenAddress);
-    return totalSupply;
-      
+      if (!chainConfig) {
+        throw new Error(`Unsupported chain: ${chain}`);
+      }
+      const poolContract = this.getPoolContract(chainConfig);
+      const totalSupply = await poolContract.getTotalTokenSupplied(
+        tokenAddress
+      );
+      return totalSupply;
     } catch (error) {
       throw error;
     }
-    
   }
 
   // New method to get total borrowed for a specific token
@@ -744,10 +720,9 @@ class LendingPool {
         tokenAddress
       );
 
-      if(totalBorrowed){
-        return  ethers.utils.formatUnits(totalBorrowed)
+      if (totalBorrowed) {
+        return ethers.utils.formatUnits(totalBorrowed);
       }
-
     } catch (error) {
       throw error;
     }
