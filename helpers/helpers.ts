@@ -228,17 +228,15 @@ class Bridge {
 
       const provider = new ethers.providers.JsonRpcProvider(chainConfig.rpcUrl);
 
-      // Fetch the token contract to get the number of decimals
-      // const tokenContract = new ethers.Contract(
-      //   tokenAddress,
-      //   ["function decimals() view returns (uint8)"],
-      //   provider
-      // );
-      // const decimals = await tokenContract.decimals();
+      //Fetch the token contract to get the number of decimals
+      const tokenContract = new ethers.Contract(
+        tokenAddress,
+        ["function decimals() view returns (uint8)"],
+        provider
+      );
 
-      const amount = ethers.utils.parseUnits(amountApprove, 18);
-
-      console.log("we reached at this point")
+      const decimals = await tokenContract.decimals();
+      const amount = ethers.utils.parseUnits(amountApprove, decimals);
 
       const approveTx = await walletClient.writeContract({
         address: tokenAddress,
@@ -247,8 +245,6 @@ class Bridge {
         args: [bridgeContract, amount],
       });
 
-       console.log("Aproved Tx", approveTx);
-
       const receipt = await provider.waitForTransaction(approveTx);
 
       if (receipt) {
@@ -256,7 +252,7 @@ class Bridge {
           success: true,
           data: receipt,
           chain,
-          approvedAmount: ethers.utils.formatUnits(amount, 18),
+          approvedAmount: ethers.utils.formatUnits(amount, decimals),
         };
       } else {
         return {
