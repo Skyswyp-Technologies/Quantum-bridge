@@ -306,6 +306,18 @@ const MobileFaucetContent: React.FC<ContentProps> = ({
             Get Test Tokens
           </h2>
 
+          <div className="text-sm text-gray-400 text-center">
+            Don&apos;t have Base-Sepolia ETH for transaction fees?<br />
+            <a 
+              href="https://faucets.chain.link/base-sepolia" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-blue-400 hover:underline"
+            >
+              Get some from this faucet
+            </a>
+          </div>
+
           <div className="w-full bg-[#1A1A1A80] border border-[#3E434773] rounded-lg p-4 flex flex-col gap-4 backdrop-blur-sm">
             <label className="text-gray-400 text-sm">Enter your address</label>
 
@@ -385,6 +397,18 @@ const DesktopFaucetContent: React.FC<ContentProps> = ({
         FAUCET
       </h1>
       <p className="text-xl text-gray-300">Get Test Tokens</p>
+
+      <div className="text-sm text-gray-400 text-center">
+            Don&apos;t have Base-Sepolia ETH for transaction fees?<br />
+            <a 
+              href="https://faucets.chain.link/base-sepolia" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-blue-400 hover:underline"
+            >
+              Get some from this faucet
+            </a>
+          </div>
 
       <div className="w-full mx-auto bg-[#1A1A1A80] border border-[#3E434773] rounded-lg p-6 flex flex-col gap-8 backdrop-blur-sm">
         <label className="text-[#FFFFFF] text-xl text-left">
