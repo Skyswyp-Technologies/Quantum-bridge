@@ -46,7 +46,7 @@ const getExplorerUrl = (chain: string, txHash: string): string => {
     case "eth-sepolia":
       return `https://sepolia.etherscan.io/tx/${txHash}`;
     case "base-sepolia":
-      return `https://sepolia-explorer.base.org/tx/${txHash}`;
+      return `https://sepolia.basescan.org/tx/${txHash}`;
     default:
       return "#";
   }

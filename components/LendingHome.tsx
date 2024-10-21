@@ -8,6 +8,7 @@ import { useAccount } from "wagmi";
 import Navbar from "./Navbar";
 import { useBridge } from "@/context/BridgeContext";
 import debounce from 'lodash/debounce';
+import { lendingPoolWrapper } from "@/helpers/helpers";
 
 
 const LendingHome: React.FC = () => {
@@ -67,26 +68,13 @@ const LendingHome: React.FC = () => {
     };
   }, [address, setUserAddress, debouncedFetchUserData]);
 
-  const formatBalance = (balance: string | number) => {
-    const num = typeof balance === 'string' ? parseFloat(balance) : balance;
-    return num.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
-  };
+  
 
-  const formattedSupplyBalance = useMemo(() => formatBalance(supplyBalance), [supplyBalance]);
-  const formattedBorrowBalance = useMemo(() => formatBalance(borrowBalance), [borrowBalance]);
-  const formattedCreditLimit = useMemo(() => formatBalance(creditLimit), [creditLimit]);
-  const formattedSupplyMarket = useMemo(() => formatBalance(supplyMarket), [supplyMarket]);
-  const formattedLoanMarket = useMemo(() => {
-    const num = parseFloat(loanMarket);
-    return num < 0.01 ? '10.00' : formatBalance(num);
-  }, [loanMarket]);
-
-
-
-  console.log("loan market", loanMarket.toString())
+  const formattedSupplyBalance = useMemo(() => lendingPoolWrapper.formatBalance(supplyBalance), [supplyBalance]);
+  const formattedBorrowBalance = useMemo(() => lendingPoolWrapper.formatBalance(borrowBalance), [borrowBalance]);
+  const formattedCreditLimit = useMemo(() => lendingPoolWrapper.formatBalance(creditLimit), [creditLimit]);
+  const formattedSupplyMarket = useMemo(() => lendingPoolWrapper.formatBalance(supplyMarket), [supplyMarket]);
+  const formattedLoanMarket = useMemo(() =>  lendingPoolWrapper.formatBalance(loanMarket), [loanMarket]);
 
 
   const MobileDesign = () => {

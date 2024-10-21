@@ -737,7 +737,7 @@ class LendingPool {
         await poolContract.getTotalTokenBorrowed(tokenAddress);
 
       if (totalBorrowed) {
-        return ethers.utils.formatUnits(totalBorrowed);
+        return totalBorrowed
       }
     } catch (error) {
       throw error;
@@ -772,6 +772,25 @@ class LendingPool {
         userAddress
       );
     return ethers.utils.formatUnits(creditLimit, 18);
+  }
+
+   formatBalance = (balance: string | number) => {
+    const num = typeof balance === 'string' ? parseFloat(balance) : balance;
+    
+    if (num === 0) return '0';
+  
+    // For very small numbers
+    if (Math.abs(num) < 1e-6) {
+      const parts = num.toExponential().split('e');
+      const mantissa = parseFloat(parts[0]).toFixed(0);
+      return mantissa;
+    }
+  
+    // For normal numbers
+    return num.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
   }
 }
 
