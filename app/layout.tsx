@@ -1,14 +1,13 @@
-"use client";
-
 import { Urbanist } from "next/font/google";
 import "./globals.css";
-import "@coinbase/onchainkit/styles.css"
+import "@coinbase/onchainkit/styles.css";
 import "react-toastify/dist/ReactToastify.css";
 import "@rainbow-me/rainbowkit/styles.css";
-import { ToastContainer } from "react-toastify";
-import { BridgeProvider } from "@/context/BridgeContext";
-import BaseWallet from "@/components/BaseWallet";
-import { Providers } from "./providers";
+import { headers } from "next/headers";
+import { cookieToInitialState } from "wagmi";
+import { getConfig } from "@/config/wagmi";
+import ClientLayout from "@/components/ClientLayout";
+
 const urbanist = Urbanist({ subsets: ["latin"] });
 
 export default function RootLayout({
@@ -16,16 +15,16 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const initialState = cookieToInitialState(
+    getConfig(),
+    headers().get("cookie")
+  );
+
   return (
     <html lang="en" className="h-full">
-      <ToastContainer position="top-center" />
-      <BridgeProvider>
-        <Providers>
-          <body className={`${urbanist.className} flex flex-col h-full`}>
-            <main className="flex-grow">{children}</main>
-          </body>
-          </Providers>
-      </BridgeProvider>
+      <ClientLayout initialState={initialState} urbanistClassName={urbanist.className}>
+        {children}
+      </ClientLayout>
     </html>
   );
 }
