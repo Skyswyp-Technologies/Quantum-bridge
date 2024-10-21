@@ -6,13 +6,13 @@ import React, {
   useEffect,
 } from "react";
 import Usdtc from "./../public/usdtc.svg";
-import Arb from "./../public/arb.svg";
+import Usdt from "./../public/usdt.svg";
+import Quan from "./../public/quan.svg";
 import Eth from "./../public/eth.svg";
-import Celo from "./../public/celo.svg";
-import Op from "./../public/op.svg";
+import Alpha from "./../public/alpha.svg";
+import Ksh from "./../public/ksh.svg";
 import Base from "./../public/base.svg";
-import { toast } from "react-toastify";
-import Lisk from "./../public/lisk.svg";
+
 
 import { bridgeWrapper, lendingPoolWrapper } from "@/helpers/helpers";
 import { SupportedChain } from "@/helpers/inteface/interface";
@@ -181,53 +181,82 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     { id: "eth-sepolia", icon: Eth, name: "Ethereum (Sepolia)" },
     // { id: "arbitrum-sepolia", icon: Arb, name: "Arbitrum (Sepolia)" },
     { id: "base-sepolia", icon: Base, name: "Base (Sepolia)" },
-    // { id: "CELO", icon: Celo, name: "Celo" },
-    // { id: "OP", icon: Op, name: "Optimism" },
-    // { id: "LISK", icon: Lisk, name: "Lisk" },
+  
   ];
 
   const tokens: Token[] = [
+    // {
+    //   id: "USDT-ETH",
+    //   name: "Tether",
+    //   icon: Usdt,
+    //   address: "0x84cba2A35398B42127B3148744DB3Cd30981fCDf",
+    //   symbol: "USDT",
+    //   destinationID: "40161",
+    //   originChain: "eth-sepolia",
+    //   sourceChainAddress: "0x67e0B3f4069e59812EecC65DF127811A43AF5Eb9",
+    // },
+    // {
+    //   id: "ETH-SEPOLIA",
+    //   name: "Ethereum",
+    //   icon: Eth,
+    //   address: "0x0000000000000000000000000000000000000000",
+    //   symbol: "ETH",
+    //   destinationID: "40161",
+    //   originChain: "eth-sepolia",
+    //   sourceChainAddress: "0x67e0B3f4069e59812EecC65DF127811A43AF5Eb9",
+    // },
+
+    // {
+    //   id: "ETH-BASE",
+    //   name: "Base",
+    //   icon: Eth,
+    //   address: "0x0000000000000000000000000000000000000000",
+    //   symbol: "ETH",
+    //   destinationID: "40245",
+    //   originChain: "base-sepolia",
+    //   sourceChainAddress: "0xf762f004a30CB141d139C900f2Aa3631Db7FD2E7",
+    // },
     {
-      id: "USDT-ETH",
+      id: "USDTC-BASE",
       name: "Tether",
       icon: Usdtc,
-      address: "0x84cba2A35398B42127B3148744DB3Cd30981fCDf",
-      symbol: "USDT",
-      destinationID: "40161",
-      originChain: "eth-sepolia",
-      sourceChainAddress: "0x67e0B3f4069e59812EecC65DF127811A43AF5Eb9",
-    },
-    {
-      id: "ETH-SEPOLIA",
-      name: "Ethereum",
-      icon: Eth,
-      address: "0x0000000000000000000000000000000000000000",
-      symbol: "ETH",
-      destinationID: "40161",
-      originChain: "eth-sepolia",
-      sourceChainAddress: "0x67e0B3f4069e59812EecC65DF127811A43AF5Eb9",
-    },
-
-    {
-      id: "ETH-BASE",
-      name: "Base",
-      icon: Eth,
-      address: "0x0000000000000000000000000000000000000000",
-      symbol: "ETH",
+      address: "0x567319975c42BaFdf80B42222340A9Cc8015693e",
+      symbol: "USDTC",
       destinationID: "40245",
       originChain: "base-sepolia",
       sourceChainAddress: "0xf762f004a30CB141d139C900f2Aa3631Db7FD2E7",
     },
     {
-      id: "USDT-BASE",
-      name: "Tether",
-      icon: Eth,
+      id: "ALPHA-BASE",
+      name: "Alpha",
+      icon: Alpha,
       address: "0x2816a02000B9845C464796b8c36B2D5D199525d5",
-      symbol: "USDT",
+      symbol: "ALPHA",
       destinationID: "40245",
       originChain: "base-sepolia",
       sourceChainAddress: "0xf762f004a30CB141d139C900f2Aa3631Db7FD2E7",
     },
+    {
+      id: "KES-BASE",
+      name: "Kenya Shillings",
+      icon: Ksh,
+      address: "0x348490F429cb31A4E45a2323f359880302227fDA",
+      symbol: "Kenya Shillings",
+      destinationID: "40245",
+      originChain: "base-sepolia",
+      sourceChainAddress: "0xf762f004a30CB141d139C900f2Aa3631Db7FD2E7",
+    },
+    {
+      id: "QUANTUM-BASE",
+      name: "Quantum Token",
+      icon: Quan,
+      address: "0x2898dE208BC827089BD41131F09423E554c51a11",
+      symbol: "Quantum Token",
+      destinationID: "40245",
+      originChain: "base-sepolia",
+      sourceChainAddress: "0xf762f004a30CB141d139C900f2Aa3631Db7FD2E7",
+    },
+    
   ];
 
   const handleUserTokenBalance = async () => {

@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import Image from 'next/image';
 import React, { useState, useEffect, Suspense } from 'react';
@@ -43,7 +43,8 @@ const AssetSelector = () => {
     <div className="flex flex-col h-full">
       <span className="font-bold text-white text-center mb-7">Choose asset to bridge</span>
 
-      <div className="w-full flex flex-col flex-grow gap-4 overflow-y-auto">
+      <div className="w-full flex flex-col flex-grow gap-4">
+        {/* Search Box */}
         <div className='rounded border border-[#3E434773] bg-[#1A1A1A80] p-2 flex justify-between items-center'>
           <input
             type="text"
@@ -55,21 +56,24 @@ const AssetSelector = () => {
           <Image src="/search.svg" alt='search' width={16} height={16} />
         </div>
 
-        {filteredTokens.map((token) => (
-          <div 
-            key={token.id}
-            className='rounded border border-[#3E434773] bg-[#1A1A1A80] p-2 cursor-pointer'
-            onClick={() => handleAssetSelect(token.id)}
-          >
-            <div className='flex flex-row items-center gap-4'>
-              <Image src={token.icon} alt={token.name} width={24} height={24} />
-              <div className='flex flex-col gap-2'>
-                <span className="text-white">{token.symbol}</span>
-                <span className="text-[#9A9A9A] text-sm">{token.id}</span>
+        {/* Token List - ensure vertical scroll */}
+        <div className='flex flex-col gap-3 overflow-y-auto z-10 p-4 flex-grow h-[calc(100vh-300px)]'>
+          {filteredTokens.map((token) => (
+            <div 
+              key={token.id}
+              className='rounded border border-[#3E434773] bg-[#1A1A1A80] p-2 cursor-pointer'
+              onClick={() => handleAssetSelect(token.id)}
+            >
+              <div className='flex flex-row items-center gap-4'>
+                <Image src={token.icon} alt={token.name} width={24} height={24} />
+                <div className='flex flex-col gap-2'>
+                  <span className="text-white">{token.symbol}</span>
+                  <span className="text-[#9A9A9A] text-sm">{token.id}</span>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

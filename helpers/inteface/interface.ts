@@ -17,6 +17,7 @@ export interface TokenMintParams {
 tokenAddress: string;
 recipientAddress: string;
 chain: SupportedChain ;
+walletClient: any;
 amountToMint?: string;
 }
 

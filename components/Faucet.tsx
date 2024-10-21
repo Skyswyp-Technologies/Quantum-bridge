@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useBridge } from "@/context/BridgeContext";
 import { bridgeWrapper } from "@/helpers/helpers";
 import { SupportedChain } from "@/helpers/inteface/interface";
-import { useAccount, useConnect } from "wagmi";
+import { useAccount, useConnect, useWalletClient } from "wagmi";
 
 interface ContentProps {
   address: string;
@@ -46,7 +46,7 @@ const getExplorerUrl = (chain: string, txHash: string): string => {
     case "eth-sepolia":
       return `https://sepolia.etherscan.io/tx/${txHash}`;
     case "base-sepolia":
-      return `https://sepolia-explorer.base.org/tx/${txHash}`;
+      return `https://sepolia.basescan.org/tx/${txHash}`;
     default:
       return "#";
   }
@@ -149,6 +149,7 @@ const Faucet: React.FC = () => {
   const { chainId } = useAccount();
 
   const { connect, connectors } = useConnect();
+  const { data: walletClient } = useWalletClient();
 
   useEffect(() => {
     const checkMobile = () => {
@@ -173,26 +174,27 @@ const Faucet: React.FC = () => {
         tokenAddress = "0x84cba2A35398B42127B3148744DB3Cd30981fCDf";
       } else if (chainId === 84532) {
         chain = "base-sepolia";
-        tokenAddress = "0x2816a02000B9845C464796b8c36B2D5D199525d5";
+        tokenAddress = "0x2898dE208BC827089BD41131F09423E554c51a11";
       } else {
         throw Error("Not supported chain");
       }
-
+      
+      const recipientAddress = address
       const params = {
         tokenAddress,
-        recipientAddress: address,
+        recipientAddress,
         chain,
+        walletClient,
       };
 
-      const result = await bridgeWrapper.mintERC20TokensAndTransferETH(params);
-      console.log("RESULT:", result);
+      const result = await bridgeWrapper.mintERC20TestTokens(params);
 
       if (result && result.transactionHash) {
         amount = 1000; // Assuming 1000 tokens are minted each time
         setSuccessData({
           amount,
           chain,
-          recipientAddress: address,
+          recipientAddress,
           txHash: result.transactionHash,
         });
         setShowSuccessModal(true);
@@ -304,6 +306,18 @@ const MobileFaucetContent: React.FC<ContentProps> = ({
             Get Test Tokens
           </h2>
 
+          <div className="text-sm text-gray-400 text-center">
+            Don&apos;t have Base-Sepolia ETH for transaction fees?<br />
+            <a 
+              href="https://faucets.chain.link/base-sepolia" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-blue-400 hover:underline"
+            >
+              Get some from this faucet
+            </a>
+          </div>
+
           <div className="w-full bg-[#1A1A1A80] border border-[#3E434773] rounded-lg p-4 flex flex-col gap-4 backdrop-blur-sm">
             <label className="text-gray-400 text-sm">Enter your address</label>
 
@@ -333,11 +347,11 @@ const MobileFaucetContent: React.FC<ContentProps> = ({
         </div>
 
         <div className="w-full">
-          {/* <button
+          <button
             className={`w-full py-3 px-7 rounded-full font-semibold text-lg text-white transition-colors duration-200 flex items-center justify-center ${
-              (!isWalletConnected || !address || isLoading)
-                ? 'bg-gray-500 cursor-not-allowed'
-                : 'bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] hover:bg-gradient-to-l'
+              !isWalletConnected || !address || isLoading
+                ? "bg-gray-500 cursor-not-allowed"
+                : "bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] hover:bg-gradient-to-l"
             }`}
             onClick={isWalletConnected ? handleClaim : connectWallet}
             disabled={isLoading}
@@ -348,18 +362,18 @@ const MobileFaucetContent: React.FC<ContentProps> = ({
                 <span className="ml-2">Claiming...</span>
               </>
             ) : !isWalletConnected ? (
-              'Connect Wallet'
+              "Connect Wallet"
             ) : !address ? (
-              'Input Address'
+              "Input Address"
             ) : (
-              'Claim'
+              "Claim"
             )}
-          </button> */}
-          <button
+          </button>
+          {/* <button
             className="w-full bg-gray-500 cursor-not-allowed py-3 px-3 rounded-full font-semibold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200"
           >
            Coming Soon ..
-          </button>
+          </button> */}
         </div>
       </div>
     </div>
@@ -383,6 +397,18 @@ const DesktopFaucetContent: React.FC<ContentProps> = ({
         FAUCET
       </h1>
       <p className="text-xl text-gray-300">Get Test Tokens</p>
+
+      <div className="text-sm text-gray-400 text-center">
+            Don&apos;t have Base-Sepolia ETH for transaction fees?<br />
+            <a 
+              href="https://faucets.chain.link/base-sepolia" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-blue-400 hover:underline"
+            >
+              Get some from this faucet
+            </a>
+          </div>
 
       <div className="w-full mx-auto bg-[#1A1A1A80] border border-[#3E434773] rounded-lg p-6 flex flex-col gap-8 backdrop-blur-sm">
         <label className="text-[#FFFFFF] text-xl text-left">
@@ -414,7 +440,7 @@ const DesktopFaucetContent: React.FC<ContentProps> = ({
             />
           </div>
 
-          {/* <button
+          <button
             className={`w-auto py-3 px-7 rounded-full font-bold text-xl text-white whitespace-nowrap transition-colors duration-200 flex items-center justify-center
               ${(!isWalletConnected || !address || isLoading)
                 ? 'bg-gray-500 cursor-not-allowed'
@@ -435,13 +461,11 @@ const DesktopFaucetContent: React.FC<ContentProps> = ({
             ) : (
               'Claim'
             )}
-          </button> */}
-
-<button
-            className="w-full bg-gray-500 cursor-not-allowed py-3 px-3 rounded-full font-semibold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200"
-          >
-           Coming Soon ..
           </button>
+
+          {/* <button className="w-full bg-gray-500 cursor-not-allowed py-3 px-3 rounded-full font-semibold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
+            Coming Soon ..
+          </button> */}
         </div>
       </div>
     </div>

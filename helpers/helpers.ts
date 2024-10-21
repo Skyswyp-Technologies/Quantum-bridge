@@ -211,8 +211,6 @@ class Bridge {
         throw new Error(`Unsupported chain: ${chain}`);
       }
 
-      console.log({ bridgeContract, tokenAddress, amountApprove, walletClient, chain});
-
       const approveABI = [
         {
           inputs: [
@@ -228,17 +226,15 @@ class Bridge {
 
       const provider = new ethers.providers.JsonRpcProvider(chainConfig.rpcUrl);
 
-      // Fetch the token contract to get the number of decimals
-      // const tokenContract = new ethers.Contract(
-      //   tokenAddress,
-      //   ["function decimals() view returns (uint8)"],
-      //   provider
-      // );
-      // const decimals = await tokenContract.decimals();
+      //Fetch the token contract to get the number of decimals
+      const tokenContract = new ethers.Contract(
+        tokenAddress,
+        ["function decimals() view returns (uint8)"],
+        provider
+      );
+      const decimals = await tokenContract.decimals();
 
-      const amount = ethers.utils.parseUnits(amountApprove, 18);
-
-      console.log("we reached at this point")
+      const amount = ethers.utils.parseUnits(amountApprove, decimals);
 
       const approveTx = await walletClient.writeContract({
         address: tokenAddress,
@@ -247,8 +243,6 @@ class Bridge {
         args: [bridgeContract, amount],
       });
 
-       console.log("Aproved Tx", approveTx);
-
       const receipt = await provider.waitForTransaction(approveTx);
 
       if (receipt) {
@@ -256,7 +250,7 @@ class Bridge {
           success: true,
           data: receipt,
           chain,
-          approvedAmount: ethers.utils.formatUnits(amount, 18),
+          approvedAmount: ethers.utils.formatUnits(amount, decimals),
         };
       } else {
         return {
@@ -393,90 +387,109 @@ class Bridge {
     )}`;
   }
 
-  mintERC20TokensAndTransferETH = async (
+ mintERC20TestTokens= async(
     params: TokenMintParams
-  ): Promise<MintResult> => {
+  ): Promise<MintResult> =>{
     const {
       tokenAddress,
       recipientAddress,
       chain,
+      walletClient,
       amountToMint = "1000",
     } = params;
-
+  
     console.log({ params });
-
+  
     try {
       const chainConfig = chainConfigs[chain!];
       if (!chainConfig) {
         throw new Error(`Unsupported chain: ${chain}`);
       }
-
+  
       const abi = [
-        "function mint(address to, uint256 amount) public",
-        "function balanceOf(address account) public view returns (uint256)",
+        {
+          name: "mint",
+          type: "function",
+          inputs: [
+            { name: "to", type: "address" },
+            { name: "amount", type: "uint256" }
+          ],
+          outputs: [],
+          stateMutability: "nonpayable"
+        },
+        {
+          name: "balanceOf",
+          type: "function",
+          inputs: [{ name: "account", type: "address" }],
+          outputs: [{ name: "", type: "uint256" }],
+          stateMutability: "view"
+        },
+        {
+          name: "decimals",
+          type: "function",
+          inputs: [],
+          outputs: [{ name: "", type: "uint8" }],
+          stateMutability: "view"
+        }
       ];
-
-      // Connect to the network
+  
       const provider = new ethers.providers.JsonRpcProvider(
         chainConfig.rpcUrl,
         chainConfig.chainId
       );
-
-      // Create a signer
-      const signer = new ethers.Wallet(Config.PRIVATE_KEY, provider);
-      // Create a contract instance
-      const tokenContract = new ethers.Contract(tokenAddress, abi, signer);
-
+  
+      const tokenContract = new ethers.Contract(tokenAddress, abi, provider);
+  
+      const contract = new ethers.Contract(
+        tokenAddress,
+        ["function decimals() view returns (uint8)"],
+        provider
+      );
+  
+      const decimals = await contract.decimals();
+  
       // Check the current balance of the recipient
       const currentBalance = await tokenContract.balanceOf(recipientAddress);
       const currentBalanceFormatted = ethers.utils.formatUnits(
         currentBalance,
-        18
+        decimals
       );
-
+  
       if (parseFloat(currentBalanceFormatted) >= 1000) {
         throw new Error(
           "You already have 1000 or more tokens. Please wait 24 hours before requesting more tokens."
         );
       }
-
-      // Convert the amount to Wei (assuming 18 decimals, adjust if your token uses a different number)
-      const amountInWei = ethers.utils.parseUnits(amountToMint, 18);
-      // Call the mint function
-      const tx = await tokenContract.mint(recipientAddress, amountInWei);
-
-      // Wait for the transaction to be mined
-      await tx.wait();
-
-      console.log(
-        `Successfully minted ${amountToMint} tokens to ${recipientAddress} on ${chain}`
-      );
-
-      // Check the balance after minting
+  
+      const amount = ethers.utils.parseUnits(amountToMint, decimals);
+  
+      const mintTx = await walletClient.writeContract({
+        address: tokenAddress,
+        abi: abi,
+        functionName: "mint",
+        args: [recipientAddress, amount],
+      });
+  
+      const receipt = await provider.waitForTransaction(mintTx)
+  
+      if (!receipt) {
+        throw new Error("Transaction receipt not received");
+      }
+  
       const tokenBalance = await tokenContract.balanceOf(recipientAddress);
-
-      console.log(
-        `New token balance for ${recipientAddress} on ${chain}: ${ethers.utils.formatUnits(
-          tokenBalance,
-          18
-        )}`
-      );
-
-      const formattedAmount = ethers.utils.formatUnits(tokenBalance, 18);
-
+      const formattedAmount = ethers.utils.formatUnits(tokenBalance, decimals);
+  
       return {
         tokenBalance: formattedAmount,
         recipientAddress,
         chain,
-        transactionHash: tx.hash,
+        transactionHash: receipt.transactionHash,
       };
     } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(error.message);
-      }
       throw error;
     }
-  };
+
+  }
 }
 
 class LendingPool {
@@ -513,7 +526,7 @@ class LendingPool {
 
       const receipt = await provider.waitForTransaction(tx, 1);
 
-    console.log("Thee receipt", receipt);
+      console.log("Thee receipt", receipt);
 
       if (receipt) {
         // Get the transaction hash
@@ -577,20 +590,19 @@ class LendingPool {
       );
 
       const borrowedAmount = ethers.utils.parseUnits(amount, 18);
-    
-        const tx = await walletClient.writeContract({
-          address: Config.POOL_CONTRACT_ADDRESS,
-          abi: POOL_ABI,
-          functionName: "payDebt",
-          args: [tokenAddress, borrowedAmount],
-        });
 
-        const receipt = await provider.waitForTransaction(tx, 1);
-        if (receipt) {
-          const hash = receipt.transactionHash;
-          return { receipt, hash: hash };
-        }
-      
+      const tx = await walletClient.writeContract({
+        address: Config.POOL_CONTRACT_ADDRESS,
+        abi: POOL_ABI,
+        functionName: "payDebt",
+        args: [tokenAddress, borrowedAmount],
+      });
+
+      const receipt = await provider.waitForTransaction(tx, 1);
+      if (receipt) {
+        const hash = receipt.transactionHash;
+        return { receipt, hash: hash };
+      }
     } catch (error) {
       throw error;
     }
@@ -610,7 +622,7 @@ class LendingPool {
       // 4. Calculate repayment amount (borrowed amount + interest)
       const poolContract = this.getPoolContract(chainConfig);
       const initialBorrowedAmount = ethers.utils.parseUnits(borrowedAmount, 18);
-      
+
       const intrestAmountPayable = await poolContract.interest(
         tokenAddress,
         initialBorrowedAmount
@@ -631,7 +643,6 @@ class LendingPool {
       throw error;
     }
   };
-
 
   async withdraw(
     tokenAddress: string,
@@ -689,9 +700,8 @@ class LendingPool {
     }
 
     const poolContract = this.getPoolContract(chainConfig);
-    const balance = await poolContract.getTotalAmountBorrowedInDollars(
-      userAddress
-    );
+    const balance =
+      await poolContract.getTotalAmountBorrowedInDollars(userAddress);
     return ethers.utils.formatUnits(balance, 18);
   }
 
@@ -706,9 +716,8 @@ class LendingPool {
         throw new Error(`Unsupported chain: ${chain}`);
       }
       const poolContract = this.getPoolContract(chainConfig);
-      const totalSupply = await poolContract.getTotalTokenSupplied(
-        tokenAddress
-      );
+      const totalSupply =
+        await poolContract.getTotalTokenSupplied(tokenAddress);
       return totalSupply;
     } catch (error) {
       throw error;
@@ -724,12 +733,11 @@ class LendingPool {
       }
 
       const poolContract = this.getPoolContract(chainConfig);
-      const totalBorrowed = await poolContract.getTotalTokenBorrowed(
-        tokenAddress
-      );
+      const totalBorrowed =
+        await poolContract.getTotalTokenBorrowed(tokenAddress);
 
       if (totalBorrowed) {
-        return ethers.utils.formatUnits(totalBorrowed);
+        return totalBorrowed
       }
     } catch (error) {
       throw error;
@@ -764,6 +772,25 @@ class LendingPool {
         userAddress
       );
     return ethers.utils.formatUnits(creditLimit, 18);
+  }
+
+   formatBalance = (balance: string | number) => {
+    const num = typeof balance === 'string' ? parseFloat(balance) : balance;
+    
+    if (num === 0) return '0';
+  
+    // For very small numbers
+    if (Math.abs(num) < 1e-6) {
+      const parts = num.toExponential().split('e');
+      const mantissa = parseFloat(parts[0]).toFixed(0);
+      return mantissa;
+    }
+  
+    // For normal numbers
+    return num.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
   }
 }
 
