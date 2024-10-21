@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useBridge } from "@/context/BridgeContext";
 import { bridgeWrapper } from "@/helpers/helpers";
 import { SupportedChain } from "@/helpers/inteface/interface";
-import { useAccount, useConnect } from "wagmi";
+import { useAccount, useConnect, useWalletClient } from "wagmi";
 
 interface ContentProps {
   address: string;
@@ -149,6 +149,7 @@ const Faucet: React.FC = () => {
   const { chainId } = useAccount();
 
   const { connect, connectors } = useConnect();
+  const { data: walletClient } = useWalletClient();
 
   useEffect(() => {
     const checkMobile = () => {
@@ -173,7 +174,7 @@ const Faucet: React.FC = () => {
         tokenAddress = "0x84cba2A35398B42127B3148744DB3Cd30981fCDf";
       } else if (chainId === 84532) {
         chain = "base-sepolia";
-        tokenAddress = "0x2816a02000B9845C464796b8c36B2D5D199525d5";
+        tokenAddress = "0x2898dE208BC827089BD41131F09423E554c51a11";
       } else {
         throw Error("Not supported chain");
       }
@@ -182,9 +183,10 @@ const Faucet: React.FC = () => {
         tokenAddress,
         recipientAddress: address,
         chain,
+        walletClient,
       };
 
-      const result = await bridgeWrapper.mintERC20TokensAndTransferETH(params);
+      const result = await bridgeWrapper.mintERC20TestTokens(params);
       console.log("RESULT:", result);
 
       if (result && result.transactionHash) {
@@ -333,11 +335,11 @@ const MobileFaucetContent: React.FC<ContentProps> = ({
         </div>
 
         <div className="w-full">
-          {/* <button
+          <button
             className={`w-full py-3 px-7 rounded-full font-semibold text-lg text-white transition-colors duration-200 flex items-center justify-center ${
-              (!isWalletConnected || !address || isLoading)
-                ? 'bg-gray-500 cursor-not-allowed'
-                : 'bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] hover:bg-gradient-to-l'
+              !isWalletConnected || !address || isLoading
+                ? "bg-gray-500 cursor-not-allowed"
+                : "bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] hover:bg-gradient-to-l"
             }`}
             onClick={isWalletConnected ? handleClaim : connectWallet}
             disabled={isLoading}
@@ -348,18 +350,18 @@ const MobileFaucetContent: React.FC<ContentProps> = ({
                 <span className="ml-2">Claiming...</span>
               </>
             ) : !isWalletConnected ? (
-              'Connect Wallet'
+              "Connect Wallet"
             ) : !address ? (
-              'Input Address'
+              "Input Address"
             ) : (
-              'Claim'
+              "Claim"
             )}
-          </button> */}
-          <button
+          </button>
+          {/* <button
             className="w-full bg-gray-500 cursor-not-allowed py-3 px-3 rounded-full font-semibold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200"
           >
            Coming Soon ..
-          </button>
+          </button> */}
         </div>
       </div>
     </div>
@@ -414,7 +416,7 @@ const DesktopFaucetContent: React.FC<ContentProps> = ({
             />
           </div>
 
-          {/* <button
+          <button
             className={`w-auto py-3 px-7 rounded-full font-bold text-xl text-white whitespace-nowrap transition-colors duration-200 flex items-center justify-center
               ${(!isWalletConnected || !address || isLoading)
                 ? 'bg-gray-500 cursor-not-allowed'
@@ -435,13 +437,11 @@ const DesktopFaucetContent: React.FC<ContentProps> = ({
             ) : (
               'Claim'
             )}
-          </button> */}
-
-<button
-            className="w-full bg-gray-500 cursor-not-allowed py-3 px-3 rounded-full font-semibold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200"
-          >
-           Coming Soon ..
           </button>
+
+          {/* <button className="w-full bg-gray-500 cursor-not-allowed py-3 px-3 rounded-full font-semibold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
+            Coming Soon ..
+          </button> */}
         </div>
       </div>
     </div>
