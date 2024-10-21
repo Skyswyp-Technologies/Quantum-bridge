@@ -6,10 +6,11 @@ import React, {
   useEffect,
 } from "react";
 import Usdtc from "./../public/usdtc.svg";
-import Arb from "./../public/arb.svg";
+import Usdt from "./../public/usdt.svg";
+import Quan from "./../public/quan.svg";
 import Eth from "./../public/eth.svg";
-import Celo from "./../public/celo.svg";
-import Op from "./../public/op.svg";
+import Alpha from "./../public/alpha.svg";
+import Ksh from "./../public/ksh.svg";
 import Base from "./../public/base.svg";
 import { toast } from "react-toastify";
 import Lisk from "./../public/lisk.svg";
@@ -190,7 +191,7 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
     {
       id: "USDT-ETH",
       name: "Tether",
-      icon: Usdtc,
+      icon: Usdt,
       address: "0x84cba2A35398B42127B3148744DB3Cd30981fCDf",
       symbol: "USDT",
       destinationID: "40161",
@@ -219,15 +220,46 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
       sourceChainAddress: "0xf762f004a30CB141d139C900f2Aa3631Db7FD2E7",
     },
     {
-      id: "USDT-BASE",
+      id: "USDTC-BASE",
       name: "Tether",
-      icon: Eth,
-      address: "0x2816a02000B9845C464796b8c36B2D5D199525d5",
-      symbol: "USDT",
+      icon: Usdtc,
+      address: "0x567319975c42BaFdf80B42222340A9Cc8015693e",
+      symbol: "USDTC",
       destinationID: "40245",
       originChain: "base-sepolia",
       sourceChainAddress: "0xf762f004a30CB141d139C900f2Aa3631Db7FD2E7",
     },
+    {
+      id: "ALPHA-BASE",
+      name: "Alpha",
+      icon: Alpha,
+      address: "0x2816a02000B9845C464796b8c36B2D5D199525d5",
+      symbol: "ALPHA",
+      destinationID: "40245",
+      originChain: "base-sepolia",
+      sourceChainAddress: "0xf762f004a30CB141d139C900f2Aa3631Db7FD2E7",
+    },
+    {
+      id: "KES-BASE",
+      name: "Kenya Shillings",
+      icon: Ksh,
+      address: "0x348490F429cb31A4E45a2323f359880302227fDA",
+      symbol: "Kenya Shillings",
+      destinationID: "40245",
+      originChain: "base-sepolia",
+      sourceChainAddress: "0xf762f004a30CB141d139C900f2Aa3631Db7FD2E7",
+    },
+    {
+      id: "QUANTUM-BASE",
+      name: "Quantum Token",
+      icon: Quan,
+      address: "0x2898dE208BC827089BD41131F09423E554c51a11",
+      symbol: "Quantum Token",
+      destinationID: "40245",
+      originChain: "base-sepolia",
+      sourceChainAddress: "0xf762f004a30CB141d139C900f2Aa3631Db7FD2E7",
+    },
+    
   ];
 
   const handleUserTokenBalance = async () => {
