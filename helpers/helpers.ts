@@ -407,8 +407,30 @@ class Bridge {
       }
   
       const abi = [
-        "function mint(address to, uint256 amount) public",
-        "function balanceOf(address account) public view returns (uint256)",
+        {
+          name: "mint",
+          type: "function",
+          inputs: [
+            { name: "to", type: "address" },
+            { name: "amount", type: "uint256" }
+          ],
+          outputs: [],
+          stateMutability: "nonpayable"
+        },
+        {
+          name: "balanceOf",
+          type: "function",
+          inputs: [{ name: "account", type: "address" }],
+          outputs: [{ name: "", type: "uint256" }],
+          stateMutability: "view"
+        },
+        {
+          name: "decimals",
+          type: "function",
+          inputs: [],
+          outputs: [{ name: "", type: "uint8" }],
+          stateMutability: "view"
+        }
       ];
   
       const provider = new ethers.providers.JsonRpcProvider(

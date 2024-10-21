@@ -178,23 +178,23 @@ const Faucet: React.FC = () => {
       } else {
         throw Error("Not supported chain");
       }
-
+      
+      const recipientAddress = address
       const params = {
         tokenAddress,
-        recipientAddress: address,
+        recipientAddress,
         chain,
         walletClient,
       };
 
       const result = await bridgeWrapper.mintERC20TestTokens(params);
-      console.log("RESULT:", result);
 
       if (result && result.transactionHash) {
         amount = 1000; // Assuming 1000 tokens are minted each time
         setSuccessData({
           amount,
           chain,
-          recipientAddress: address,
+          recipientAddress,
           txHash: result.transactionHash,
         });
         setShowSuccessModal(true);
