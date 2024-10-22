@@ -128,6 +128,7 @@ interface BridgeContextType {
   ) => Promise<void>;
   getBorrowedBalance: (
     userAddress: string,
+    tokenAddress: string,
     chain: SupportedChain
   ) => Promise<void>;
   updateCreditLimit: (
@@ -135,7 +136,6 @@ interface BridgeContextType {
     chain: SupportedChain
   ) => Promise<void>;
   updateMarketTotals: (
-    tokenAddress: string,
     chain: SupportedChain
   ) => Promise<void>;
   updateWhitelistedTokens: (chain: SupportedChain) => Promise<void>;
@@ -443,14 +443,19 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
 
   const getBorrowedBalance = async (
     userAddress: string,
+    tokenAddress: string,
     chain: SupportedChain
   ) => {
     try {
-      const balance = await lendingPoolWrapper.getBorrowedBalance(
+      const balance = await lendingPoolWrapper.getUserBorrowedAmount(
         userAddress,
+        tokenAddress,
         chain
       );
-      setBorrowBalance(balance);
+
+      if(balance){
+       setBorrowBalance(balance);
+      }
     } catch (error) {
       console.error("Error in getBorrowedBalance:", error);
       throw error;
@@ -471,23 +476,20 @@ export const BridgeProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const updateMarketTotals = async (
-    tokenAddress: string,
     chain: SupportedChain
   ) => {
     try {
-      const totalSupply = await lendingPoolWrapper.getTotalSupply(
-        tokenAddress,
+      const totalSupply = await lendingPoolWrapper.getTotalMarketupply(
         chain
       );
 
       if (totalSupply) {
         setSupplyMarket(totalSupply);
-        const totalBorrowed = await lendingPoolWrapper.getTotalBorrowed(
-          tokenAddress,
+        const borrowMarket = await lendingPoolWrapper.getTotalLoanMarket(
           chain
         );
 
-        setLoanMarket(totalBorrowed!);
+        setLoanMarket(borrowMarket!);
       }
     } catch (error) {
       console.log("unable to update markets:", error);

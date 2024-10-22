@@ -1250,6 +1250,25 @@ export const POOL_ABI = [
     type: "function",
   },
   {
+    inputs: [{ internalType: "address", name: "user", type: "address" }],
+    name: "getTokensBorrowedByUser",
+    outputs: [
+      {
+        components: [
+          { internalType: "address", name: "tokenAddress", type: "address" },
+          { internalType: "uint256", name: "LTV", type: "uint256" },
+          { internalType: "uint256", name: "stableRate", type: "uint256" },
+          { internalType: "string", name: "name", type: "string" },
+        ],
+        internalType: "struct Pool.Token[]",
+        name: "",
+        type: "tuple[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "getTokensForBorrowingArray",
     outputs: [
@@ -1289,6 +1308,25 @@ export const POOL_ABI = [
   },
   {
     inputs: [{ internalType: "address", name: "user", type: "address" }],
+    name: "getTokensSuppliedByUser",
+    outputs: [
+      {
+        components: [
+          { internalType: "address", name: "tokenAddress", type: "address" },
+          { internalType: "uint256", name: "LTV", type: "uint256" },
+          { internalType: "uint256", name: "stableRate", type: "uint256" },
+          { internalType: "string", name: "name", type: "string" },
+        ],
+        internalType: "struct Pool.Token[]",
+        name: "",
+        type: "tuple[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [{ internalType: "address", name: "user", type: "address" }],
     name: "getTotalAmountBorrowedInDollars",
     outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
     stateMutability: "view",
@@ -1297,6 +1335,20 @@ export const POOL_ABI = [
   {
     inputs: [{ internalType: "address", name: "user", type: "address" }],
     name: "getTotalAmountLentInDollars",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getTotalBorrowedInDollars",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getTotalSupplyInDollars",
     outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
     stateMutability: "view",
     type: "function",
@@ -1320,8 +1372,62 @@ export const POOL_ABI = [
     type: "function",
   },
   {
+    inputs: [
+      { internalType: "address", name: "user", type: "address" },
+      { internalType: "address", name: "tokenAddress", type: "address" },
+    ],
+    name: "getUserBorrowedForToken",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "user", type: "address" },
+      { internalType: "address", name: "tokenAddress", type: "address" },
+    ],
+    name: "getUserSupplyForToken",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [{ internalType: "address", name: "user", type: "address" }],
     name: "getUserTotalAmountAvailableForBorrowInDollars",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "user", type: "address" },
+      { internalType: "address", name: "tokenAddress", type: "address" },
+    ],
+    name: "getUserTotalAmountBorrowedForTokenInDollars",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "user", type: "address" },
+      { internalType: "address", name: "tokenAddress", type: "address" },
+    ],
+    name: "getUserTotalAmountLentForTokenInDollars",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [{ internalType: "address", name: "user", type: "address" }],
+    name: "getUserTotalInterestAccrued",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [{ internalType: "address", name: "user", type: "address" }],
+    name: "getUserTotalInterestEarned",
     outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
     stateMutability: "view",
     type: "function",

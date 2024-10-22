@@ -49,12 +49,13 @@ const LendingHome: React.FC = () => {
       }
 
       try {
+
+        const tokenAddress = "0x2816a02000B9845C464796b8c36B2D5D199525d5"
         await Promise.all([
           getSuppliedBalance(userAddress, "base-sepolia"),
-          getBorrowedBalance(userAddress, "base-sepolia"),
+          getBorrowedBalance(userAddress, tokenAddress, "base-sepolia"),
           updateCreditLimit(userAddress, "base-sepolia"),
           updateMarketTotals(
-            "0x2816a02000B9845C464796b8c36B2D5D199525d5",
             "base-sepolia"
           ),
         ]);
@@ -92,10 +93,9 @@ const LendingHome: React.FC = () => {
     () => lendingPoolWrapper.formatBalance(supplyBalance),
     [supplyBalance]
   );
-  const formattedBorrowBalance = useMemo(
-    () => lendingPoolWrapper.formatBalance(borrowBalance),
-    [borrowBalance]
-  );
+  // const formattedBorrowBalance = useMemo( 
+  //   [borrowBalance]
+  // );
   const formattedCreditLimit = useMemo(
     () => lendingPoolWrapper.formatBalance(creditLimit),
     [creditLimit]
@@ -142,7 +142,7 @@ const LendingHome: React.FC = () => {
                 <div className="flex justify-between items-center">
                   <span className="text-[#9A9A9A] text-sm font-bold">Loan</span>
                   <span className="text-[#A6A9B8] text-sm font-bold">
-                    $ {formattedBorrowBalance}
+                    $ {borrowBalance}
                   </span>
                 </div>
               </div>
@@ -250,7 +250,7 @@ const LendingHome: React.FC = () => {
               <div className="flex justify-between items-center">
                 <span className="text-[#9A9A9A] text-sm font-bold">Loan</span>
                 <span className="text-[#A6A9B8] text-sm font-bold">
-                  $ {formattedBorrowBalance}
+                  $ {borrowBalance}
                 </span>
               </div>
             </div>
