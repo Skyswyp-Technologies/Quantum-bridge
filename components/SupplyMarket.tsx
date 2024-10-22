@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useBridge } from "@/context/BridgeContext";
@@ -16,9 +16,32 @@ const SupplyMarket: React.FC = () => {
   const { tokens, setFromToken, supplyMarket } = useBridge();
   const [filteredTokens] = useState(tokens);
 
+  const [tokenSupplied, setTokensSupplied ] = useState<number[]>([]);
+  const [tokenAddresses, setTokenAddresses ] = useState<string[]>([]);
+
   const handleAssetSelect = (tokenId: string) => {
     setFromToken(tokenId);
   };
+
+  useEffect(()=> {
+    const getTotalSupplyTokensAndMarkets = async()=>{
+
+      const result = await lendingPoolWrapper.getTotalTokensAndAMountsSuppliedMarket(
+        "base-sepolia"
+      )
+
+      console.log("result", result)
+
+      if(result) {
+        setTokensSupplied(result.amounts)
+        setTokenAddresses(result.addresses)
+      }
+
+    }
+
+    getTotalSupplyTokensAndMarkets()
+
+  }, [setTokensSupplied, setTokenAddresses])
 
 
   const formattedSupplyMarket = useMemo(

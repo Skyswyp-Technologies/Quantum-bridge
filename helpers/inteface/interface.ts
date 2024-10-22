@@ -28,3 +28,9 @@ chain: SupportedChain,
 transactionHash: string
 // ethBalance: string;
 }
+
+
+export interface TotalTokensBorrowedResponse {
+  addresses: string[];
+  amounts: number[];
+}

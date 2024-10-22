@@ -7,6 +7,7 @@ import {
   MintResult,
   SupportedChain,
   TokenMintParams,
+  TotalTokensBorrowedResponse,
 } from "./inteface/interface";
 
 const chainConfigs: Record<SupportedChain, ChainConfig> = {
@@ -795,6 +796,70 @@ class LendingPool {
       maximumFractionDigits: 2,
     });
   };
+
+
+ // gets all tokens and  borrowed amount markets
+  async getTotalTokensAndAMountsForBorrowedMarket(
+    chain: SupportedChain
+  ): Promise<TotalTokensBorrowedResponse> {
+  
+    try {
+
+      const chainConfig = chainConfigs[chain];
+      if (!chainConfig) {
+        throw new Error(`Unsupported chain: ${chain}`);
+      }
+
+      const poolContract = this.getPoolContract(chainConfig);
+      const [addresses, amounts] = await poolContract.getTotalTokensBorrowed();
+  
+      const parsedAmounts = amounts.map((amount: ethers.BigNumber) => 
+        Number(ethers.utils.formatUnits(amount, 0))
+      );
+  
+      return {
+        addresses: addresses,
+        amounts: parsedAmounts
+      };
+    } catch (error) {
+      console.error('Error fetching total tokens and their borrowed amounts', error);
+      throw error;
+    }
+  
+  }
+  
+  //get all tokens and supplied amount markets
+  async getTotalTokensAndAMountsSuppliedMarket(
+    chain: SupportedChain
+  ): Promise<TotalTokensBorrowedResponse> {
+  
+    try {
+
+      const chainConfig = chainConfigs[chain];
+      if (!chainConfig) {
+        throw new Error(`Unsupported chain: ${chain}`);
+      }
+
+      const poolContract = this.getPoolContract(chainConfig);
+      const [addresses, amounts] = await poolContract.getTotalTokensSupplied();
+
+      console.log({addresses, amounts})
+  
+      const parsedAmounts = amounts.map((amount: ethers.BigNumber) => 
+        Number(ethers.utils.formatUnits(amount, 0))
+      );
+  
+      return {
+        addresses: addresses,
+        amounts: parsedAmounts
+      };
+    } catch (error) {
+      console.error('Error fetching total tokens and their borrowed amounts', error);
+      throw error;
+    }
+  
+  }
+  
 }
 
 export const bridgeWrapper = new Bridge();
