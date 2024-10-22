@@ -21,15 +21,11 @@ const RepayLoan: React.FC = () => {
   const { address } = useAccount();
   const { data: walletClient } = useWalletClient();
 
-  const {
-    fromToken,
-    tokens,
-    borrowBalance,
-    getTokenInfo,
-  } = useBridge();
+  const { fromToken, tokens, borrowBalance, setBorrowBalance, getTokenInfo } =
+    useBridge();
 
-  const [interest, setInterest] = useState("")
-  const [repayAmount, setRepayAmount] = useState("")
+  const [interest, setInterest] = useState("");
+  const [repayAmount, setRepayAmount] = useState("");
 
   useEffect(() => {
     const tokenInfo = getTokenInfo(fromToken);
@@ -37,19 +33,32 @@ const RepayLoan: React.FC = () => {
       return;
     }
 
-    const handleInterest = async() => {
+    const handleInterest = async () => {
+      
       const result = await lendingPoolWrapper.interestAndRepayAMount(
         tokenInfo.address,
         borrowBalance,
         tokenInfo.originChain
-      )
+      );
 
-      setRepayAmount(result!.totalRepayAmount)
-      setInterest(result!.interest)
-    }
+      if (result && walletClient) {
+        setRepayAmount(result!.totalRepayAmount);
+        setInterest(result!.interest);
 
-    handleInterest()
-  }, [fromToken, borrowBalance, getTokenInfo])
+        const initialBorrow = await lendingPoolWrapper.getUserBorrowedAmount(
+          walletClient.account.address,
+          tokenInfo.address,
+          tokenInfo.originChain
+        );
+
+        if (initialBorrow) {
+          setBorrowBalance(initialBorrow);
+        }
+      }
+    };
+
+    handleInterest();
+  }, [fromToken, borrowBalance, getTokenInfo, setBorrowBalance]);
 
   const handleProceed = () => {
     if (!address || !walletClient) {
@@ -119,7 +128,7 @@ const RepayLoan: React.FC = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-[#9A9A9A] text-xs">Loan Balance</span>
                     <span className="text-[#A6A9B8] text-sm font-bold">
-                      $ {parseFloat(borrowBalance).toFixed(2)}
+                      $ {borrowBalance}
                     </span>
                   </div>
                 </div>
@@ -161,7 +170,10 @@ const RepayLoan: React.FC = () => {
             </div>
           </div>
           <div className="p-4 mt-auto z-10">
-            <button onClick={handleProceed} className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
+            <button
+              onClick={handleProceed}
+              className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200"
+            >
               Proceed
             </button>
           </div>
@@ -198,7 +210,7 @@ const RepayLoan: React.FC = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-[#9A9A9A] text-xs">Loan Balance</span>
                     <span className="text-[#A6A9B8] text-sm font-bold">
-                      $ {parseFloat(borrowBalance).toFixed(2)}
+                      $ {borrowBalance}
                     </span>
                   </div>
                 </div>
@@ -238,7 +250,10 @@ const RepayLoan: React.FC = () => {
                 </div>
               </div>
               <div className="px-6 pb-6 mt-auto z-10">
-                <button onClick={handleProceed} className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
+                <button
+                  onClick={handleProceed}
+                  className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200"
+                >
                   Proceed
                 </button>
               </div>

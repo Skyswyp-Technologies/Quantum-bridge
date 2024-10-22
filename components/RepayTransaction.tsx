@@ -24,6 +24,7 @@ const RepayTransaction: React.FC = () => {
     updateCreditLimit,
     txHash,
     setHash,
+    setBorrowBalance,
   } = useBridge();
 
   const [approveState, setApproveState] = useState<
@@ -93,9 +94,8 @@ const RepayTransaction: React.FC = () => {
 
     try {
       setRepayState("loading");
-      
-      const info = getTokenInfo(fromToken);
 
+      const info = getTokenInfo(fromToken);
 
       if (walletClient && info) {
         const result = await repay(
@@ -108,11 +108,19 @@ const RepayTransaction: React.FC = () => {
         setRepayState("success");
         setIsSuccess(true);
         toast.success("Repayment successful");
-        await getBorrowedBalance(
+
+        const initialBorrow = await lendingPoolWrapper.getUserBorrowedAmount(
           walletClient.account.address,
+          info.address,
           info.originChain
         );
-        await updateCreditLimit(walletClient.account.address, info.originChain);
+
+        if (initialBorrow) {
+          await updateCreditLimit(
+            walletClient.account.address,
+            info.originChain
+          );
+        }
       }
     } catch (error) {
       setRepayState("error");

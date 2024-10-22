@@ -68,7 +68,7 @@ const LendingBorrow: React.FC = () => {
       );
       setHash(result.hash);
       toast.success("Borrow successful");
-      await getBorrowedBalance(address, tokenInfo.originChain);
+      await getBorrowedBalance(address, tokenInfo.address, tokenInfo.originChain);
       await updateCreditLimit(address, tokenInfo.originChain);
       setIsSuccess(true);
     } catch (error) {

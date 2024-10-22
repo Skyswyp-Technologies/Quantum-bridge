@@ -387,9 +387,9 @@ class Bridge {
     )}`;
   }
 
- mintERC20TestTokens= async(
+  mintERC20TestTokens = async (
     params: TokenMintParams
-  ): Promise<MintResult> =>{
+  ): Promise<MintResult> => {
     const {
       tokenAddress,
       recipientAddress,
@@ -397,88 +397,88 @@ class Bridge {
       walletClient,
       amountToMint = "1000",
     } = params;
-  
+
     console.log({ params });
-  
+
     try {
       const chainConfig = chainConfigs[chain!];
       if (!chainConfig) {
         throw new Error(`Unsupported chain: ${chain}`);
       }
-  
+
       const abi = [
         {
           name: "mint",
           type: "function",
           inputs: [
             { name: "to", type: "address" },
-            { name: "amount", type: "uint256" }
+            { name: "amount", type: "uint256" },
           ],
           outputs: [],
-          stateMutability: "nonpayable"
+          stateMutability: "nonpayable",
         },
         {
           name: "balanceOf",
           type: "function",
           inputs: [{ name: "account", type: "address" }],
           outputs: [{ name: "", type: "uint256" }],
-          stateMutability: "view"
+          stateMutability: "view",
         },
         {
           name: "decimals",
           type: "function",
           inputs: [],
           outputs: [{ name: "", type: "uint8" }],
-          stateMutability: "view"
-        }
+          stateMutability: "view",
+        },
       ];
-  
+
       const provider = new ethers.providers.JsonRpcProvider(
         chainConfig.rpcUrl,
         chainConfig.chainId
       );
-  
+
       const tokenContract = new ethers.Contract(tokenAddress, abi, provider);
-  
+
       const contract = new ethers.Contract(
         tokenAddress,
         ["function decimals() view returns (uint8)"],
         provider
       );
-  
+
       const decimals = await contract.decimals();
-  
+
       // Check the current balance of the recipient
       const currentBalance = await tokenContract.balanceOf(recipientAddress);
       const currentBalanceFormatted = ethers.utils.formatUnits(
         currentBalance,
         decimals
       );
-  
+
       if (parseFloat(currentBalanceFormatted) >= 1000) {
         throw new Error(
           "You already have 1000 or more tokens. Please wait 24 hours before requesting more tokens."
         );
       }
-  
+
       const amount = ethers.utils.parseUnits(amountToMint, decimals);
-  
+
       const mintTx = await walletClient.writeContract({
         address: tokenAddress,
         abi: abi,
         functionName: "mint",
         args: [recipientAddress, amount],
       });
-  
-      const receipt = await provider.waitForTransaction(mintTx)
-  
+
+      const receipt = await provider.waitForTransaction(mintTx);
+
       if (!receipt) {
         throw new Error("Transaction receipt not received");
       }
-  
+
       const tokenBalance = await tokenContract.balanceOf(recipientAddress);
       const formattedAmount = ethers.utils.formatUnits(tokenBalance, decimals);
-  
+
       return {
         tokenBalance: formattedAmount,
         recipientAddress,
@@ -488,8 +488,7 @@ class Bridge {
     } catch (error) {
       throw error;
     }
-
-  }
+  };
 }
 
 class LendingPool {
@@ -690,42 +689,47 @@ class LendingPool {
     return ethers.utils.formatUnits(balance, 18);
   }
 
-  async getBorrowedBalance(
+  getUserBorrowedAmount = async (
     userAddress: string,
-    chain: SupportedChain
-  ): Promise<string> {
-    const chainConfig = chainConfigs[chain];
-    if (!chainConfig) {
-      throw new Error(`Unsupported chain: ${chain}`);
-    }
-
-    const poolContract = this.getPoolContract(chainConfig);
-    const balance =
-      await poolContract.getTotalAmountBorrowedInDollars(userAddress);
-    return ethers.utils.formatUnits(balance, 18);
-  }
-
-  // New method to get total supply for a specific token
-  async getTotalSupply(
     tokenAddress: string,
     chain: SupportedChain
-  ): Promise<string> {
+  ) => {
+    try {
+      const chainConfig = chainConfigs[chain];
+      if (!chainConfig) {
+        throw new Error(`Unsupported chain: ${chain}`);
+      }
+
+      const poolContract = this.getPoolContract(chainConfig);
+
+      const balance =
+        await poolContract.getUserTotalAmountBorrowedForTokenInDollars(
+          userAddress,
+          tokenAddress
+        );
+
+      return ethers.utils.formatUnits(balance, 18);
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  // New method to get total supply for a specific token
+  async getTotalMarketupply(chain: SupportedChain): Promise<string> {
     try {
       const chainConfig = chainConfigs[chain];
       if (!chainConfig) {
         throw new Error(`Unsupported chain: ${chain}`);
       }
       const poolContract = this.getPoolContract(chainConfig);
-      const totalSupply =
-        await poolContract.getTotalTokenSupplied(tokenAddress);
-      return totalSupply;
+      const totalSupply = await poolContract.getTotalSupplyInDollars();
+      return ethers.utils.formatUnits(totalSupply, 18);
     } catch (error) {
       throw error;
     }
   }
 
-  // New method to get total borrowed for a specific token
-  getTotalBorrowed = async (tokenAddress: string, chain: SupportedChain) => {
+  getTotalLoanMarket = async (chain: SupportedChain) => {
     try {
       const chainConfig = chainConfigs[chain];
       if (!chainConfig) {
@@ -733,11 +737,10 @@ class LendingPool {
       }
 
       const poolContract = this.getPoolContract(chainConfig);
-      const totalBorrowed =
-        await poolContract.getTotalTokenBorrowed(tokenAddress);
+      const totalBorrowed = await poolContract.getTotalBorrowedInDollars();
 
       if (totalBorrowed) {
-        return totalBorrowed
+        return ethers.utils.formatUnits(totalBorrowed);
       }
     } catch (error) {
       throw error;
@@ -774,24 +777,24 @@ class LendingPool {
     return ethers.utils.formatUnits(creditLimit, 18);
   }
 
-   formatBalance = (balance: string | number) => {
-    const num = typeof balance === 'string' ? parseFloat(balance) : balance;
-    
-    if (num === 0) return '0';
-  
+  formatBalance = (balance: string | number) => {
+    const num = typeof balance === "string" ? parseFloat(balance) : balance;
+
+    if (num === 0) return "0";
+
     // For very small numbers
     if (Math.abs(num) < 1e-6) {
-      const parts = num.toExponential().split('e');
+      const parts = num.toExponential().split("e");
       const mantissa = parseFloat(parts[0]).toFixed(0);
       return mantissa;
     }
-  
+
     // For normal numbers
-    return num.toLocaleString('en-US', {
+    return num.toLocaleString("en-US", {
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+      maximumFractionDigits: 2,
     });
-  }
+  };
 }
 
 export const bridgeWrapper = new Bridge();
