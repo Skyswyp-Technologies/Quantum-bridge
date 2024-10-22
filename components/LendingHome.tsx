@@ -59,6 +59,7 @@ const LendingHome: React.FC = () => {
             "base-sepolia"
           ),
         ]);
+        
         setLastFetchTime(now);
       } catch (error) {
         console.log("unable to fetch user Data on Token Lending:", error);

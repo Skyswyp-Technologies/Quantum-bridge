@@ -801,6 +801,7 @@ export const POOL_ABI = [
   },
   { inputs: [], name: "ERC1967NonPayable", type: "error" },
   { inputs: [], name: "FailedInnerCall", type: "error" },
+  { inputs: [], name: "InsufficientLiquidity", type: "error" },
   { inputs: [], name: "InsufficientTokenAmount", type: "error" },
   { inputs: [], name: "InvalidAmount", type: "error" },
   { inputs: [], name: "InvalidInitialization", type: "error" },
@@ -1232,7 +1233,28 @@ export const POOL_ABI = [
     inputs: [
       { internalType: "address", name: "tokenAddress", type: "address" },
     ],
-    name: "getTokenFrom",
+    name: "getTokenForBorrow",
+    outputs: [
+      {
+        components: [
+          { internalType: "address", name: "tokenAddress", type: "address" },
+          { internalType: "uint256", name: "LTV", type: "uint256" },
+          { internalType: "uint256", name: "stableRate", type: "uint256" },
+          { internalType: "string", name: "name", type: "string" },
+        ],
+        internalType: "struct Pool.Token",
+        name: "",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "tokenAddress", type: "address" },
+    ],
+    name: "getTokenForSupply",
     outputs: [
       {
         components: [
@@ -1368,6 +1390,26 @@ export const POOL_ABI = [
     ],
     name: "getTotalTokenSupplied",
     outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getTotalTokensBorrowed",
+    outputs: [
+      { internalType: "address[]", name: "", type: "address[]" },
+      { internalType: "uint256[]", name: "", type: "uint256[]" },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getTotalTokensSupplied",
+    outputs: [
+      { internalType: "address[]", name: "", type: "address[]" },
+      { internalType: "uint256[]", name: "", type: "uint256[]" },
+    ],
     stateMutability: "view",
     type: "function",
   },
