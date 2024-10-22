@@ -7,13 +7,23 @@ import Header from "./Header";
 import { useAccount } from "wagmi";
 import Navbar from "./Navbar";
 import { useBridge } from "@/context/BridgeContext";
-import debounce from 'lodash/debounce';
+import debounce from "lodash/debounce";
 import { lendingPoolWrapper } from "@/helpers/helpers";
-
+import { useRouter } from "next/navigation";
 
 const LendingHome: React.FC = () => {
+  const router = useRouter();
   const { address } = useAccount();
   const [lastFetchTime, setLastFetchTime] = useState(0);
+
+  const handleSeeAllSupply = () => {
+    router.push("/lending/supply-market");
+  };
+
+  
+  const handleSeeAllLoan = () => {
+    router.push("/lending/loan-market");
+  };
 
   const {
     getSuppliedBalance,
@@ -29,31 +39,41 @@ const LendingHome: React.FC = () => {
     loanMarket,
   } = useBridge();
 
-  const fetchUserData = useCallback(async (userAddress: string) => {
-    const now = Date.now();
-    if (now - lastFetchTime < 60000) { // 1 minute cooldown
-      console.log("Skipping fetch, too soon since last fetch");
-      return;
-    }
+  const fetchUserData = useCallback(
+    async (userAddress: string) => {
+      const now = Date.now();
+      if (now - lastFetchTime < 120000) {
+        // 1 minute cooldown
+        console.log("Skipping fetch, too soon since last fetch");
+        return;
+      }
 
-    try {
-      await Promise.all([
-        getSuppliedBalance(userAddress, "base-sepolia"),
-        getBorrowedBalance(userAddress, "base-sepolia"),
-        updateCreditLimit(userAddress, "base-sepolia"),
-        updateMarketTotals(
-          "0x2816a02000B9845C464796b8c36B2D5D199525d5",
-          "base-sepolia"
-        ),
-      ]);
-      setLastFetchTime(now);
-    } catch (error) {
-      console.log("unable to fetch user Data on Token Lending:", error);
-    }
-  }, [getSuppliedBalance, getBorrowedBalance, updateCreditLimit, updateMarketTotals, lastFetchTime]);
+      try {
+        await Promise.all([
+          getSuppliedBalance(userAddress, "base-sepolia"),
+          getBorrowedBalance(userAddress, "base-sepolia"),
+          updateCreditLimit(userAddress, "base-sepolia"),
+          updateMarketTotals(
+            "0x2816a02000B9845C464796b8c36B2D5D199525d5",
+            "base-sepolia"
+          ),
+        ]);
+        setLastFetchTime(now);
+      } catch (error) {
+        console.log("unable to fetch user Data on Token Lending:", error);
+      }
+    },
+    [
+      getSuppliedBalance,
+      getBorrowedBalance,
+      updateCreditLimit,
+      updateMarketTotals,
+      lastFetchTime,
+    ]
+  );
 
   const debouncedFetchUserData = useMemo(
-    () => debounce(fetchUserData, 1000), // Increased debounce time to 1 second
+    () => debounce(fetchUserData, 500), // Increased debounce time to 1 second
     [fetchUserData]
   );
 
@@ -68,14 +88,26 @@ const LendingHome: React.FC = () => {
     };
   }, [address, setUserAddress, debouncedFetchUserData]);
 
-  
-
-  const formattedSupplyBalance = useMemo(() => lendingPoolWrapper.formatBalance(supplyBalance), [supplyBalance]);
-  const formattedBorrowBalance = useMemo(() => lendingPoolWrapper.formatBalance(borrowBalance), [borrowBalance]);
-  const formattedCreditLimit = useMemo(() => lendingPoolWrapper.formatBalance(creditLimit), [creditLimit]);
-  const formattedSupplyMarket = useMemo(() => lendingPoolWrapper.formatBalance(supplyMarket), [supplyMarket]);
-  const formattedLoanMarket = useMemo(() =>  lendingPoolWrapper.formatBalance(loanMarket), [loanMarket]);
-
+  const formattedSupplyBalance = useMemo(
+    () => lendingPoolWrapper.formatBalance(supplyBalance),
+    [supplyBalance]
+  );
+  const formattedBorrowBalance = useMemo(
+    () => lendingPoolWrapper.formatBalance(borrowBalance),
+    [borrowBalance]
+  );
+  const formattedCreditLimit = useMemo(
+    () => lendingPoolWrapper.formatBalance(creditLimit),
+    [creditLimit]
+  );
+  const formattedSupplyMarket = useMemo(
+    () => lendingPoolWrapper.formatBalance(supplyMarket),
+    [supplyMarket]
+  );
+  const formattedLoanMarket = useMemo(
+    () => lendingPoolWrapper.formatBalance(loanMarket),
+    [loanMarket]
+  );
 
   const MobileDesign = () => {
     return (
@@ -145,32 +177,43 @@ const LendingHome: React.FC = () => {
               ))}
 
               <div className="rounded border border-[#A6A9B880] bg-[#1A1A1A80] p-3 w-full flex flex-col gap-2 justify-center">
-                <span className="text-[#A6A9B8] text-xs font-bold">
+                <span className="text-[#A6A9B8] text-sm font-bold mb-2">
                   Markets
                 </span>
-                <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col gap-1 justify-center">
-                  <div className="flex justify-between items-center">
+                <div className="flex flex-col gap-2">
+                  <div className="flex justify-between items-center ">
                     <span className="text-[#9A9A9A] text-xs">
                       Supply Market
                     </span>
-                    <div className="rounded bg-[#1E1E1E] p-1 font-semibold text-white flex justify-center items-center text-xs cursor-pointer">
-                      $ {formattedSupplyMarket}
+                    <div className="flex items-center gap-2 p-2 bg-[#2A2A2A] rounded">
+                      <span className="text-white text-sm font-semibold">
+                        ${formattedSupplyMarket}
+                      </span>
+                      <button
+                        onClick={handleSeeAllSupply}
+                        className="bg-[#8C8C8C] hover:bg-[#494848] text-[#ffffff] text-xs px-4 py-1 rounded"
+                      >
+                        See All
+                      </button>
                     </div>
                   </div>
-                </div>
-                <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col gap-1 justify-center">
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center ">
                     <span className="text-[#9A9A9A] text-xs">Loan Market</span>
-                    <div className="rounded bg-[#1E1E1E] p-1 font-semibold text-white flex justify-center items-center text-xs cursor-pointer">
-                      $ {formattedLoanMarket}
+                    <div className="flex items-center gap-2 p-2 bg-[#2A2A2A] rounded">
+                      <span className="text-white text-sm font-semibold">
+                        ${formattedLoanMarket}
+                      </span>
+                      <button
+                      onClick={handleSeeAllLoan}
+                      className="bg-[#8C8C8C] hover:bg-[#494848] text-[#ffffff] text-xs px-4 py-1 rounded">
+                        See All
+                      </button>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-
-         
         </div>
       </div>
     );
@@ -213,15 +256,15 @@ const LendingHome: React.FC = () => {
             </div>
 
             <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col gap-1 justify-center">
-                <div className="flex justify-between items-center">
-                  <span className="text-[#9A9A9A] text-xs">
-                    Your Credit Limit
-                  </span>
-                  <span className="text-[#A6A9B8] text-sm font-bold">
-                    $ {formattedCreditLimit}
-                  </span>
-                </div>
+              <div className="flex justify-between items-center">
+                <span className="text-[#9A9A9A] text-xs">
+                  Your Credit Limit
+                </span>
+                <span className="text-[#A6A9B8] text-sm font-bold">
+                  $ {formattedCreditLimit}
+                </span>
               </div>
+            </div>
 
             {/* Other Sections */}
             {["Supply", "Borrow", "Withdraw", "Repay"].map((item) => (
@@ -243,27 +286,42 @@ const LendingHome: React.FC = () => {
 
             {/* Markets */}
             <div className="rounded border border-[#A6A9B880] bg-[#1A1A1A80] p-3 w-full flex flex-col gap-2 justify-center">
-              <span className="text-[#A6A9B8] text-xs font-bold">Markets</span>
-              <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col gap-1 justify-center">
-                <div className="flex justify-between items-center">
-                  <span className="text-[#9A9A9A] text-xs">Supply Market</span>
-                  <div className="rounded bg-[#1E1E1E] p-1 font-semibold text-white flex justify-center items-center text-xs cursor-pointer">
-                    $ {formattedSupplyMarket}
+                <span className="text-[#A6A9B8] text-sm font-bold mb-2">
+                  Markets
+                </span>
+                <div className="flex flex-col gap-2">
+                  <div className="flex justify-between items-center ">
+                    <span className="text-[#9A9A9A] text-xs">
+                      Supply Market
+                    </span>
+                    <div className="flex items-center gap-2 p-2 bg-[#2A2A2A] rounded">
+                      <span className="text-white text-sm font-semibold">
+                        ${formattedSupplyMarket}
+                      </span>
+                      <button
+                        onClick={handleSeeAllSupply}
+                        className="bg-[#8C8C8C] hover:bg-[#494848] text-[#ffffff] text-xs px-4 py-1 rounded"
+                      >
+                        See All
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center ">
+                    <span className="text-[#9A9A9A] text-xs">Loan Market</span>
+                    <div className="flex items-center gap-2 p-2 bg-[#2A2A2A] rounded">
+                      <span className="text-white text-sm font-semibold">
+                        ${formattedLoanMarket}
+                      </span>
+                      <button
+                      onClick={handleSeeAllLoan}
+                      className="bg-[#8C8C8C] hover:bg-[#494848] text-[#ffffff] text-xs px-4 py-1 rounded">
+                        See All
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-              <div className="rounded border border-[#3E4347] bg-[#1A1A1A80] p-2 w-full flex flex-col gap-1 justify-center">
-                <div className="flex justify-between items-center">
-                  <span className="text-[#9A9A9A] text-xs">Loan Market</span>
-                  <div className="rounded bg-[#1E1E1E] p-1 font-semibold text-white flex justify-center items-center text-xs cursor-pointer">
-                    $ {formattedLoanMarket}
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
-
-         
         </div>
       </div>
     </div>

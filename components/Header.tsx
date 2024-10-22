@@ -24,19 +24,24 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
       case "/bridge-transaction":
         return "Bridge Transaction";
       case "/lending":
-      return "Lending";
+        return "Lending";
       case "/lending/borrow":
-      return "Borrow";
+        return "Borrow";
       case "/lending/supply":
         return "Supply";
-        case "/lending/withdraw":
-          return "Withdraw Supply";
-          case "/lending/repay":
-            return "Repay Loan";
-            case "/lending/repay/transaction":
-              return "Repay Transaction";
-            case "/lending/supply/transaction":
-              return "Supply Transaction";
+      case "/lending/supply-market":
+        return "Supply Market";
+      case "/lending/loan-market":
+        return "Loan market";
+      case "/lending/withdraw":
+        return "Withdraw Supply";
+      case "/lending/repay":
+        return "Repay Loan";
+      case "/lending/repay/transaction":
+        return "Repay Transaction";
+      case "/lending/supply/transaction":
+        return "Supply Transaction";
+
       default:
         return "Bridge dApp";
     }
@@ -44,7 +49,7 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
-  }; 
+  };
 
   return (
     <>
@@ -52,21 +57,15 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
         className={`bg-[#000000] text-white h-16 border-b border-b-[#3E4347] ${className}`}
       >
         <div className="container mx-auto flex items-center h-full px-4 justify-between">
-          <div
-            className="cursor-pointer"
-            onClick={toggleSidebar}
-          >
+          <div className="cursor-pointer" onClick={toggleSidebar}>
             <Image src={Menu} alt="menu" width={14} height={10} />
           </div>
           <span className="text-[#A6A9B8] font-bold flex-grow text-center">
             {getHeaderText()}
           </span>
-         
+
           <WalletComponents />
         </div>
-        
-          
-
       </header>
 
       {/* Sidebar */}
@@ -79,12 +78,30 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
           <h2 className="text-[#A6A9B8] text-xl font-bold mb-4">Menu</h2>
           {/* Add your sidebar content here */}
           <div className="text-[#A6A9B8] flex flex-col gap-[2px]">
-            <Link href={"/"} className="mb-2 cursor-pointer hover:text-white">Home</Link>
-            <Link href={"/"} className="mb-2 cursor-pointer hover:text-white">Bridge</Link>
-            <Link href={"/faucet"} className="mb-2 cursor-pointer hover:text-white">Faucet</Link>
-            <Link href={"/domain"} className="mb-2 cursor-pointer hover:text-white">Domains</Link>
-            <Link href={"/lending"} className="mb-2 cursor-pointer hover:text-white">Lending</Link>
-
+            <Link href={"/"} className="mb-2 cursor-pointer hover:text-white">
+              Home
+            </Link>
+            <Link href={"/"} className="mb-2 cursor-pointer hover:text-white">
+              Bridge
+            </Link>
+            <Link
+              href={"/faucet"}
+              className="mb-2 cursor-pointer hover:text-white"
+            >
+              Faucet
+            </Link>
+            <Link
+              href={"/domain"}
+              className="mb-2 cursor-pointer hover:text-white"
+            >
+              Domains
+            </Link>
+            <Link
+              href={"/lending"}
+              className="mb-2 cursor-pointer hover:text-white"
+            >
+              Lending
+            </Link>
           </div>
         </div>
       </div>

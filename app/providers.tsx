@@ -9,11 +9,11 @@ import { baseSepolia, sepolia } from "wagmi/chains";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { Config } from "@/config/config";
 
-export function Providers(props: { children: ReactNode; inialState?: State }) {
+export function Providers(props: { children: ReactNode; initialState?: State }) {
   const [config] = useState(() => getConfig());
   const [queryClient] = useState(() => new QueryClient());
   return (
-    <WagmiProvider config={config} initialState={props.inialState}>
+    <WagmiProvider config={config} initialState={props.initialState}>
       <QueryClientProvider client={queryClient}>
         <OnchainKitProvider apiKey={Config.ONCHAINKIT} chain={baseSepolia}>
           {props.children}

@@ -57,7 +57,7 @@ const AssetSelector = () => {
         </div>
 
         {/* Token List - ensure vertical scroll */}
-        <div className='flex flex-col gap-3 overflow-y-auto z-10 p-4 flex-grow h-[calc(100vh-300px)]'>
+        <div className='flex flex-col gap-3 overflow-y-auto z-10 p-1 flex-grow h-[calc(100vh-300px)]'>
           {filteredTokens.map((token) => (
             <div 
               key={token.id}
