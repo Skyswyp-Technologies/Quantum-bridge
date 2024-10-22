@@ -41,7 +41,9 @@ const LendingBorrow: React.FC = () => {
     setHash,
   } = useBridge();
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [borrowState, setBorrowState] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
   const [isSuccess, setIsSuccess] = useState(false);
 
   const handleBorrow = async () => {
@@ -56,9 +58,9 @@ const LendingBorrow: React.FC = () => {
       return;
     }
 
-    console.log("tokenInfo borrow", tokenInfo)
+    console.log("tokenInfo borrow", tokenInfo);
 
-    setIsLoading(true);
+    setBorrowState("loading");
     try {
       const result = await borrow(
         tokenInfo.address,
@@ -66,17 +68,44 @@ const LendingBorrow: React.FC = () => {
         walletClient,
         tokenInfo.originChain
       );
-      setHash(result.hash);
-      toast.success("Borrow successful");
-      await getBorrowedBalance(address, tokenInfo.address, tokenInfo.originChain);
-      await updateCreditLimit(address, tokenInfo.originChain);
-      setIsSuccess(true);
+
+      if (!result.hash) {
+        setBorrowState("error");
+        toast.error("Borrow failed");
+      } else {
+        setHash(result.hash);
+        await getBorrowedBalance(
+          address,
+          tokenInfo.address,
+          tokenInfo.originChain
+        );
+        await updateCreditLimit(address, tokenInfo.originChain);
+        setBorrowState("success");
+        setIsSuccess(true);
+        toast.success("Borrow successful");
+      }
     } catch (error) {
       console.error("Borrow error:", error);
-      toast.error("Borrow failed");
-    } finally {
-      setIsLoading(false);
+      setBorrowState("error");
+      toast.error("Borrow failed. Please try again.");
     }
+  };
+
+  const getButtonText = () => {
+    switch (borrowState) {
+      case "loading":
+        return "Borrowing...";
+      case "error":
+        return "Retry Borrow";
+      case "success":
+        return "Success";
+      default:
+        return "Proceed";
+    }
+  };
+
+  const isButtonDisabled = () => {
+    return borrowState === "loading" || !fromToken || amount <= 0;
   };
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -142,6 +171,36 @@ const LendingBorrow: React.FC = () => {
       </div>
     );
   };
+
+  const TransactionStatus = () => (
+    <>
+      {borrowState !== "idle" && (
+        <div
+          className={`rounded border ${
+            borrowState === "error" ? "border-red-500" : "border-[#3E4347]"
+          } bg-[#1A1A1A80] p-2 w-full flex justify-between items-center`}
+        >
+          <div className="flex flex-col gap-1">
+            <span className="text-[#A6A9B8] text-xs">Borrow Status</span>
+            <span className="text-[#A6A9B8] text-xs">
+              {borrowState === "loading"
+                ? "Processing borrow request..."
+                : borrowState === "error"
+                  ? "Borrow failed"
+                  : "Borrow successful"}
+            </span>
+          </div>
+          {borrowState === "loading" && (
+            <span className="text-yellow-500">Loading...</span>
+          )}
+          {borrowState === "success" && (
+            <span className="text-green-500">✓</span>
+          )}
+          {borrowState === "error" && <span className="text-red-500">✗</span>}
+        </div>
+      )}
+    </>
+  );
 
   const MobileDesign = () => {
     const selectedToken = tokens.find((t) => t.id === fromToken);
@@ -288,16 +347,34 @@ const LendingBorrow: React.FC = () => {
                         </span>
                       </div>
                     </div>
+                    <TransactionStatus />
                   </div>
                 </div>
               </div>
               <div className="p-4 mt-auto z-10">
-                <button
-                  onClick={handleBorrow}
-                  className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200"
-                >
-                  Proceed
-                </button>
+                {isSuccess ? (
+                  <Link href="/lending">
+                    <button className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
+                      Back to Lending
+                    </button>
+                  </Link>
+                ) : (
+                  <button
+                    onClick={handleBorrow}
+                    disabled={isButtonDisabled()}
+                    className={`w-full py-3 rounded-full font-bold text-lg ${
+                      isButtonDisabled()
+                        ? "bg-gray-500 text-gray-300 cursor-not-allowed"
+                        : borrowState === "success"
+                          ? "bg-green-500 text-white"
+                          : borrowState === "error"
+                            ? "bg-red-500 text-white hover:bg-red-600"
+                            : "bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] text-white hover:bg-gradient-to-l"
+                    } transition-colors duration-200`}
+                  >
+                    {getButtonText()}
+                  </button>
+                )}
               </div>
             </>
           )}
@@ -455,14 +532,33 @@ const LendingBorrow: React.FC = () => {
                         </span>
                       </div>
                     </div>
+
+                    <TransactionStatus />
                   </div>
                   <div className="px-6 pb-6 mt-auto z-10">
-                    <button
-                      onClick={handleBorrow}
-                      className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200"
-                    >
-                      Proceed
-                    </button>
+                    {isSuccess ? (
+                      <Link href="/lending">
+                        <button className="w-full bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] py-3 rounded-full font-bold text-lg text-white hover:bg-gradient-to-l transition-colors duration-200">
+                          Back to Lending
+                        </button>
+                      </Link>
+                    ) : (
+                      <button
+                        onClick={handleBorrow}
+                        disabled={isButtonDisabled()}
+                        className={`w-full py-3 rounded-full font-bold text-lg ${
+                          isButtonDisabled()
+                            ? "bg-gray-500 text-gray-300 cursor-not-allowed"
+                            : borrowState === "success"
+                              ? "bg-green-500 text-white"
+                              : borrowState === "error"
+                                ? "bg-red-500 text-white hover:bg-red-600"
+                                : "bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] text-white hover:bg-gradient-to-l"
+                        } transition-colors duration-200`}
+                      >
+                        {getButtonText()}
+                      </button>
+                    )}
                   </div>
                 </>
               )}

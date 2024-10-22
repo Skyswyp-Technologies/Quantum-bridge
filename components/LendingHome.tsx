@@ -42,7 +42,7 @@ const LendingHome: React.FC = () => {
   const fetchUserData = useCallback(
     async (userAddress: string) => {
       const now = Date.now();
-      if (now - lastFetchTime < 120000) {
+      if (now - lastFetchTime < 60000) {
         // 1 minute cooldown
         console.log("Skipping fetch, too soon since last fetch");
         return;

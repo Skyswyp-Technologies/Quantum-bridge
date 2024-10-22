@@ -141,18 +141,39 @@ const RepayTransaction: React.FC = () => {
   };
 
   const getButtonText = () => {
-    if (approveState === "idle" || approveState === "error") return "Approve";
+    if (approveState === "idle") return "Approve";
     if (approveState === "loading") return "Approving...";
+    if (approveState === "error") return "Retry Approve";
     if (approveState === "success" && repayState === "idle") return "Repay";
     if (repayState === "loading") return "Repaying...";
     if (repayState === "error") return "Retry Repay";
-    if (isSuccess) return "Back to Lending";
-    return "Retry";
+    if (repayState === "success") return "Back to Lending";
+    return "Proceed";
+  };
+
+  const getButtonStyle = () => {
+    if (isButtonDisabled()) {
+      return "bg-gray-500 text-gray-300 cursor-not-allowed";
+    }
+    if (approveState === "error" || repayState === "error") {
+      return "bg-red-500 text-white hover:bg-red-600";
+    }
+    if (repayState === "success") {
+      return "bg-green-500 text-white";
+    }
+    return "bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] text-white hover:bg-gradient-to-l";
   };
 
   const isButtonDisabled = () => {
-    return approveState === "loading" || repayState === "loading";
+    return (
+      approveState === "loading" ||
+      repayState === "loading" ||
+      !walletClient?.account ||
+      !fromToken ||
+      parseFloat(repayAmount) <= 0
+    );
   };
+
 
   const TransactionContent = () => (
     <div className="space-y-3">
