@@ -191,8 +191,8 @@ const LendingBorrow: React.FC = () => {
             </span>
           </div>
           {borrowState === "loading" && (
-            <span className="text-yellow-500">Loading...</span>
-          )}
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-b-transparent border-white" />
+            )}
           {borrowState === "success" && (
             <span className="text-green-500">✓</span>
           )}

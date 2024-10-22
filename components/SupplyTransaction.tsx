@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -30,8 +30,12 @@ const SupplyTransaction: React.FC = () => {
     setHash,
   } = useBridge();
 
-  const [approveState, setApproveState] = useState<"idle" | "loading" | "success" | "error">("idle");
-  const [supplyState, setSupplyState] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [approveState, setApproveState] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
+  const [supplyState, setSupplyState] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
   const [isSuccess, setIsSuccess] = useState(false);
 
   const selectedToken = tokens.find((t) => t.id === fromToken);
@@ -46,7 +50,6 @@ const SupplyTransaction: React.FC = () => {
       setApproveState("loading");
       const info = getTokenInfo(fromToken);
       if (walletClient) {
-        
         const approveTx = await bridgeWrapper.approveBridge(
           Config.POOL_CONTRACT_ADDRESS,
           info!.address,
@@ -93,8 +96,14 @@ const SupplyTransaction: React.FC = () => {
           setSupplyState("success");
           setIsSuccess(true);
           toast.success("Supply successful");
-          await getSuppliedBalance(walletClient.account.address, info!.originChain);
-          await updateCreditLimit(walletClient.account.address, info!.originChain);
+          await getSuppliedBalance(
+            walletClient.account.address,
+            info!.originChain
+          );
+          await updateCreditLimit(
+            walletClient.account.address,
+            info!.originChain
+          );
         }
       }
     } catch (error) {
@@ -131,25 +140,39 @@ const SupplyTransaction: React.FC = () => {
 
   const TransactionContent = () => (
     <div className="space-y-3">
-      <div className={`rounded border ${approveState === "error" ? "border-red-500" : "border-[#3E4347]"} bg-[#1A1A1A80] p-2 w-full h-[58px] flex justify-between items-center`}>
+      <div
+        className={`rounded border ${approveState === "error" ? "border-red-500" : "border-[#3E4347]"} bg-[#1A1A1A80] p-2 w-full h-[58px] flex justify-between items-center`}
+      >
         <div className="flex flex-col gap-1">
           <span className="text-[#A6A9B8] text-xs">Approve Token</span>
           <span className="text-[#A6A9B8] text-xs">Approve in wallet</span>
         </div>
-        {approveState === "loading" && <span className="text-yellow-500">Loading...</span>}
-        {approveState === "success" && <span className="text-green-500">✓</span>}
+        {approveState === "loading" && (
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-b-transparent border-white" />
+        )}
+        {approveState === "success" && (
+          <span className="text-green-500">✓</span>
+        )}
         {approveState === "error" && <span className="text-red-500">✗</span>}
       </div>
 
-      <div className={`rounded border ${supplyState === "error" ? "border-red-500" : "border-[#3E4347]"} bg-[#1A1A1A80] p-2 w-full h-[58px] flex justify-between items-center`}>
+      <div
+        className={`rounded border ${supplyState === "error" ? "border-red-500" : "border-[#3E4347]"} bg-[#1A1A1A80] p-2 w-full h-[58px] flex justify-between items-center`}
+      >
         <div className="flex flex-col gap-1">
           <span className="text-[#A6A9B8] text-xs">Supply Token</span>
-          <span className="text-[#A6A9B8] text-xs">Supplying token to pool</span>
+          <span className="text-[#A6A9B8] text-xs">
+            Supplying token to pool
+          </span>
         </div>
         {approveState === "success" && (
           <>
-            {supplyState === "loading" && <span className="text-yellow-500">Loading...</span>}
-            {supplyState === "success" && <span className="text-green-500">✓</span>}
+            {supplyState === "loading" && (
+              <span className="text-yellow-500">Loading...</span>
+            )}
+            {supplyState === "success" && (
+              <span className="text-green-500">✓</span>
+            )}
             {supplyState === "error" && <span className="text-red-500">✗</span>}
           </>
         )}
@@ -157,12 +180,18 @@ const SupplyTransaction: React.FC = () => {
 
       {isSuccess ? (
         <div className="rounded border border-[#A6A9B880] bg-[#1A1A1ACC] p-2 w-full flex flex-col gap-3 justify-center">
-          <span className="text-[#A6A9B8] text-xs font-bold">Transaction Successful</span>
+          <span className="text-[#A6A9B8] text-xs font-bold">
+            Transaction Successful
+          </span>
           <div className="flex flex-col">
-            <span className="text-[#A6A9B8] text-xs font-bold">Supply Details</span>
+            <span className="text-[#A6A9B8] text-xs font-bold">
+              Supply Details
+            </span>
             <div className="flex justify-between items-center mt-2">
               <span className="text-[#9A9A9A] text-sm">Supplied Amount:</span>
-              <span className="text-white text-sm">{amount} {tokenSymbol}</span>
+              <span className="text-white text-sm">
+                {amount} {tokenSymbol}
+              </span>
             </div>
             <div className="flex justify-between items-center mt-1">
               <span className="text-[#9A9A9A] text-sm">USD Value:</span>
@@ -170,16 +199,29 @@ const SupplyTransaction: React.FC = () => {
             </div>
             <div className="flex justify-between items-center mt-1">
               <span className="text-[#9A9A9A] text-sm">APY:</span>
-              <span className="text-white text-sm">{(apy * 100).toFixed(2)}%</span>
+              <span className="text-white text-sm">
+                {(apy * 100).toFixed(2)}%
+              </span>
             </div>
             <div className="flex justify-between items-center mt-1">
-              <span className="text-[#9A9A9A] text-sm">Estimated Yearly Earnings:</span>
-              <span className="text-white text-sm">$ {calculatedRewards.toFixed(2)}</span>
+              <span className="text-[#9A9A9A] text-sm">
+                Estimated Yearly Earnings:
+              </span>
+              <span className="text-white text-sm">
+                $ {calculatedRewards.toFixed(2)}
+              </span>
             </div>
-            <span className="text-[#A6A9B8] text-xs font-bold mt-4">Transaction Details</span>
+            <span className="text-[#A6A9B8] text-xs font-bold mt-4">
+              Transaction Details
+            </span>
             <div className="mt-2">
               <span className="text-[#9A9A9A] text-sm">Transaction Hash:</span>
-              <a href={`https://sepolia.basescan.org/tx/${txHash}`} target="_blank" rel="noopener noreferrer" className="text-blue-500 text-sm ml-2 break-all">
+              <a
+                href={`https://sepolia.basescan.org/tx/${txHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 text-sm ml-2 break-all"
+              >
                 {txHash}
               </a>
             </div>
@@ -189,21 +231,25 @@ const SupplyTransaction: React.FC = () => {
         <div className="rounded border border-[#A6A9B880] bg-[#1A1A1ACC] p-2 w-full flex flex-col gap-1 justify-center">
           <span className="text-[#A6A9B8] text-xs font-bold">You supply</span>
           <div className="flex justify-between items-center">
-            <span className="text-[#9A9A9A] text-xl">{amount} {tokenSymbol}</span>
-            <span className="text-[#A6A9B8] text-xs">$ {amount.toFixed(2)}</span>
+            <span className="text-[#9A9A9A] text-xl">
+              {amount} {tokenSymbol}
+            </span>
+            <span className="text-[#A6A9B8] text-xs">
+              $ {amount.toFixed(2)}
+            </span>
           </div>
           <span className="text-[#A6A9B8] text-xs font-bold">
-                    Calculated Rewards
-                  </span>
+            Calculated Rewards
+          </span>
 
-                  <div className="flex justify-between items-center">
-                    <span className="text-[#9A9A9A] text-xl">
-                      {calculatedRewards.toFixed(4)} {tokenSymbol}
-                    </span>
-                    <span className="text-[#A6A9B8] text-xs">
-                      $ {rewardsInUSD.toFixed(2)}
-                    </span>
-                    </div>
+          <div className="flex justify-between items-center">
+            <span className="text-[#9A9A9A] text-xl">
+              {calculatedRewards.toFixed(4)} {tokenSymbol}
+            </span>
+            <span className="text-[#A6A9B8] text-xs">
+              $ {rewardsInUSD.toFixed(2)}
+            </span>
+          </div>
         </div>
       )}
     </div>
@@ -214,7 +260,13 @@ const SupplyTransaction: React.FC = () => {
       <Header />
       <div className="flex-grow flex flex-col m-4 h-[calc(100vh-64px)] rounded-3xl border border-[#3E4347] relative">
         <div className="absolute inset-0 z-0">
-          <Image src="/wave.png" alt="wave background" layout="fill" objectFit="cover" quality={100} />
+          <Image
+            src="/wave.png"
+            alt="wave background"
+            layout="fill"
+            objectFit="cover"
+            quality={100}
+          />
           <div className="absolute w-[59px] h-[223px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-radial-glow from-[#6AEFFF33] to-[#6AEFFF] opacity-60 blur-3xl"></div>
         </div>
         <div className="flex-grow py-6 px-4 flex flex-col space-y-4 z-10 overflow-y-auto">
@@ -244,7 +296,13 @@ const SupplyTransaction: React.FC = () => {
         <div className="w-full flex items-center justify-center">
           <div className="w-[360px] h-[calc(100vh-75px)] bg-[#000000] rounded-3xl border border-[#3E4347] overflow-hidden flex flex-col relative">
             <div className="absolute inset-0 z-0">
-              <Image src="/wave.png" alt="wave background" layout="fill" objectFit="cover" quality={100} />
+              <Image
+                src="/wave.png"
+                alt="wave background"
+                layout="fill"
+                objectFit="cover"
+                quality={100}
+              />
               <div className="absolute w-[59px] h-[223px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-radial-glow from-[#6AEFFF33] to-[#6AEFFF] opacity-60 blur-3xl"></div>
             </div>
             <div className="flex-grow py-6 px-4 flex flex-col space-y-4 z-10 overflow-y-auto">

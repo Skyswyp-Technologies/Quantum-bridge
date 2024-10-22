@@ -187,7 +187,7 @@ const RepayTransaction: React.FC = () => {
           <span className="text-[#A6A9B8] text-xs">Approve in wallet</span>
         </div>
         {approveState === "loading" && (
-          <span className="text-yellow-500">Loading...</span>
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-b-transparent border-white" />
         )}
         {approveState === "success" && (
           <span className="text-green-500">✓</span>
@@ -209,7 +209,7 @@ const RepayTransaction: React.FC = () => {
         {approveState === "success" && (
           <>
             {repayState === "loading" && (
-              <span className="text-yellow-500">Loading...</span>
+               <div className="animate-spin rounded-full h-8 w-8 border-2 border-b-transparent border-white" />
             )}
             {repayState === "success" && (
               <span className="text-green-500">✓</span>
