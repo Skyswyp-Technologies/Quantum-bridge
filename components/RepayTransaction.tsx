@@ -153,15 +153,15 @@ const RepayTransaction: React.FC = () => {
 
   const getButtonStyle = () => {
     if (isButtonDisabled()) {
-      return "bg-gray-500 text-gray-300 cursor-not-allowed";
+      return "bg-gray-500 text-gray-300 cursor-not-allowed w-full py-3 rounded-full font-bold text-lg";
     }
     if (approveState === "error" || repayState === "error") {
-      return "bg-red-500 text-white hover:bg-red-600";
+      return "bg-red-500 text-white hover:bg-red-600 w-full py-3 rounded-full font-bold text-lg";
     }
     if (repayState === "success") {
-      return "bg-green-500 text-white";
+      return "bg-green-500 text-white w-full py-3 rounded-full font-bold text-lg";
     }
-    return "bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] text-white hover:bg-gradient-to-l";
+    return "bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] text-white hover:bg-gradient-to-l w-full py-3 rounded-full font-bold text-lg";
   };
 
   const isButtonDisabled = () => {
@@ -173,7 +173,6 @@ const RepayTransaction: React.FC = () => {
       parseFloat(repayAmount) <= 0
     );
   };
-
 
   const TransactionContent = () => (
     <div className="space-y-3">
@@ -187,7 +186,7 @@ const RepayTransaction: React.FC = () => {
           <span className="text-[#A6A9B8] text-xs">Approve in wallet</span>
         </div>
         {approveState === "loading" && (
-            <div className="animate-spin rounded-full h-8 w-8 border-2 border-b-transparent border-white" />
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-b-transparent border-white" />
         )}
         {approveState === "success" && (
           <span className="text-green-500">✓</span>
@@ -209,7 +208,7 @@ const RepayTransaction: React.FC = () => {
         {approveState === "success" && (
           <>
             {repayState === "loading" && (
-               <div className="animate-spin rounded-full h-8 w-8 border-2 border-b-transparent border-white" />
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-b-transparent border-white" />
             )}
             {repayState === "success" && (
               <span className="text-green-500">✓</span>
@@ -317,11 +316,7 @@ const RepayTransaction: React.FC = () => {
           <button
             onClick={handleButtonClick}
             disabled={isButtonDisabled()}
-            className={`w-full py-3 rounded-full font-bold text-lg ${
-              isButtonDisabled()
-                ? "bg-gray-500 text-gray-300 cursor-not-allowed"
-                : "bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] text-white hover:bg-gradient-to-l"
-            } transition-colors duration-200`}
+            className={getButtonStyle()}
           >
             {getButtonText()}
           </button>
@@ -353,14 +348,10 @@ const RepayTransaction: React.FC = () => {
               <button
                 onClick={handleButtonClick}
                 disabled={isButtonDisabled()}
-                className={`w-full py-3 rounded-full font-bold text-lg ${
-                  isButtonDisabled()
-                    ? "bg-gray-500 text-gray-300 cursor-not-allowed"
-                    : "bg-gradient-to-r from-[#6AEFFF] to-[#2859A9] text-white hover:bg-gradient-to-l"
-                } transition-colors duration-200`}
+                className={getButtonStyle()}
               >
                 {getButtonText()}
-              </button>
+              </button>            
             </div>
           </div>
         </div>
