@@ -16,7 +16,7 @@ const chainConfigs: Record<SupportedChain, ChainConfig> = {
     destinationChain: "eth-sepolia",
   },
   "base-sepolia": {
-    rpcUrl: "https://go.getblock.io/5975e5a3dacc4bdf81d325d0e511782e",
+    rpcUrl: "https://go.getblock.io/9a6b3baa6d71432f9e0c4b081ca0b0f1",
     chainId: 84532,
     destinationChain: "base-sepolia",
   },
